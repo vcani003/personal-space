@@ -1,0 +1,101 @@
+/* =============================================================================
+   FONTS — self-hosted only
+   =============================================================================
+
+   No third-party font requests at runtime. There is no `fonts.googleapis.com`
+   link tag anywhere in this project and there must not be one.
+
+   Files live in `public/assets/fonts/` and are referenced with root-absolute
+   URLs. Vite rewrites `/assets/...` in CSS to the configured `base` at build
+   time, so these resolve correctly under a GitHub Pages project subpath. Do
+   not "fix" these to relative paths — that breaks the rebasing.
+
+   -----------------------------------------------------------------------------
+   PP EIKO — TRIAL LICENCE, FREE FOR PERSONAL USE ONLY
+   -----------------------------------------------------------------------------
+   We hold the Pangram Pangram *Free For Personal Use* trial. Consequences,
+   all of them binding:
+
+     - The .otf files are GITIGNORED and never committed. See .gitignore.
+     - The site is NEVER deployed with Eiko bundled until a licence is bought.
+       A production build simply will not contain the files, and the fallback
+       stack below is what the world sees. That is intended, not a bug.
+     - The .otf is loaded directly. No conversion, no subsetting, no
+       redistribution in any other format.
+     - The trial ships Thin / Medium / Heavy upright and Light Italic /
+       Black Italic. There is no upright Light. Thin is the display weight;
+       Heavy is almost certainly wrong for this site.
+
+   SWAPPING IN A LICENSED WOFF2 LATER: replace the `src:` lines in the three
+   blocks below with the woff2 URLs and drop the `format("opentype")`. Nothing
+   outside this file changes — `--font-display` in tokens.css already points at
+   the family name.
+   ========================================================================== */
+
+@font-face {
+  font-family: "PP Eiko";
+  src: url("/assets/fonts/PPEiko-Thin.otf") format("opentype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PP Eiko";
+  src: url("/assets/fonts/PPEiko-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Reserved for ONE concentrated use — a single quote or one line of poetic
+   copy. Using it twice spends its effect. */
+@font-face {
+  font-family: "PP Eiko";
+  src: url("/assets/fonts/PPEiko-LightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* =============================================================================
+   INSTRUMENT SANS — SIL Open Font License 1.1, safe to commit
+   -----------------------------------------------------------------------------
+   Variable font: weight 400–700, width 75–100%. Self-hosted, split latin /
+   latin-ext exactly as Google Fonts serves it so the extended range is only
+   fetched when a document actually needs it.
+
+   Licence text ships alongside the files at
+   `public/assets/fonts/InstrumentSans-OFL.txt` — the OFL requires it to
+   travel with the fonts. Do not delete it.
+
+   Only the upright is bundled. Italic exists upstream but this project has no
+   use for it: the one reserved italic moment belongs to PP Eiko Light Italic.
+   ========================================================================== */
+
+/* latin */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/assets/fonts/InstrumentSans-Variable-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75% 100%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin-ext */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/assets/fonts/InstrumentSans-Variable-latin-ext.woff2")
+    format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75% 100%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}

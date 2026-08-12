@@ -1,0 +1,216 @@
+/* =============================================================================
+   THE ATMOSPHERE ROOT — layer 0 and the film
+   =============================================================================
+
+   WHY THE ROOT SITS AT A NEGATIVE Z-INDEX
+
+   The page content in Home.tsx is static, in-flow markup with no z-index of
+   its own. In CSS painting order, in-flow content is painted BEFORE any
+   positioned descendant with `z-index: 0` or greater — so an atmosphere layer
+   at `--layer-1-stars` (10) would paint on top of the quote, not behind it.
+   Giving the content a positive z-index instead would mean editing files this
+   agent does not own.
+
+   So the root sits one step below the depth model, and the model's own
+   ordering is preserved INSIDE it: field 0, stars 10, haze 20, grain 22. The
+   page's content is then "layer 3" by virtue of being in front of the whole
+   thing, exactly as the model says. Layers 4 and 5 — mid-depth objects and the
+   occasional foreground object — will need a SECOND root at a positive
+   z-index, since those belong in front of the content. This root is the
+   "behind" half of the model, and it is deliberately named for that.
+
+   WHY ONE ROOT, NOT SEVERAL
+
+   The grain uses `mix-blend-mode`, and blending is isolated to the nearest
+   stacking context. This element creates one (positioned, non-auto z-index),
+   so the grain blends with exactly the field, stars and haze inside it and
+   with nothing else. Split these across sibling roots and the grain silently
+   stops seeing the layers it is supposed to be sitting on.
+
+   WHY NOTHING IS `position: fixed`
+
+   Two reasons. The composition is authored against the document (see
+   composition.ts), so a viewport-locked layer would be a different coordinate
+   system to reason about. And `overflow: clip` below cannot be trusted to
+   clip fixed descendants — without clipping, a haze mass bleeding past the
+   last section would extend the document's scrollable area and add dead
+   scroll space to the bottom of the page.
+   ========================================================================== */
+
+.root {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  /* Published by usePageExtent. The fallback is one viewport, which degrades
+     to "atmosphere at the top of the page, plain ink below" rather than to
+     anything broken. */
+  block-size: var(--atmosphere-page-block-size, 100%);
+
+  /* One step behind the whole depth model. */
+  z-index: var(--layer-behind);
+
+  /* Contains bleed instead of turning it into scrollable overflow. `clip`
+     rather than `hidden`: no scroll container, no scroll offset, no chance of
+     the atmosphere becoming something that can be scrolled. */
+  overflow: clip;
+
+  /* Content stays clickable. Nothing in here is ever a target. */
+  pointer-events: none;
+
+  /* -- THE VIEWING OFFSET ---------------------------------------------------
+     `--pointer-x` / `--pointer-y` are the raw signal published by pointer.ts
+     on the document element: unitless −1…1, viewport left→right and top→
+     bottom, centre 0. Everything in the atmosphere multiplies the DERIVED
+     pair below instead, and the derivation is one thing — the sign.
+
+     The world moves AGAINST the pointer, not with it. Both directions produce
+     the same relative differential between depths, so both technically "read
+     as depth"; the difference is what the whole field appears to be doing.
+     Moving with the pointer reads as attraction — the sky leaning toward the
+     cursor, which is a mouse effect. Moving against it is what a viewer
+     stepping sideways in front of a window actually sees: everything shifts
+     the other way, near things by more. That is the diorama, and it is the
+     one that stays invisible as an effect.
+
+     Defined once, here, and inherited by every layer. Nothing downstream
+     negates anything or knows about the pointer at all.
+     ------------------------------------------------------------------------ */
+  --parallax-x: calc(var(--pointer-x, 0) * -1);
+  --parallax-y: calc(var(--pointer-y, 0) * -1);
+}
+
+/* ---------------------------------------------------------------------------
+   LAYER 0 — THE DEEP TONAL FIELD
+   -----------------------------------------------------------------------------
+   Two gradients over an opaque base, and the whole range of movement is about
+   three values out of 255. It should not be possible to see this as a
+   gradient; it should only be possible to notice that the page is not equally
+   dark everywhere.
+
+   The vertical progression is composed against the MEASURED page (see the map
+   at the top of composition.ts):
+
+     0–12%      a whisper of lift, the sky above and behind the name
+     12–38%     plain ink, where the about prose and the journal sit
+     46–54%     the DEEPEST point on the page — THE QUOTE (48–50.5%) and the
+                inner half of its 224px of silence. That silence is the
+                composition's most expensive gesture; the field is darkest
+                there so it reads as depth rather than as absence.
+     64–84%     back to plain ink, and no lift of any kind. THE PLAYER
+                (68.6–75.3%) and the drawing slot (70.4–80.3%) live here. The
+                player is a lit object and it needs unlit space around it;
+                anything raising the local luminance eats its silhouette.
+     100%       deeper again, so the page ends further away than it began.
+
+   The horizontal gradient is a vignette. It is a lens, not a decoration: it
+   keeps the far edges of the page from competing with the centre, and it eats
+   most of the two stars deliberately placed out there.
+   ------------------------------------------------------------------------ */
+
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: var(--layer-0-field);
+
+  background-color: var(--color-background);
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(from var(--color-background-deep) r g b / 0.55) 0%,
+      rgb(from var(--color-background-deep) r g b / 0) 15%,
+      rgb(from var(--color-background-deep) r g b / 0) 85%,
+      rgb(from var(--color-background-deep) r g b / 0.55) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(from var(--tone-charcoal) r g b / 0.38) 0%,
+      rgb(from var(--tone-charcoal) r g b / 0) 12%,
+      rgb(from var(--color-background-deep) r g b / 0) 38%,
+      rgb(from var(--color-background-deep) r g b / 0.9) 46%,
+      rgb(from var(--color-background-deep) r g b / 0.9) 54%,
+      rgb(from var(--color-background-deep) r g b / 0) 64%,
+      rgb(from var(--color-background-deep) r g b / 0) 84%,
+      rgb(from var(--color-background-deep) r g b / 0.7) 100%
+    );
+}
+
+/* Narrow gets its own field, for two reasons.
+   The vignette comes off: at 390px its 15% inset lands inside the 32px gutter
+   and starts darkening the field directly behind the text column, and a single
+   column has no far edges worth suppressing anyway.
+   The stops move: the narrow page is 3662px and its landmarks sit at different
+   fractions — the quote at 46.6–48.2%, the player and drawing slot spanning
+   61.5–81.5%. Reusing the wide stops would put the page's darkest band under
+   the project link and lift the field behind the player. */
+@media (max-width: 47.9375rem) {
+  .field {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(from var(--tone-charcoal) r g b / 0.34) 0%,
+      rgb(from var(--tone-charcoal) r g b / 0) 12%,
+      rgb(from var(--color-background-deep) r g b / 0) 38%,
+      rgb(from var(--color-background-deep) r g b / 0.85) 45%,
+      rgb(from var(--color-background-deep) r g b / 0.85) 51%,
+      rgb(from var(--color-background-deep) r g b / 0) 58%,
+      rgb(from var(--color-background-deep) r g b / 0) 84%,
+      rgb(from var(--color-background-deep) r g b / 0.7) 100%
+    );
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   FILM GRAIN — over the atmosphere, under the content
+   -----------------------------------------------------------------------------
+   Static. Grain that animates is a screen effect; grain that sits still is a
+   material. It also does real structural work: gradients this dark band badly
+   on 8-bit displays, and fine noise is the standard cure. The haze and the
+   field are legible partly because the grain is breaking them up.
+
+   It sits at layer 2, BELOW the page content, which is deliberate. Film grain
+   over the top of everything is the more photographic choice, but this page is
+   set in a hairline serif at 100 weight, and noise laid over hairlines eats
+   them. The darkness is grained; the type is not.
+
+   The texture is an inline SVG `feTurbulence` — no image request, no canvas,
+   no dependency, and it stays sharp at any device pixel ratio. Filter
+   interpolation is pinned to sRGB: the default linearRGB shifts the noise
+   roughly a third of a stop brighter, which at this opacity is the difference
+   between texture and speckle.
+
+   ON THE BLEND MODE — the one place this module disagrees with a token.
+   `overlay` is mathematically inert over #08080c. For a backdrop below 0.5 the
+   formula is 2 × backdrop × source, so at a backdrop of 0.031 the entire
+   possible excursion is under one value in 255 BEFORE the 5% opacity multiply.
+   No amount of raising --grain-opacity fixes that; the ceiling of 0.10 is
+   reached long before anything appears. On a near-black field the only blend
+   that can produce grain is one that ADDS light, which is also what grain does
+   in the shadows of a scanned negative.
+
+   RESOLVED: `--grain-blend-mode` is now `screen` in tokens.css and the local
+   override that used to sit here has been deleted. This note stays because the
+   reasoning is not obvious from the value.
+
+   ON THE OPACITY — the token's 0.05 is kept, and it is measured, not assumed.
+   Sampled off a real screenshot of an empty region of the page: the field
+   reads 10.2/255 with a standard deviation of 0.70 and excursions of about
+   ±2.5. That is roughly a fifth of the field's own luminance, so it is
+   present; and it is 1% of the full range, so it is nowhere near noticeable
+   as an effect. Raising the token to 0.07 measures 10.9/255 at sd 0.92 —
+   also defensible, slightly better at dithering the haze, and it lifts the
+   whole field by another value. `screen` ADDS light, so grain is not free:
+   at 0.05 the near-black field sits ~1.5/255 above pure ink. That is why
+   this stays at the bottom of the range rather than the middle.
+   ------------------------------------------------------------------------ */
+
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--layer-2-haze) + 2);
+
+  mix-blend-mode: var(--grain-blend-mode);
+  opacity: var(--grain-opacity);
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.62'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23grain)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}

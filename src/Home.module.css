@@ -1,0 +1,319 @@
+/* =============================================================================
+   COMPOSITION
+   =============================================================================
+
+   One 12-column grid. Each child names its columns; auto-placement pairs items
+   onto a shared row whenever the second starts after the first ends.
+
+   Read the column numbers down the file and you can see the page's rhythm
+   without opening a browser: left, right, left-wide, left, right. That
+   legibility is the reason placement lives here rather than in nine modules.
+   ========================================================================== */
+
+.page {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--space-md);
+
+  /* The base vertical rhythm. Individual items add to it to vary density —
+     an evenly-spaced page reads as a template no matter how the columns are
+     arranged. */
+  row-gap: var(--space-2xl);
+
+  max-inline-size: var(--page-max-width);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter-inline);
+  padding-block: var(--page-gutter-block) var(--space-2xl);
+}
+
+/* Anchored headings must not land flush against the viewport's top edge. */
+.page :target {
+  scroll-margin-block-start: var(--space-xl);
+}
+
+/* ---------------------------------------------------------------------------
+   OPENING — name left, navigation opposite it
+   ------------------------------------------------------------------------ */
+
+.identity {
+  grid-column: 1 / 9;
+}
+
+.nav {
+  grid-column: 9 / 13;
+  /* Aligned to the top of the name block, not centred against it. */
+  align-self: start;
+  justify-self: end;
+  /* Optically level with the cap-height of an 80px hairline serif, which sits
+     lower than the box's top edge. */
+  margin-block-start: var(--space-2xs);
+}
+
+/* ---------------------------------------------------------------------------
+   ABOUT — pushed right, so the emptiness at the left becomes deliberate
+   ------------------------------------------------------------------------ */
+
+.page > section[id="about"] {
+  grid-column: 7 / 12;
+  margin-block-start: var(--space-2xl);
+}
+
+/* ---------------------------------------------------------------------------
+   SECTION LABELS — marginalia, BESIDE their content rather than above it
+   -----------------------------------------------------------------------------
+   These occupy the first two columns and the entry that follows starts at
+   column 3, so auto-placement puts them on the same row. That is what makes
+   them read as a number written in the margin of a spread instead of as a
+   heading sitting on top of a block.
+
+   The extra row space for each new section is carried HERE, on the label,
+   because the label is the first item in its row and its margin therefore
+   pushes the whole row down.
+   ------------------------------------------------------------------------ */
+
+.sectionLabel {
+  grid-column: 1 / 3;
+  align-self: start;
+  margin-block-start: var(--space-2xl);
+}
+
+/* ---------------------------------------------------------------------------
+   JOURNAL
+   ------------------------------------------------------------------------ */
+
+/* Shares a row with `01 / Journal`. */
+.entryNotes {
+  grid-column: 3 / 9;
+  align-self: start;
+  margin-block-start: var(--space-2xl);
+}
+
+/* Starts before the previous row's cursor, so it takes a new row. Offset down
+   and to the right — aligned tops would read as a two-column layout, which is
+   the thing being avoided. */
+.entryPhotograph {
+  grid-column: 7 / 13;
+  align-self: start;
+  margin-block-start: var(--space-xl);
+}
+
+/* THE QUOTE — the only place on the page that gets --space-3xl, and it gets it
+   on BOTH sides.
+   Every other section lead-in is --space-2xl. That is what makes 224px mean
+   something: applied everywhere it was just the row gap, and the page's
+   emotional centre had exactly as much air as its colophon.
+   It also starts at column 5 — the one block that begins neither at 1, nor 3,
+   nor 7 — so it is off the left rail everything else sits on. */
+.entryQuote {
+  grid-column: 5 / 12;
+  margin-block-start: var(--space-3xl);
+  margin-block-end: var(--space-3xl);
+}
+
+.entryProject {
+  grid-column: 3 / 8;
+}
+
+/* ---------------------------------------------------------------------------
+   CURRENTLY — the player, and something opposite it to balance its weight
+   ------------------------------------------------------------------------ */
+
+/* Shares a row with `02 / Currently`, and the drawing shares it too: the
+   player starts where the label ends, the drawing starts where the player
+   ends. Three items, one row, no wrappers. */
+.player {
+  grid-column: 3 / 9;
+  align-self: start;
+  margin-block-start: var(--space-3xl);
+}
+
+.entryDrawing {
+  grid-column: 9 / 13;
+  align-self: start;
+  /* Dropped below the player's top edge so the pair reads as composed rather
+     than as two columns of equal weight. */
+  margin-block-start: calc(var(--space-3xl) + var(--space-xl));
+}
+
+/* ---------------------------------------------------------------------------
+   ELSEWHERE + ENDING
+   ------------------------------------------------------------------------ */
+
+/* Shares a row with `03 / Elsewhere`. */
+.entryElsewhere {
+  grid-column: 3 / 7;
+  align-self: start;
+  margin-block-start: var(--space-3xl);
+}
+
+/* ---------------------------------------------------------------------------
+   CLOSING LINE — the last thing, and the quietest
+   -----------------------------------------------------------------------------
+   Small, italic, dim, and a long way down. It sits at column 5 rather than on
+   the left rail so it does not read as a footer, and gets the page's other
+   --space-3xl so a visitor arrives at it after real silence.
+
+   The whole point is that it can be missed. Do not brighten it, do not
+   enlarge it, do not centre it.
+   ------------------------------------------------------------------------ */
+
+.closing {
+  grid-column: 5 / 10;
+  margin-block-start: var(--space-3xl);
+
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  font-style: italic;
+  font-weight: var(--font-weight-display-italic);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-dim);
+}
+
+
+/* ---------------------------------------------------------------------------
+   TABLET — fewer columns of freedom, same asymmetry
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 63.9375rem) {
+  .page {
+    row-gap: var(--space-xl);
+  }
+
+  .identity {
+    grid-column: 1 / 10;
+  }
+
+  .nav {
+    grid-column: 1 / 13;
+    justify-self: start;
+    margin-block-start: var(--space-sm);
+  }
+
+  .page > section[id="about"] {
+    grid-column: 5 / 13;
+    margin-block-start: var(--space-xl);
+  }
+
+  /* At this width two columns is too narrow for a label, so the marginalia
+     idea is dropped rather than squeezed: labels go full width and the content
+     sits beneath them. */
+  .sectionLabel {
+    grid-column: 1 / 13;
+    margin-block-start: var(--space-2xl);
+    /* Same reasoning as the narrow breakpoint: above-not-beside needs the gap
+       taken back so the label stays attached to its entry. */
+    margin-block-end: calc(var(--space-xl) * -1 + var(--space-sm));
+  }
+
+  .entryNotes {
+    grid-column: 1 / 11;
+    margin-block-start: var(--space-md);
+  }
+
+  .entryPhotograph {
+    grid-column: 4 / 13;
+    margin-block-start: var(--space-xl);
+  }
+
+  .entryQuote {
+    grid-column: 2 / 12;
+    margin-block-start: var(--space-2xl);
+    margin-block-end: var(--space-md);
+  }
+
+  .entryProject {
+    grid-column: 1 / 9;
+  }
+
+  .player {
+    grid-column: 1 / 10;
+    margin-block-start: var(--space-md);
+  }
+
+  .entryDrawing {
+    grid-column: 7 / 13;
+    margin-block-start: var(--space-xl);
+  }
+
+  .entryElsewhere {
+    grid-column: 1 / 8;
+    margin-block-start: var(--space-md);
+  }
+
+  .closing {
+    grid-column: 3 / 11;
+    margin-block-start: var(--space-2xl);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW — mobile gets its own composition, not a scaled-down desktop
+   -----------------------------------------------------------------------------
+   Everything goes to one column. The asymmetry that made the desktop page
+   interesting becomes crowding at this width, so it is spent differently:
+   generous vertical rhythm, a slight indent on a couple of items to keep the
+   left edge from being perfectly rigid, and nothing else.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-xl);
+    padding-block-start: var(--space-xl);
+    /* 52px gutters consume 28% of a 375px screen. Negative space on mobile is
+       better spent vertically, where it costs nothing. */
+    padding-inline: var(--space-md);
+  }
+
+  /* Reset every desktop placement to one full-width column. Without this the
+     desktop `grid-column: 3 / 9` spans would generate implicit columns on a
+     single-column grid and the page would fall apart. */
+  .identity,
+  .nav,
+  .page > section[id="about"],
+  .sectionLabel,
+  .entryNotes,
+  .entryPhotograph,
+  .entryQuote,
+  .entryProject,
+  .player,
+  .entryDrawing,
+  .entryElsewhere,
+  .closing {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    margin-block-start: 0;
+  }
+
+  .nav {
+    margin-block-start: var(--space-sm);
+  }
+
+  .page > section[id="about"] {
+    margin-block-start: var(--space-lg);
+  }
+
+  /* A label now sits ABOVE its entry rather than beside it, so the full row
+     gap between them reads as a break in the page rather than as a heading
+     attached to what follows. Space is added before the label and taken back
+     after it — the section still breathes, the label still belongs. */
+  .sectionLabel {
+    margin-block-start: var(--space-2xl);
+    margin-block-end: calc(var(--space-xl) * -1 + var(--space-sm));
+  }
+
+  .entryQuote {
+    margin-block: var(--space-md) var(--space-sm);
+  }
+
+  /* The one surviving break from the left edge. A single indent reads as
+     intent; four of them read as a mistake. */
+  .entryDrawing {
+    padding-inline-start: var(--space-lg);
+  }
+
+  .closing {
+    margin-block-start: var(--space-2xl);
+  }
+
+}

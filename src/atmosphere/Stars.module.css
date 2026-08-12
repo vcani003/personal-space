@@ -1,0 +1,203 @@
+/* =============================================================================
+   LAYER 1 — STARS
+   =============================================================================
+
+   Four kinds, and the differences between them are the whole depth system:
+
+     pinprick   a hard point, 1.25–1.5px, dim. Most stars.
+     soft       a point with a tight halo. A few.
+     defocused  no core, only a soft disc. Reads as NEAR, because a near thing
+                out of the focal plane is how a photograph says "near".
+     bloom      a point carrying a photographic bloom. ONE on the page.
+
+   Two rules hold everywhere in this file:
+
+   1. Nothing here animates. Stars do not twinkle. A field of pulsing points is
+      the exact "galaxy wallpaper" the brief rules out, and it would also be
+      the only thing on the page competing with the haze for attention.
+   2. Blur is done with gradients, never with `filter: blur()`. A radial
+      falloff is free; a filter is a per-element render pass on a layer that
+      never changes.
+   ========================================================================== */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--layer-1-stars);
+}
+
+/* ---------------------------------------------------------------------------
+   DEPTH GROUPS
+   -----------------------------------------------------------------------------
+   A group carries nothing but its depth's parallax travel, inherited by its
+   stars. Grouping is what keeps Phase 4 from being a rewrite: the travel per
+   depth is already resolved from tokens, and those tokens already collapse to
+   0px under `prefers-reduced-motion`.
+   ------------------------------------------------------------------------ */
+
+.depth {
+  position: absolute;
+  inset: 0;
+}
+
+.depth[data-depth="far"] {
+  --parallax-travel: var(--parallax-far);
+}
+
+.depth[data-depth="mid"] {
+  --parallax-travel: var(--parallax-middle);
+}
+
+.depth[data-depth="near"] {
+  --parallax-travel: var(--parallax-near);
+}
+
+.depth[data-depth="foreground"] {
+  --parallax-travel: var(--parallax-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   THE STAR
+   -----------------------------------------------------------------------------
+   Centred on its coordinate with negative margins rather than a transform, so
+   that `transform` and `translate` both stay completely free for motion. The
+   margins are static; nothing animates a layout property.
+
+   `translate` carries the parallax. `--parallax-x` / `--parallax-y` are the
+   unitless −1…1 viewing offset derived on the atmosphere root from the pointer
+   signal (see Atmosphere.module.css); `--parallax-travel` is the depth's own
+   distance from the tokens. Multiply the two and a far star travels 2px while
+   the near defocused disc travels 6px, which is the entire depth cue.
+
+   Three things keep this from ever reading as an effect. The travel is small.
+   The rAF loop interpolates toward it over ~140ms rather than snapping, so
+   the field settles instead of tracking. And the travel tokens resolve to 0px
+   under `prefers-reduced-motion`, where the loop does not run at all — the
+   fallbacks below then leave the whole declaration at `0px 0px`.
+   ------------------------------------------------------------------------ */
+
+.star {
+  --star-tone: var(--tone-mist);
+
+  position: absolute;
+  inset-block-start: var(--star-y);
+  inset-inline-start: var(--star-x);
+
+  inline-size: var(--star-size);
+  block-size: var(--star-size);
+  margin-block-start: calc(var(--star-size) / -2);
+  margin-inline-start: calc(var(--star-size) / -2);
+
+  border-radius: 50%;
+  opacity: var(--star-intensity);
+
+  translate:
+    calc(var(--parallax-x, 0) * var(--parallax-travel, 0px))
+    calc(var(--parallax-y, 0) * var(--parallax-travel, 0px));
+}
+
+/* ---------------------------------------------------------------------------
+   THE ONE PROXIMITY REACTION
+   -----------------------------------------------------------------------------
+   Exactly one object on this page answers the pointer with anything other than
+   parallax, and it is the bloom — the composition's single light source. See
+   the note on `north-bloom` in composition.ts for why that one.
+
+   `--star-proximity` is 0…1, published on this element alone by the rAF loop:
+   0 beyond 200px, smoothstepped to 1 at the star's centre, interpolated over
+   ~110ms so it cannot be caught starting.
+
+   OPACITY ONLY. No scale, no glow radius, no colour change, no transition
+   property — the loop is already the interpolator, and a CSS transition on top
+   of a per-frame value fights it. One property, one reason.
+
+   THE MAGNITUDE IS 13%, AND THE NUMBER IS NOT ARBITRARY. This star is authored
+   at intensity 0.88, so a lift of 0.13 peaks at 0.994 — the reaction uses the
+   entire remaining headroom to full opacity and no more. Push it past that and
+   the top of the range silently clips, which would make the effect feel like
+   it stops responding just as the pointer arrives. About an eighth of a stop
+   on the brightest object on the page: enough to register on a bloom 96px
+   wide, not enough to describe.
+   ------------------------------------------------------------------------ */
+
+.star[data-reactive] {
+  --star-proximity-lift: 0.13;
+
+  opacity: calc(
+    var(--star-intensity) * (1 + var(--star-proximity, 0) * var(--star-proximity-lift))
+  );
+}
+
+/* -- pinprick: the default. Hard edge, no glow. --------------------------- */
+
+.star[data-kind="pinprick"] {
+  background-color: rgb(from var(--star-tone) r g b / 0.92);
+}
+
+/* -- soft: a point that is slightly bigger than itself. ------------------- */
+
+.star[data-kind="soft"] {
+  background-color: rgb(from var(--star-tone) r g b / 0.82);
+  box-shadow: var(--glow-tight);
+}
+
+/* -- defocused: no core at all. ------------------------------------------- */
+
+.star[data-kind="defocused"] {
+  background-image: radial-gradient(
+    circle closest-side,
+    rgb(from var(--star-tone) r g b / 0.4) 0%,
+    rgb(from var(--star-tone) r g b / 0.14) 44%,
+    rgb(from var(--star-tone) r g b / 0) 100%
+  );
+}
+
+/* -- bloom: the one. ------------------------------------------------------
+   A sharp core, a tight halo, and a wide soft bloom — three radii, which is
+   what separates a photographed point of light from a dot with a shadow. The
+   wide bloom is a pseudo-element rather than a third box-shadow because a
+   shadow's falloff is Gaussian and uniform, and a lens bloom is neither.
+   ------------------------------------------------------------------------ */
+
+.star[data-kind="bloom"] {
+  background-color: var(--star-tone);
+  box-shadow: var(--glow-tight), var(--glow-soft);
+}
+
+.star[data-kind="bloom"]::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: calc(var(--glow-bloom-radius) * 2);
+  block-size: calc(var(--glow-bloom-radius) * 2);
+  translate: -50% -50%;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    circle closest-side,
+    rgb(from var(--star-tone) r g b / 0.2) 0%,
+    rgb(from var(--star-tone) r g b / 0.05) 36%,
+    rgb(from var(--star-tone) r g b / 0) 74%
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   PRESENCE — two compositions, not one composition scaled
+   -----------------------------------------------------------------------------
+   Both sets are in the DOM; the irrelevant one is not rendered. Twenty-two
+   empty spans cost nothing, and this avoids a `matchMedia` listener, a resize
+   handler and a state update on rotate. The breakpoint matches the one in
+   Home.module.css — if that moves, this moves with it.
+   ------------------------------------------------------------------------ */
+
+@media (min-width: 48rem) {
+  .star[data-presence="narrow"] {
+    display: none;
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .star[data-presence="wide"] {
+    display: none;
+  }
+}

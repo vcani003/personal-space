@@ -1,0 +1,32 @@
+.identity {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.name {
+  font-size: var(--text-display-xl-fluid);
+  font-weight: var(--font-weight-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground);
+
+  /* A name is never re-balanced across lines — `balance` would break
+     "Veronica Canido" into two lines at some widths purely to even them up.
+     It wraps when it must, at the space, and not before. */
+  text-wrap: nowrap;
+}
+
+/* Pulled tight under the name. At an 80px-to-11px ratio, default spacing reads
+   as two unrelated blocks; this makes the small line feel like it belongs to
+   the large one. */
+.line {
+  margin-block-start: calc(var(--space-2xs) * -1);
+}
+
+@media (max-width: 47.9375rem) {
+  .name {
+    /* On a narrow screen a long name must be allowed to break rather than
+       force a horizontal scrollbar. */
+    text-wrap: balance;
+  }
+}

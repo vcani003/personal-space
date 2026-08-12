@@ -1,0 +1,164 @@
+import type { Post, SiteIdentity } from "./types";
+
+/**
+ * PLACEHOLDER CONTENT
+ *
+ * Everything marked `placeholder: true` is scaffolding written to hold the
+ * composition's shape — real line lengths, real rhythm, the right register —
+ * so the page can be judged with words in it rather than with lorem ipsum.
+ *
+ * It is written in the site's voice but it is NOT the site owner's writing and
+ * makes no claims about her life. Replace it wholesale; do not edit these into
+ * real entries and leave the flag behind.
+ *
+ * Image `src` values point at files that do not exist yet. That is on purpose:
+ * composition has to tolerate missing assets while final art arrives.
+ */
+
+export const identity: SiteIdentity = {
+  name: "Veronica Canido",
+  handle: "@starcharm",
+  instagramUrl: "https://www.instagram.com/starcharm/",
+};
+
+/**
+ * The last thing on the page.
+ *
+ * Not a footer, not a colophon, not a sign-off — a thought, small and almost
+ * missed, after a long stretch of empty darkness. This is the ONE place PP
+ * Eiko Light Italic appears on the entire site.
+ *
+ * It is deliberately the quietest text on the page rather than the loudest.
+ * A line like this stops meaning anything at 56px; it only works if a visitor
+ * has to still be paying attention by the time they reach it.
+ */
+export const closingLine = "Maybe it's kismet.";
+
+/** Short about copy. Placeholder, in-voice. */
+export const about: readonly string[] = [
+  "This is where I keep the things I make. Some of them are finished. Most of them are still deciding.",
+  "I like objects that reward attention — a player that recedes until you look at it, a page that keeps a little back.",
+];
+
+/**
+ * On metadata: `date` is stored on every post but rendered almost nowhere, and
+ * `label` is omitted wherever the section already names the thing.
+ *
+ * A date on every entry, in reverse-chronological order, with a kind label, is
+ * a feed's data model. Nothing else about this page is a feed — there is no
+ * archive, no chronology and nowhere to go — so six visible dates were
+ * performing a recency the page does not have. The data stays because it is
+ * true and costs nothing; the ink does not.
+ */
+// `as const satisfies` rather than a `: readonly Post[]` annotation. The
+// annotation widens every `id` to `string`, which would make the KnownPostId
+// union below meaningless; `satisfies` still type-checks each entry against
+// `Post` while preserving the literal ids.
+export const posts = [
+  {
+    kind: "text",
+    id: "rooms",
+    placeholder: true,
+    // No `index` and no `label`: the margin note already says `01 / Journal`,
+    // and a second grey line beside it saying `NOTE` is the same word twice.
+    meta: { date: "2026-02-14" },
+    title: "Notes toward a quieter internet",
+    body: [
+      "The web I remember was made of rooms. You arrived somewhere and could tell that a person had chosen the wallpaper, and that they had chosen it badly, and that this was the point.",
+      "I am trying to build one of those again.",
+    ],
+  },
+  {
+    kind: "image",
+    id: "four-am",
+    placeholder: true,
+    // The caption already does the temporal work — better than a date could.
+    meta: { date: "2026-02-02" },
+    src: "photography/placeholder.jpg",
+    alt: "Placeholder photograph.",
+    caption: "Somewhere between three and four in the morning.",
+    aspectRatio: 3 / 2,
+  },
+  {
+    kind: "quote",
+    id: "stillness",
+    placeholder: true,
+    // No label, no attribution, no date. The quote is the one thing on the
+    // page allowed to arrive without introduction. Set upright, not italic —
+    // the italic is spent on `closingLine`, where it whispers instead.
+    meta: { date: "2026-01-28" },
+    text: "Some things are only visible if you stop moving.",
+  },
+  {
+    kind: "link",
+    id: "bunny-hop-player",
+    placeholder: true,
+    // `label` survives here because it says something the section does not.
+    // `tags: ["TypeScript", "React"]` was removed: a tech-stack chip list is a
+    // portfolio tell, and it was a second grey line under an entry that
+    // already had one above it.
+    meta: { date: "2026-01-09", label: "Chrome extension" },
+    // TODO: real destination. `#` keeps the anchor valid and inert until then.
+    href: "#",
+    label: "Bunny Hop Player",
+    description: "A lyric player that recedes while you are doing something else.",
+    external: false,
+  },
+  {
+    kind: "drawing",
+    id: "drawing",
+    placeholder: true,
+    meta: { date: "2026-01-03" },
+    src: "drawings/placeholder.png",
+    // An empty alt is the correct answer for art that carries no information a
+    // reader would otherwise miss. Typed out on purpose, not forgotten.
+    alt: "",
+    aspectRatio: 4 / 5,
+  },
+  {
+    kind: "link",
+    id: "instagram",
+    // No label, no description. The section says `Elsewhere`, the title says
+    // `@starcharm`, the href says instagram.com — a fourth statement of the
+    // same fact is not information.
+    meta: { date: "2026-01-01" },
+    href: "https://www.instagram.com/starcharm/",
+    label: "@starcharm",
+    external: true,
+  },
+] as const satisfies readonly Post[];
+
+/*
+ * `postsOfKind()` used to live here. It was removed rather than repaired:
+ * nothing on the page ever called it (the composition pulls specific posts by
+ * id, because placement is a design decision, not a query), and its type
+ * predicate stopped compiling once `posts` gained literal types.
+ *
+ * Keeping a generic collection query alive for a six-item static array, in
+ * service of a grouped list view this site does not have, is the beginning of
+ * the feed architecture the design brief spent its energy avoiding.
+ */
+
+/**
+ * Every id that actually exists, derived from the data rather than maintained
+ * by hand.
+ */
+export type KnownPostId = (typeof posts)[number]["id"];
+
+/**
+ * Lookup by id, accepting only ids that exist.
+ *
+ * This is typed rather than taking a plain `string` because the failure mode
+ * is invisible: the composition renders each post behind a `{post && ...}`
+ * guard, so a mistyped id does not throw or warn — the entry just silently
+ * disappears from the page. That happened once, when a post was renamed and
+ * the lookup in Home.tsx was not, and the quote vanished without a single
+ * console message.
+ *
+ * With the id union derived from `posts`, the same mistake is now a compile
+ * error. The return type stays optional so callers keep their guards, which
+ * still matter for content that is genuinely conditional.
+ */
+export function postById(id: KnownPostId): Post | undefined {
+  return posts.find((post) => post.id === id);
+}

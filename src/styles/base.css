@@ -1,0 +1,214 @@
+/* =============================================================================
+   BASE — reset and document defaults
+   =============================================================================
+
+   Deliberately small. This file sets up a predictable document; it does not
+   design anything. Every value it uses comes from tokens.css.
+
+   Explicitly NOT here, and not to be added:
+     - `overflow: hidden` on body
+     - `height: 100%` on html / body / #root
+   Both are Bunny Hop Player extension assumptions (a fixed-size popup window).
+   On a scrolling page they disable scrolling and collapse any element using
+   `container-type: size`. See player-integration-notes.md §6.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+
+/* Lists only lose their markers when they are being used as structure rather
+   than as a list. Stripping them globally strips them from prose too, and
+   from the accessibility tree in Safari. */
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+
+body {
+  min-block-size: 100dvh;
+
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-display);
+  line-height: var(--leading-body);
+
+  /* LEAD: font smoothing is a visual call. Light hairline type on a dark
+     field usually wants antialiased rather than subpixel, but confirm against
+     PP Eiko Thin at display sizes before this is settled. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings inherit the display register but carry no size of their own — sizes
+   come from tokens at the point of use, so the two-register rule is enforced
+   by composition rather than by tag name. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+/* Media behaves like a block-level object rather than an inline text glyph.
+   `max-inline-size: 100%` keeps missing/oversized art from forcing a
+   horizontal scrollbar while final assets are still arriving. */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+/* An image whose file has not arrived yet must not render as a broken-icon
+   box with a border. Composition tolerates missing assets. */
+img {
+  color: transparent;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+blockquote,
+figure {
+  margin: 0;
+}
+
+hr {
+  border: none;
+  border-block-start: 1px solid var(--color-rule);
+}
+
+/* -----------------------------------------------------------------------------
+   FOCUS
+   -----------------------------------------------------------------------------
+   Keyboard focus is never removed. `:focus-visible` means pointer users do not
+   see rings they did not ask for, while keyboard users always do.
+   -------------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* Only suppress the default ring where :focus-visible is supported and has
+   already taken over. */
+@supports selector(:focus-visible) {
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+::selection {
+  background-color: var(--color-selection-bg);
+  color: var(--color-selection-fg);
+}
+
+/* -----------------------------------------------------------------------------
+   UTILITIES — accessibility plumbing only
+   -------------------------------------------------------------------------- */
+
+/* Available to assistive technology, invisible on screen. For labels the
+   composition intentionally leaves unwritten. */
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* -----------------------------------------------------------------------------
+   REDUCED MOTION
+   -----------------------------------------------------------------------------
+   Three-part strategy. This block is only part one.
+
+   1. AMBIENT (here) — CSS `animation` is ambient by definition in this
+      project: haze drift, breathing, grain. It is switched off globally so
+      anything added later is covered by default rather than by discipline.
+
+   2. DISCRETE (tokens.css) — transitions are NOT touched here. Killing
+      `transition-duration` globally kills content-bearing state changes and
+      makes anything awaiting `transitionend` fire in ~0ms. Instead the
+      RESPONSE and TRANSITION duration tokens resolve to 0ms under reduced
+      motion, so the state change still happens, instantly. Reduced motion
+      never removes content.
+
+   3. JS (useReducedMotion) — pointer parallax and escaped lyrics are
+      JavaScript and a media query cannot reach them. They subscribe to the
+      preference and switch off live.
+
+   The escape hatch: `data-motion="essential"` opts an element out of part one,
+   for the rare case where an animation carries meaning. Use it almost never,
+   and never for decoration.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *:not([data-motion="essential"]),
+  *:not([data-motion="essential"])::before,
+  *:not([data-motion="essential"])::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

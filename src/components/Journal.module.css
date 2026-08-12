@@ -1,0 +1,185 @@
+/* Journal entries. Four kinds, four materials. See Journal.tsx.
+   Nothing here decides WHERE an entry sits — placement is composition and
+   lives in Home.module.css. These files own internal treatment only. */
+
+/* ---------------------------------------------------------------------------
+   TEXT — prose on the background. No container.
+   ------------------------------------------------------------------------ */
+
+.text {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.textTitle {
+  font-size: var(--text-display-sm);
+  color: var(--color-foreground);
+  /* Sits close under its metadata: the label belongs to the title, and space
+     between them would make them read as two separate things. */
+  margin-block-start: calc(var(--space-2xs) * -1);
+}
+
+.prose {
+  display: grid;
+  gap: var(--space-sm);
+  max-inline-size: var(--measure);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  /* Reading copy is Thin at full contrast. Both halves of that matter — see
+     the weight note in tokens.css. */
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   IMAGE — a photograph existing in space.
+   ------------------------------------------------------------------------ */
+
+.image {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.frame {
+  aspect-ratio: var(--aspect, 3 / 2);
+  overflow: hidden;
+
+  /* A missing file must not read as a broken box. Until art arrives this is a
+     barely-there tonal field — present enough to hold the composition's
+     proportions, quiet enough that it does not look like a placeholder
+     someone forgot to replace. */
+  background-color: var(--color-background-raised);
+  background-image: linear-gradient(
+    160deg,
+    rgb(from var(--tone-plum) r g b / 0.5),
+    rgb(from var(--tone-ink) r g b / 0.9)
+  );
+}
+
+.frame img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* Caption beside the frame, not tucked under it like a feed item. */
+.imageCaption {
+  max-inline-size: 34ch;
+}
+
+/* ---------------------------------------------------------------------------
+   DRAWING — line art floating on the background. No frame, no crop, no fill.
+   -----------------------------------------------------------------------------
+   Deliberately NOT the image treatment. A photograph is a rectangle and earns
+   a frame; a drawing is strokes on transparency and putting it in a filled box
+   invents an edge the artwork does not have.
+
+   Space is reserved by aspect-ratio so the composition does not reflow when
+   the file arrives, but nothing is painted until then — empty background,
+   never a placeholder rectangle.
+   ------------------------------------------------------------------------ */
+
+.drawing {
+  aspect-ratio: var(--aspect, 4 / 5);
+}
+
+.drawing img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+
+  /* Source art is greyscale + alpha with dark ink strokes. Inverting leaves
+     alpha untouched, so one file reads as mist-white line work on our dark
+     field — the technique the Bunny Hop extension uses for its bunny art. */
+  filter: invert(1);
+  opacity: 0.82;
+}
+
+.captionText {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   QUOTE — the display register, and emptiness. That is the whole treatment.
+   ------------------------------------------------------------------------ */
+
+.quote {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* The one event on the page.
+   56px was previously an unused token while 28px did four jobs, which
+   flattened the display register into a conventional heading ramp. Putting the
+   quote here restores the gap the whole hierarchy depends on.
+
+   Upright, NOT italic. The single reserved italic is spent on the page's
+   closing line, where it is the quietest thing on screen rather than the
+   loudest — see `closingLine` in content/posts.ts. Scale carries this; the
+   italic carries that. Neither needs both. */
+.quoteText {
+  font-family: var(--font-display);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground);
+  text-wrap: balance;
+}
+
+/* No quotation marks, no rule, no indent bar. A quote at this scale in this
+   face is already unmistakably a quote; decorating it would be saying so
+   twice. */
+
+/* ---------------------------------------------------------------------------
+   LINK — metadata-forward. The only inherently interactive kind.
+   ------------------------------------------------------------------------ */
+
+.link {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.linkTitle {
+  font-size: var(--text-display-sm);
+  color: var(--color-foreground);
+}
+
+/* The affordance is an underline that is already there but nearly invisible,
+   rather than one that appears on hover. A link should look like a link when
+   the page is a screenshot. */
+.linkAnchor {
+  display: inline-block;
+  padding-block-end: 0.08em;
+  border-block-end: 1px solid var(--color-rule);
+  transition: border-color var(--duration-response) var(--ease-out);
+}
+
+.linkAnchor:hover,
+.linkAnchor:focus-visible {
+  border-block-end-color: var(--color-foreground);
+}
+
+.linkDescription {
+  max-inline-size: 42ch;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW VIEWPORTS
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .prose,
+  .linkDescription,
+  .imageCaption {
+    max-inline-size: none;
+  }
+
+  .quoteText {
+    font-size: var(--text-display-sm);
+  }
+}

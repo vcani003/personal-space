@@ -1,0 +1,231 @@
+/* =============================================================================
+   THE PLAYER — a physical object in the page
+   =============================================================================
+
+   Everything here exists to keep this readable AS AN OBJECT while the page
+   around it is atmosphere. Two rules govern the file:
+
+   1. The inset/outset inversion. The chassis floats on OUTER glow; the screen
+      recedes on INNER shadow. Neither works without the other — an object lit
+      from outside with a flat interior looks like a sticker.
+
+   2. The player is the ONLY place on this site with a real radius, a real
+      border and a real translucent surface. Those are its identity, not a
+      style available to the page. If the page starts using them, the player
+      stops being distinct and the whole composition collapses into panels.
+
+   `container-type: inline-size`, never `size` — see player-integration-notes
+   §6. Its own radius scale lives here rather than in tokens.css for the same
+   reason: it belongs to this object and nothing else should reach for it.
+   ========================================================================== */
+
+.chassis {
+  container-type: inline-size;
+  container-name: player;
+
+  position: relative;
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-sm) var(--space-xs);
+
+  --player-radius: 22px;
+  --player-screen-radius: 15px;
+
+  border-radius: var(--player-radius);
+  border: 1px solid var(--color-edge);
+
+  /* Clouded glass: a faint tonal shift, not a glossy gradient. */
+  background-image: linear-gradient(
+    168deg,
+    rgb(from var(--tone-mist) r g b / 0.09) 0%,
+    rgb(from var(--tone-mist) r g b / 0.04) 42%,
+    rgb(from var(--tone-lavender-gray) r g b / 0.05) 100%
+  );
+
+  box-shadow:
+    /* the top inner highlight is what makes it read as a lit surface */
+    inset 0 1px 0 rgb(from var(--tone-mist) r g b / 0.13),
+    inset 0 0 0 1px rgb(from var(--tone-mist) r g b / 0.04),
+    var(--glow-soft),
+    0 22px 55px rgb(from var(--tone-ink) r g b / 0.5);
+
+  /* NOTE: no `backdrop-filter`. In the extension it sampled a flat dark field;
+     here it would sample grain, stars and haze — smearing the atmosphere we
+     deliberately placed behind the object, at a per-frame GPU cost. See
+     player-integration-notes.md §6. */
+}
+
+/* ---------------------------------------------------------------------------
+   METADATA — subordinate to the page's, on purpose
+   ------------------------------------------------------------------------ */
+
+.meta {
+  margin: 0;
+  padding-inline: var(--space-3xs);
+  font-family: var(--font-meta);
+  font-size: var(--text-meta-player);
+  font-weight: var(--font-weight-meta);
+  line-height: var(--leading-meta);
+  letter-spacing: var(--tracking-meta-player);
+  text-transform: uppercase;
+  color: var(--color-meta-player);
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------------------------
+   SCREEN — recessed, darker than the chassis, textured
+   ------------------------------------------------------------------------ */
+
+.screen {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-md) var(--space-sm);
+  border-radius: var(--player-screen-radius);
+
+  background-image: radial-gradient(
+    88% 62% at 50% 40%,
+    var(--tone-plum) 0%,
+    var(--tone-charcoal) 58%,
+    var(--tone-ink) 100%
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgb(from var(--tone-mist) r g b / 0.05),
+    var(--shadow-inset);
+}
+
+/* Film grain, generated rather than bitmapped so it survives any size.
+   Under 10% — if it reads as an effect it is too strong. */
+.screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend-mode);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+/* Edge vignette. Holds the lyric in the centre of the screen without drawing
+   a border to do it. */
+.screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    120% 90% at 50% 50%,
+    transparent 52%,
+    rgb(from var(--tone-ink) r g b / 0.55) 100%
+  );
+}
+
+.lines {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-xs);
+  text-align: center;
+}
+
+.line {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-ghost);
+  text-wrap: balance;
+}
+
+/* The active line leads on luminance and scale. Nothing else. The bloom
+   belongs to the screen rather than sitting on top of it as a card. */
+.active {
+  font-size: var(--text-display-sm);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   DECK — controls. Primary reads as primary through SIZE, never colour.
+   ------------------------------------------------------------------------ */
+
+.deck {
+  display: grid;
+  gap: var(--space-2xs);
+  padding-inline: var(--space-3xs);
+  padding-block-end: var(--space-3xs);
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.control {
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  color: var(--color-foreground-faint);
+  transition: color var(--duration-response) var(--ease-out);
+}
+
+.control svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.primary {
+  inline-size: 34px;
+  block-size: 34px;
+  border: 1px solid var(--color-edge);
+  border-radius: 50%;
+  background-color: rgb(from var(--tone-mist) r g b / 0.1);
+  color: var(--color-foreground);
+}
+
+/* Phase 2 controls are inert. They should look composed rather than broken —
+   dimmed, but not the browser's default 50%-grey disabled treatment. */
+.control:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.control:not(:disabled):hover,
+.control:not(:disabled):focus-visible {
+  color: var(--color-foreground);
+}
+
+.progress {
+  block-size: 1px;
+  background-color: var(--color-rule);
+}
+
+.progressFill {
+  display: block;
+  block-size: 100%;
+  /* Static in Phase 2. A real value arrives with playback. */
+  inline-size: 34%;
+  background-color: var(--color-foreground-faint);
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW
+   ------------------------------------------------------------------------ */
+
+@container player (max-width: 340px) {
+  .screen {
+    padding: var(--space-sm) var(--space-xs);
+  }
+
+  .active {
+    font-size: var(--text-body);
+  }
+}

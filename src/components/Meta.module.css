@@ -1,0 +1,32 @@
+/* The metadata register. See Meta.tsx. */
+
+.meta {
+  margin: 0;
+  font-family: var(--font-meta);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-meta);
+  font-variation-settings: "wdth" var(--meta-width);
+  line-height: var(--leading-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  color: var(--color-foreground-faint);
+
+  /* Metadata is frequently placed off-grid and near other things. It should
+     never be the reason a line wraps awkwardly. */
+  text-wrap: balance;
+}
+
+.sm {
+  font-size: var(--text-meta-sm);
+}
+
+.wide {
+  letter-spacing: var(--tracking-meta-wide);
+}
+
+/* One step quieter. Still clears contrast — see the tonal scale comments.
+   Deliberately NOT --color-meta-player: that token is scoped to the player and
+   using it here would erase the distinction it exists to create. */
+.dim {
+  color: var(--color-foreground-dim);
+}

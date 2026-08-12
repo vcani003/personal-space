@@ -1,0 +1,30 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+
+  font-family: var(--font-meta);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-meta);
+  font-variation-settings: "wdth" var(--meta-width);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+}
+
+.link {
+  color: var(--color-foreground-faint);
+  transition: color var(--duration-response) var(--ease-out);
+}
+
+/* The only change on hover is luminance. Light before colour, applied to the
+   smallest possible thing. */
+.link:hover,
+.link:focus-visible {
+  color: var(--color-foreground);
+}
+
+@media (max-width: 47.9375rem) {
+  .list {
+    gap: var(--space-xs);
+  }
+}

@@ -1,0 +1,177 @@
+/* =============================================================================
+   LAYER 2 — HAZE
+   =============================================================================
+
+   The page's only motion. Everything about this file is calibrated so that the
+   drift is below the threshold of noticing:
+
+     travel   ~1.6% of the mass's own width, so ~12px on a 740px cloud
+     rate     that 12px spread across half of a 26–44s cycle — about a third
+              of a pixel per second
+     breath   opacity varying by ~28% of a value that is already 0.3–0.44
+
+   Position and opacity run on DIFFERENT tokens (26s against 44s), and each
+   mass runs them the opposite way round from the other. 26 and 44 share no
+   common factor, so nothing ever resynchronises into a pulse — the token file
+   makes the same point about why those numbers are not 30 and 45.
+
+   Only `transform` and `opacity` animate. Both are compositor properties, so
+   a drifting cloud costs no layout and no paint after its first frame.
+   ========================================================================== */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--layer-2-haze);
+}
+
+.mass {
+  position: absolute;
+  inset-block-start: var(--haze-y);
+  inset-inline-start: var(--haze-x);
+
+  inline-size: var(--haze-inline);
+  block-size: var(--haze-block);
+  /* Centred on its coordinate with static margins — `transform` belongs to the
+     drift and `translate` belongs to parallax; neither can be spent on
+     centring. */
+  margin-block-start: calc(var(--haze-block) / -2);
+  margin-inline-start: calc(var(--haze-inline) / -2);
+
+  opacity: var(--haze-intensity);
+
+  /* --haze-color is built on --tone-plum rather than a grey, so this reads as
+     the dark field LIFTING rather than as a veil laid over it.
+
+     Eight stops approximating a gaussian, not three. A three-stop ramp has
+     kinks in it, and on a near-black field every kink renders as its own
+     contour ring on top of the ordinary 8-bit banding — the haze stops being
+     weather and starts looking like a lens flare.
+
+     Measured, by amplifying a real screenshot: the mass peaks about 5 values
+     out of 255 above the field, so its falloff crosses four or five integer
+     boundaries and there is no way to render that in 8-bit without contours.
+     Smoothing the ramp removes the kink rings; the residual quantisation
+     rings are visible at 5× gain and effectively not at 1×, and the grain
+     layer above breaks up what is left. If this ever needs to be perfect the
+     answer is a wider, weaker mass, not a sharper gradient. */
+  background-image: radial-gradient(
+    ellipse at center,
+    var(--haze-color) 0%,
+    rgb(from var(--tone-plum) r g b / 0.5) 14%,
+    rgb(from var(--tone-plum) r g b / 0.41) 27%,
+    rgb(from var(--tone-plum) r g b / 0.3) 40%,
+    rgb(from var(--tone-plum) r g b / 0.19) 53%,
+    rgb(from var(--tone-plum) r g b / 0.1) 66%,
+    rgb(from var(--tone-plum) r g b / 0.04) 79%,
+    rgb(from var(--tone-plum) r g b / 0.01) 90%,
+    rgb(from var(--tone-plum) r g b / 0) 100%
+  );
+  filter: blur(var(--haze-blur));
+
+  /* Parallax, identical to the stars'. Haze sits at `far`, so it travels 2px —
+     which on a mass 740px wide behind a 72px blur is not visible as movement
+     at all, and is not meant to be. It is here so the haze is not the one
+     stationary thing the moving stars are measured against; a layer that
+     refuses to move is more noticeable than one that barely does.
+
+     `translate` and `transform` are separate properties, so this composes with
+     the drift keyframes below rather than overwriting them. 0px under reduced
+     motion, where the loop does not run either. */
+  --parallax-travel: var(--parallax-far);
+  translate:
+    calc(var(--parallax-x, 0) * var(--parallax-travel))
+    calc(var(--parallax-y, 0) * var(--parallax-travel));
+
+  animation-name: drift, breathe;
+  animation-timing-function: var(--ease-drift);
+  animation-iteration-count: infinite;
+  /* Negative delays start each mass part-way through its cycle so the two are
+     never in phase at load. Derived from the tokens rather than authored. */
+  animation-delay:
+    calc(var(--duration-atmosphere) * -0.63),
+    calc(var(--duration-atmosphere) * -1.4);
+}
+
+.mass[data-drift="slowest"] {
+  animation-duration:
+    var(--duration-atmosphere-slowest),
+    var(--duration-atmosphere-slow);
+}
+
+.mass[data-drift="slow"] {
+  animation-duration:
+    var(--duration-atmosphere-slow),
+    var(--duration-atmosphere-slowest);
+}
+
+/* Off-screen masses stop entirely. Set by the intersection observer in
+   hooks.ts; unset means "not yet observed", which must not pause. */
+.mass[data-onscreen="false"] {
+  animation-play-state: paused;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(1.6%, -1.1%) scale(1.045);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: var(--haze-intensity);
+  }
+  50% {
+    opacity: calc(var(--haze-intensity) * 1.28);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW — one mass, damped, and a cheaper blur
+   -----------------------------------------------------------------------------
+   A 72px blur across a large element is the single most expensive thing the
+   atmosphere does, and mobile GPUs pay the most for it. The narrow page keeps
+   one mass at a shorter radius and a lower ceiling; it still has weather, it
+   just has less of it.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .layer {
+    opacity: 0.78;
+  }
+
+  .mass {
+    filter: blur(calc(var(--haze-blur) * 0.6));
+  }
+
+  .mass[data-presence="wide"] {
+    display: none;
+  }
+}
+
+@media (min-width: 48rem) {
+  .mass[data-presence="narrow"] {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   REDUCED MOTION
+   -----------------------------------------------------------------------------
+   base.css already collapses ambient animation globally; this is explicit
+   rather than incidental. The keyframes' 0% and 100% are identical to the
+   element's own resting state, so stopping the drift removes the movement and
+   changes nothing about how the page looks. The haze stays. Nothing is
+   removed — it simply stops breathing.
+   ------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .mass {
+    animation: none;
+  }
+}

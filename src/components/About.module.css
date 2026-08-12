@@ -1,0 +1,19 @@
+.about {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.prose {
+  display: grid;
+  gap: var(--space-sm);
+  max-inline-size: var(--measure);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground);
+}
+
+@media (max-width: 47.9375rem) {
+  .prose {
+    max-inline-size: none;
+  }
+}

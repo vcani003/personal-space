@@ -1,0 +1,446 @@
+/* =============================================================================
+   PERSONAL SPACE — DESIGN TOKENS
+   =============================================================================
+
+   This file is the token ARCHITECTURE: the names, the grouping, the plumbing,
+   the fallback chain. The VALUES belong to the design lead and the
+   visual-design-engineer.
+
+   Every value carrying a LEAD comment is a deliberate placeholder. It is
+   syntactically valid so the app renders, but it is NOT a design decision and
+   must not be treated as one.
+
+   Rules that hold regardless of value:
+
+   1. Components never write a raw colour, duration, size or z-index. If a
+      component needs one, the token set is incomplete — add the token here.
+   2. The tonal scale is raw material. Components consume the SEMANTIC layer,
+      not the tonal scale directly, so the palette can be retuned in one place.
+   3. Light before colour. The tonal scale is deliberately near-neutral; hue is
+      carried by a very small number of tokens and used atmospherically.
+   4. Motion has exactly three categories (response / transition / atmosphere).
+      Nothing animates on a duration that is not one of them.
+   ========================================================================== */
+
+:root {
+  /* ==========================================================================
+     1. TONAL SCALE — raw material
+     --------------------------------------------------------------------------
+     The family from the shared brief, dark → light:
+       ink → charcoal → smoke → plum → mauve → lavender-gray → silver → mist
+     These are the ONLY places a literal colour is authored. Nothing else in
+     the codebase writes a colour literal.
+
+     SET. This ramp is deliberately a half-step COOLER and a half-step DEEPER
+     than Bunny Hop Player's. Two reasons, both load-bearing:
+
+     1. The player's deepest tone is #161417. Our field is #08080c — darker.
+        That difference is what lets the player read as a lit object sitting IN
+        space rather than a panel painted ON it. Do not lighten `--tone-ink`
+        toward the player's ink; the gap IS the composition.
+     2. Bunny Hop leans warm-violet (plum). We lean blue-violet, toward
+        `eternal sunshine`'s grey-blue fog. Same family, different record.
+
+     Blue channel leads throughout, by a widening margin as the ramp lightens.
+     Nothing is saturated. Hue lives here and essentially nowhere else.
+     ====================================================================== */
+
+  --tone-ink: #08080c;            /* deepest field — darker than the player's ink */
+  --tone-charcoal: #0f0f16;
+  --tone-smoke: #191922;
+  --tone-plum: #272533;           /* first real hue — blue-violet */
+  --tone-mauve: #454150;
+  --tone-lavender-gray: #8b8797;  /* metadata register — 5.7:1 on ink */
+  --tone-lavender-dim: #7c788a;   /* one step down, still readable — 4.6:1 */
+  --tone-silver: #b2afbd;         /* 9.1:1 on ink */
+  --tone-mist: #e9e8ef;           /* lightest — 16.3:1 on ink */
+
+  /* Translucency is derived, never re-authored.
+     Effects that need a tone at partial alpha (glows, haze, scrims, rules) use
+     relative colour syntax — `rgb(from var(--tone-x) r g b / <alpha>)` — so
+     there is no second copy of any colour to keep in sync, and the tones may
+     later be written in any colour space without touching the derivations. */
+
+  /* ==========================================================================
+     2. SEMANTIC LAYER — what components actually consume
+     --------------------------------------------------------------------------
+     Each semantic token maps to a tone. Retuning the site = remapping here.
+     ====================================================================== */
+
+  /* Surfaces. There is no "card" token on purpose: the brief forbids designing
+     toward a universal panel. Add a specific surface token only when a
+     specific material earns one. */
+  --color-background: var(--tone-ink);
+  --color-background-deep: #050508;                /* below ink — the far field */
+  --color-background-raised: var(--tone-charcoal); /* rare, material-specific */
+
+  /* Text. Four steps, ordered by luminance — hierarchy comes from light.
+     Contrast on --tone-ink, measured:
+       foreground        16.3:1
+       foreground-muted   9.1:1
+       foreground-faint   5.7:1   ← floor for anything a visitor must READ
+       foreground-ghost   2.0:1   ← FAILS text contrast, deliberately
+
+     --color-foreground-ghost is for DECORATION ONLY: a mark, a rule, an
+     almost-invisible artifact. Never put words a visitor needs in it. If a
+     secret is revealed by an interaction, it must land at -faint or brighter. */
+  --color-foreground: var(--tone-mist);
+  --color-foreground-muted: var(--tone-silver);
+  --color-foreground-faint: var(--tone-lavender-gray); /* metadata register */
+  --color-foreground-dim: var(--tone-lavender-dim);    /* quieter, still 4.6:1 */
+  --color-foreground-ghost: var(--tone-mauve);         /* decoration only */
+
+  /* Accent.
+     SET — and the answer is "there is no chromatic accent."
+
+     This is the most direct expression of `light before colour` in the whole
+     file. Emphasis on this site is LIGHT: something matters because it is
+     brighter, larger or in sharper focus than what surrounds it. There is no
+     hue that means "important."
+
+     Hue lives in the tonal ramp, where it is atmospheric. The moment an accent
+     colour exists, hierarchy starts getting solved by painting things, and the
+     restraint the whole brief depends on begins to leak. If you find yourself
+     wanting a coloured accent, re-read design-review question 2. */
+  --color-accent: var(--tone-mist);
+  --color-accent-quiet: var(--tone-lavender-gray);
+
+  /* Lines and edges. Materials, not panels — expect these to be used rarely. */
+  --color-rule: rgb(from var(--tone-mist) r g b / 0.07);
+  --color-edge: rgb(from var(--tone-mist) r g b / 0.12);
+
+  /* Focus. Accessibility-load-bearing: must stay clearly visible after any
+     palette retune. Not a decorative token, and not subject to the restraint
+     rules — a focus ring is allowed to be the brightest thing on screen. */
+  --color-focus: var(--tone-mist);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
+
+  /* Selection. */
+  --color-selection-bg: rgb(from var(--tone-mauve) r g b / 0.6);
+  --color-selection-fg: var(--tone-mist);
+
+  /* ==========================================================================
+     3. LIGHT — glow, haze, scrim, texture
+     --------------------------------------------------------------------------
+     "Light before colour." These are the tokens that let luminance do the work
+     that hue would otherwise be asked to do.
+     Texture stays under ~10% perceived intensity — if a viewer notices the
+     effect, it is too strong.
+     ====================================================================== */
+
+  --glow-color: rgb(from var(--tone-mist) r g b / 0.09);
+  --glow-soft: 0 0 48px var(--glow-color);
+  --glow-tight: 0 0 14px var(--glow-color);
+  --glow-bloom-radius: 48px;
+
+  /* Inset light — the "recedes" half of the inset/outset inversion.
+     This pairing is the player's physics: outer glow makes a thing float,
+     inner shadow makes a thing recede. Use them as a pair or not at all. */
+  --shadow-inset: inset 0 0 44px rgb(from var(--tone-ink) r g b / 0.5);
+
+  /* Haze / mist. Consumed by the atmosphere layer.
+     Built on --tone-plum rather than --tone-mauve: haze should read as the
+     dark field lifting slightly, not as a grey veil laid over it. */
+  --haze-color: rgb(from var(--tone-plum) r g b / 0.55);
+  --haze-blur: 72px;
+
+  /* Grain / film texture. Opacity is the intensity dial.
+     TUNE ON SIGHT: `overlay` does very little over near-black, which is most
+     of this page. If the grain is invisible at 0.05, raise toward 0.07 before
+     reaching for `soft-light` or `screen` — and stop the moment it reads as
+     an effect rather than as material. Hard ceiling 0.10. */
+  --grain-opacity: 0.05;
+  /* `screen`, not `overlay`. Overlay is mathematically inert over a near-black
+     field: below 0.5 backdrop it computes 2 × backdrop × source, so on #08080c
+     the entire possible excursion is under 1/255 before opacity is even
+     applied — the 0.10 ceiling is reached long before anything is visible.
+     Only a mode that ADDS light produces grain on darkness, which is also what
+     grain does in the shadows of a scanned negative.
+     Measured at 0.05: an empty field reads 10.2/255, sd 0.70 — present as
+     material, ~1% of full range, not noticeable as an effect. */
+  --grain-blend-mode: screen;
+
+  /* Scrim — used when content must stay legible over imagery. */
+  --scrim-color: rgb(from var(--tone-ink) r g b / 0.6);
+
+  /* ==========================================================================
+     4. TYPOGRAPHY
+     --------------------------------------------------------------------------
+     Exactly two registers. The gap between them IS the hierarchy — there is no
+     "bridge" size token here, on purpose. If something wants a mid size it
+     belongs to one of the two registers and is being styled wrong.
+
+     Swapping PP Eiko for a licensed woff2 later is a one-line change in
+     fonts.css; nothing here needs to move.
+     ====================================================================== */
+
+  /* -- Families ----------------------------------------------------------- */
+  /* The fallback stack is load-bearing: a fresh clone, CI and any production
+     build have NO Eiko files (trial licence, gitignored). The site must render
+     correctly there, not break. */
+  --font-fallback-display: "Didot", "Bodoni 72", "Playfair Display",
+    "Iowan Old Style", Georgia, serif;
+  --font-fallback-meta: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+
+  --font-display: "PP Eiko", var(--font-fallback-display);
+  --font-meta: "Instrument Sans", var(--font-fallback-meta);
+
+  /* -- Weights ------------------------------------------------------------ */
+  /* Eiko trial ships Thin / Medium / Heavy upright + Light Italic / Black
+     Italic. There is NO upright Light. Thin is the display weight. */
+  --font-weight-display: 100;         /* PP Eiko Thin */
+  --font-weight-display-strong: 500;  /* PP Eiko Medium — when it must land */
+  --font-weight-meta: 400;
+  --font-weight-meta-strong: 500;
+
+  /* PP Eiko Light Italic. Reserved for ONE concentrated use on the page — the
+     quote. It is the only italic in the system and spending it twice would
+     spend its effect. There is deliberately no generic "italic" token. */
+  --font-weight-display-italic: 300;
+
+  /* Reading copy is THIN, not Medium — verified on screen, not assumed.
+     The first draft of this file set body copy in Medium on the theory that a
+     hairline face breaks up at reading sizes. Rendered side by side at 19px on
+     our actual field, the opposite is true: Thin is delicate and completely
+     legible, while Medium reads nearly bold — dense and assertive, the wrong
+     voice for a journal entry and much too close to the display register's
+     job. Eiko's Thin is drawn to survive small; its Medium is not drawn to
+     recede.
+
+     The tradeoff being accepted: hairlines are genuinely harder to read on a
+     non-retina display and for low-vision readers. Contrast is what pays for
+     it — reading copy sits at --color-foreground (16.3:1), NOT at -muted.
+     Do not set body copy in a dimmer tone to make it feel softer. Reduce the
+     amount of text instead.
+
+     Medium is now rare emphasis only. If a block of Medium is longer than a
+     sentence, it is probably meant to be Thin. */
+  --font-weight-body: 100;            /* PP Eiko Thin — all reading copy */
+
+  /* -- Display register (PP Eiko) ----------------------------------------- */
+  /* Eiko never appears small. Roughly 48–80px is where it earns its keep;
+     long-form reading copy is the one place it sits smaller.
+     The scale below is set. Note what is NOT here: nothing between 28px and
+     11px. That void is the design. */
+  --text-display-xl: 5rem;    /* 80px — hero statement. Once per page. */
+  --text-display-lg: 3.5rem;  /* 56px — section titles, project names */
+  --text-display-md: 2.5rem;  /* 40px — large quotes */
+  --text-display-sm: 1.75rem;  /* 28px — smallest size in the DISPLAY register */
+  --text-body: 1.1875rem;      /* 19px — reading copy, Thin, at full contrast */
+
+  /* Fluid display sizing. The hero must not blow out of a 375px viewport, and
+     it should not stay timid on a 27" display. One clamp, applied to xl only —
+     the rest of the scale is stable so the hierarchy does not reshuffle at
+     arbitrary widths. */
+  --text-display-xl-fluid: clamp(2.75rem, 1.6rem + 5.2vw, 5rem);
+
+  --leading-display: 1.04;    /* tight — big Eiko wants its lines close */
+  --leading-body: 1.65;       /* generous — Thin at 19px on dark needs air */
+  --tracking-display: -0.015em;
+
+  /* Optical hairline compensation.
+     Thin strokes on a dark field bloom slightly, which usually HELPS. Kept at
+     0 deliberately: reach for it only if Eiko Thin looks fragile at 80px on a
+     real screen, and change it here once rather than per component.
+     If it needs a value, prefer a same-colour text-shadow of <0.5px over
+     faking weight with -webkit-text-stroke, which distorts the letterforms. */
+  --display-optical-adjust: 0;
+
+  /* -- Metadata register (Instrument Sans) --------------------------------- */
+  /* Near-subliminal but perfectly legible. 10–11px, often uppercase, tracked.
+     Instrument Sans never appears large. */
+  --text-meta: 0.6875rem;       /* 11px */
+  --text-meta-sm: 0.625rem;     /* 10px */
+  --tracking-meta: 0.10em;
+  --tracking-meta-wide: 0.16em; /* section numbering, `01 / PROJECT` */
+  --leading-meta: 1.45;
+
+  /* Instrument Sans is a variable font (wght 400–700, wdth 75–100%).
+     Width is exposed so metadata can be tightened without a second family. */
+  --meta-width: 100;
+
+  /* -- The player's metadata is SUBORDINATE ------------------------------- */
+  /* Bunny Hop's own metadata line is ~10.5px uppercase tracked at 0.06em —
+     which is almost exactly this site's metadata register. Left alone, the
+     player's labels and the page's labels look like the same voice, and the
+     player stops reading as an object sitting in the page and starts reading
+     as another page section. That is the exact failure the brief warns about.
+
+     Resolution: page metadata is WIDER and BRIGHTER; player metadata is
+     TIGHTER and DIMMER. The page addresses the visitor. The player murmurs to
+     itself. Both are Instrument Sans, so they still belong to one world.
+
+     These are consumed only inside the player. Do not use them on the page.
+
+     On colour: --tone-mauve was the first choice and was too dim to read
+     comfortably at 10px when rendered. A track title is information, not
+     decoration — subordinate does not mean illegible. --tone-lavender-dim sits
+     one step below the page's metadata and still clears 4.6:1, so most of the
+     separation is carried by the TRACKING difference, which costs nothing in
+     legibility. */
+  --text-meta-player: 0.65rem;       /* 10.4px — a hair under the page */
+  --tracking-meta-player: 0.05em;    /* under a third of the page's tracking */
+  --color-meta-player: var(--tone-lavender-dim);
+
+  /* ==========================================================================
+     5. MOTION
+     --------------------------------------------------------------------------
+     Exactly three categories, from the brief:
+
+       RESPONSE    120–300ms   visitor-triggered, pointer response
+       TRANSITION  250–600ms   state change, revealing hidden content
+       ATMOSPHERE  6–30s+      ambient drift, breathing
+
+     Motion either happens ONCE in response to something, or breathes slowly
+     enough to become atmosphere. Nothing lives between those two ideas.
+
+     Under `prefers-reduced-motion`, RESPONSE and TRANSITION resolve to 0ms
+     (see the block at the bottom of this file) so content-bearing transitions
+     complete instantly instead of being killed mid-flight. ATMOSPHERE
+     durations are left intact here because ambient animation is switched off
+     wholesale in base.css, and JS motion is gated on `useReducedMotion`.
+     ====================================================================== */
+
+  --duration-response-fast: 120ms;
+  --duration-response: 200ms;
+  --duration-response-slow: 300ms;
+
+  --duration-transition-fast: 250ms;
+  --duration-transition: 400ms;
+  --duration-transition-slow: 600ms;
+
+  /* Atmosphere durations are deliberately non-harmonic — 14 / 26 / 44 share no
+     common factor, so layers drifting at different rates never resynchronise
+     into a visible pulse. If these become 15 / 30 / 45 the whole atmosphere
+     will start breathing in unison once a minute, and it will be obvious. */
+  --duration-atmosphere: 14s;
+  --duration-atmosphere-slow: 26s;
+  --duration-atmosphere-slowest: 44s;
+
+  /* Easing. Nothing overshoots — the brief forbids spring physics.
+     --ease-out is Bunny Hop's own curve, kept for continuity: a long, soft
+     settle that never bounces. --ease-drift is near-sinusoidal, which is what
+     makes ambient loops read as breathing rather than as animation. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-drift: cubic-bezier(0.45, 0, 0.55, 1);
+
+  /* Parallax depth response, in px of travel at full pointer extent.
+     Starting values from the brief. Depth should be perceived before parallax
+     is consciously noticed. The atmosphere agent reads these; it does not
+     invent its own numbers. */
+  --parallax-far: 2px;         /* 1–2px */
+  --parallax-middle: 4px;      /* 2–5px */
+  --parallax-near: 6px;        /* 4–8px */
+  --parallax-foreground: 10px; /* 8–12px max */
+
+  /* ==========================================================================
+     6. DEPTH — the six layers
+     --------------------------------------------------------------------------
+     LAYER 0  deep background / tonal field
+     LAYER 1  very distant light / stars
+     LAYER 2  mist / atmospheric haze / grain
+     LAYER 3  page content
+     LAYER 4  mid-depth photographs / drawings / objects
+     LAYER 5  occasional foreground object
+
+     Layers are NOT equally visible; some may hold almost nothing. Gaps of 10
+     leave room to stack inside a layer without renumbering the model.
+     ====================================================================== */
+
+  /* Behind everything, including the field.
+     Page content is static in-flow markup with no z-index of its own, so it
+     paints above positioned siblings at z-index 0 but BELOW anything positive.
+     The whole background half of the depth model therefore has to sit at
+     negative z, or stars paint over the quote.
+     Layers 4 and 5 (mid-depth objects, foreground) go in FRONT of content and
+     will need a second atmosphere root at positive z — see Phase 4/5. */
+  --layer-behind: -1;
+
+  --layer-0-field: 0;
+  --layer-1-stars: 10;
+  --layer-2-haze: 20;
+  --layer-3-content: 30;
+  --layer-4-objects: 40;
+  --layer-5-foreground: 50;
+
+  /* Above the depth model entirely. Reserved for things that are not part of
+     the world: focus outlines that must not be clipped, skip links. */
+  --layer-above: 100;
+
+  /* ==========================================================================
+     7. SPACE
+     --------------------------------------------------------------------------
+     Negative space is a material. This is a rhythm, not a filling system.
+
+     The ratio widens as it climbs — roughly 1.4× at the bottom, 1.65× at the
+     top. A linear 4px scale gives you a tidy interface; this gives you an
+     editorial page, because the large steps are far enough apart to read as
+     deliberate emptiness rather than as generous padding.
+
+     --space-3xl (224px) is the "this page breathes" step. It should feel
+     slightly uncomfortable in a code review and correct on screen. If it gets
+     trimmed because a section looked "too far apart", the page has quietly
+     become a website again.
+     ====================================================================== */
+
+  --space-3xs: 0.25rem;   /* 4px */
+  --space-2xs: 0.5rem;    /* 8px */
+  --space-xs: 0.875rem;   /* 14px */
+  --space-sm: 1.25rem;    /* 20px */
+  --space-md: 2rem;       /* 32px */
+  --space-lg: 3.25rem;    /* 52px */
+  --space-xl: 5.25rem;    /* 84px */
+  --space-2xl: 8.5rem;    /* 136px */
+  --space-3xl: 14rem;     /* 224px — the "this page breathes" step */
+
+  /* Page frame. The composition is asymmetric by intent, so the gutters are
+     separate tokens rather than one symmetric value. */
+  --page-gutter-inline: var(--space-lg);
+  --page-gutter-block: var(--space-2xl);
+  --page-max-width: 1440px;
+  --measure: 56ch;   /* Eiko Thin at 19px — narrower than a sans would want */
+
+  /* Radii. Materials, not UI panels — expect near-zero use.
+     The page has essentially no rounded rectangles. The PLAYER does, because
+     it is a physical object, and it owns its own radius rather than borrowing
+     one from here. If you are reaching for a radius on the page, check
+     design-review question 6 first: does this content need a panel at all? */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Minimum touch target. Accessibility floor, not a style choice. */
+  --touch-target-min: 44px;
+}
+
+/* ============================================================================
+   REDUCED MOTION — token resolution
+   ----------------------------------------------------------------------------
+   Discrete, content-bearing motion is routed through the RESPONSE and
+   TRANSITION duration tokens, so collapsing them here removes the movement
+   while the state change itself still completes. `transitionend` still fires.
+   Nothing is hidden, nothing is removed.
+
+   Ambient animation is switched off in base.css.
+   JS motion (parallax, escaped lyrics) is gated on `useReducedMotion` — a
+   media query cannot reach it.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-response-fast: 0ms;
+    --duration-response: 0ms;
+    --duration-response-slow: 0ms;
+
+    --duration-transition-fast: 0ms;
+    --duration-transition: 0ms;
+    --duration-transition-slow: 0ms;
+
+    --parallax-far: 0px;
+    --parallax-middle: 0px;
+    --parallax-near: 0px;
+    --parallax-foreground: 0px;
+  }
+}

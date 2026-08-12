@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# -----------------------------------------------------------------------------
+# PP Eiko — TRIAL LICENCE. NEVER COMMIT THESE.
+# -----------------------------------------------------------------------------
+# We hold the Pangram Pangram "Free For Personal Use" trial only, for local
+# evaluation. Committing the files would redistribute a licensed commercial
+# typeface, and deploying them would publish it. Both are licence breaches.
+#
+# Consequences, all intended:
+#   - a fresh clone has no Eiko and renders the fallback stack declared in
+#     src/styles/fonts.css
+#   - CI and every production build do the same
+#   - to see Eiko locally, copy the .otf files from the trial package into
+#     public/assets/fonts/ (see README)
+#
+# Remove this rule only after a licence is purchased, and then commit the
+# licensed woff2 rather than these trial .otf files.
+public/assets/fonts/PPEiko*
+
+# Instrument Sans is SIL OFL and IS committed, together with its licence text
+# at public/assets/fonts/InstrumentSans-OFL.txt. Do not remove that file.
