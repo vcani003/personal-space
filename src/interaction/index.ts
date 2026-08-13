@@ -41,17 +41,20 @@
  *                           revealed; and one specific faint star that answers
  *                           a click with one sentence.
  *
- *   THE SURFACE             a faint ring, and a fainter one behind it, spreading
- *                           from wherever the page is touched and thinning to
- *                           nothing. It is not a fifth object and does not spend
- *                           from the budget above: it belongs to the empty space
- *                           BETWEEN the objects, it cannot be aimed at, it does
- *                           nothing, and it never fires for a click that already
- *                           means something — a link, a control, the paper, the
- *                           player. A drag does not produce one either. It is
- *                           two CSS animations on an element that lives 800ms,
- *                           and it does not exist at all under reduced motion.
- *                           See Ripple.tsx.
+ *   THE SURFACE             a wavefront spreading from wherever the page is
+ *                           touched. The page's own words are pushed outward as
+ *                           it passes and settle back exactly where they were; a
+ *                           single faint ring is drawn at the crest, derived from
+ *                           the same radius and duration, and is deliberately the
+ *                           quieter half. It is not a fifth object and does not
+ *                           spend from the budget above: it belongs to the empty
+ *                           space BETWEEN the objects, it cannot be aimed at, it
+ *                           does nothing, and it never fires for a click that
+ *                           already means something — a link, a control, the
+ *                           paper, the player. A drag does not produce one
+ *                           either. Under reduced motion it does not exist and
+ *                           the page's text is not restructured at all.
+ *                           See Ripple.tsx, wave.ts and textSplit.ts.
  *
  * Four objects react on this entire page. Everything else is still, which is
  * the only reason these register at all:
@@ -77,12 +80,22 @@
  * =============================================================================
  *
  * The page has exactly one `requestAnimationFrame` loop and it belongs to the
- * atmosphere. Nothing here starts another. Dragging borrows the shared loop
- * through `holdPointerFrames()` and `subscribePointerFrame()` and releases both
- * the instant the object stops moving; parallax on these objects is read
- * straight from `--pointer-x` / `--pointer-y` in CSS, which costs nothing at
- * all. See the header of `atmosphere/index.ts` for the division of labour:
- * atmosphere owns the continuous signal, interaction owns discrete gestures.
+ * atmosphere. Nothing here starts another. Dragging and the wavefront both
+ * borrow the shared loop through `holdPointerFrames()` and
+ * `subscribePointerFrame()` and release both the instant nothing is still
+ * moving; parallax on these objects is read straight from `--pointer-x` /
+ * `--pointer-y` in CSS, which costs nothing at all. See the header of
+ * `atmosphere/index.ts` for the division of labour: atmosphere owns the
+ * continuous signal, interaction owns discrete gestures.
+ *
+ * One thing the wavefront wanted and could not have: the STARS should be pushed
+ * by it too. They already have the channel — `--star-push-x` / `--star-push-y` —
+ * but that channel is written by the atmosphere's own loop, which caches the
+ * last value it published and would therefore neither notice nor correct a value
+ * written by anything else. Driving it from here would leave stars permanently
+ * displaced, and the only correct fix is one line in `pointer.ts`'s `pushed`
+ * list, which is a file this agent does not own. Stars are therefore left out.
+ * See the report.
  *
  * Reduced motion removes MOVEMENT ONLY, live, via `useReducedMotion` rather
  * than a one-shot read. Under it the paper still drags, the hold still fires at

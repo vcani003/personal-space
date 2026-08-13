@@ -39,7 +39,7 @@ import styles from "./InteractionLayer.module.css";
  *   ONE draggable object          the paper
  *   ONE press-and-hold            on that same paper
  *   TWO hidden discoveries        the mark beneath the paper; one star
- *   THE SURFACE                   a ring where the page is touched
+ *   THE SURFACE                   the page is displaced where it is touched
  *
  * The first three are the entire MVP interaction budget, and it is a ceiling
  * rather than a target. Nothing else on this page is interactive, and the reason
@@ -70,26 +70,31 @@ export function InteractionLayer() {
   };
 
   return (
-    <>
-      {/* The surface. Its own fixed, viewport-sized root, and FIRST in the
-          fragment on purpose: same z-index, earlier in paint order, so a ring
-          passes in front of the page's text but underneath the paper and the
-          player. Objects float on the surface; they are not part of it. It
-          renders nothing at all when no ripple is on screen. */}
+    <div ref={rootRef} className={styles.root} style={style}>
+      {/* THE SURFACE, and FIRST among these children on purpose: same stacking
+          context, earlier in paint order, so a crest passes in front of the
+          page's text but underneath the paper and the player. Objects float on
+          the surface; they are not part of it.
+
+          It lives inside this root rather than in a fixed one of its own
+          because the wave it draws displaces the page's WORDS, which are
+          anchored to the document — see the header of Ripple.tsx. This root is
+          already document-tall, already clipped and already inert, so the two
+          halves of one event now share one frame of reference for free.
+
+          It renders nothing at all when no ripple is on screen. */}
       <RippleField />
 
-      <div ref={rootRef} className={styles.root} style={style}>
-        {/* DISCOVERY ONE. Rendered BEFORE the paper so the paper covers it,
-            and given no transition, no animation and no reveal of any kind —
-            it is not shown, it is uncovered. See the stylesheet. */}
-        <span className={styles.mark} aria-hidden="true" />
+      {/* DISCOVERY ONE. Rendered BEFORE the paper so the paper covers it,
+          and given no transition, no animation and no reveal of any kind —
+          it is not shown, it is uncovered. See the stylesheet. */}
+      <span className={styles.mark} aria-hidden="true" />
 
-        <PaperFragment />
+      <PaperFragment />
 
-        {starSecrets.map((secret) => (
-          <StarSecret key={secret.id} secret={secret} />
-        ))}
-      </div>
-    </>
+      {starSecrets.map((secret) => (
+        <StarSecret key={secret.id} secret={secret} />
+      ))}
+    </div>
   );
 }

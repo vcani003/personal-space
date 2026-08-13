@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "./hooks";
 import type { StyleVars } from "./vars";
+import { emitWave, mountWaveField, waveRadius, WAVE_START_FRACTION } from "./wave";
 import styles from "./Ripple.module.css";
 
 /* =============================================================================
-   THE SURFACE — a ring where the page was touched
+   THE SURFACE — the page is displaced where it was touched
    =============================================================================
 
    The page has a surface, and you just touched it. That is the whole idea, and
@@ -18,17 +19,42 @@ import styles from "./Ripple.module.css";
    as the cleanest possible example of the first case. One event, one expansion,
    nothing left behind, nothing looping.
 
+   ── The correction this file has been through ───────────────────────────────
+
+   It used to be two soft rings and nothing else, and the site owner's reading of
+   it was exact: it looked like an overlay. It was one. Water displaces what is
+   floating in it — the disturbance IS the movement of the medium, not a shape
+   passing in front of it.
+
+   So the event now has two halves, and this component owns the gesture that
+   starts both:
+
+     THE WAVE   `wave.ts` — an expanding annulus that pushes the page's own
+                words outward along its radius and settles them back exactly
+                where they were. This is the effect.
+     THE CREST  the ring below — one, dimmer than it was, its scale derived from
+                the wave's own radius and duration so that the luminous band and
+                the moving words are the same thing seen twice. This is support.
+
+   The two are bound together in code rather than by eye: the constants come from
+   `wave.ts` and are published to CSS as `--wave-radius` and
+   `--ripple-scale-from` at the moment a ripple is rendered, which is also the
+   moment its wave is emitted.
+
    ── What became quieter to make room for it (review question 7) ─────────────
 
-   Nothing was removed, because this is the only thing on the page that is
-   triggered by a click on NOTHING. Every other interaction here is attached to
-   a specific object — the paper, the star, the dock — and this one is attached
-   to the empty space between them, which was previously inert. What pays for it
-   instead is its INTENSITY. It is the most-repeated motion on the site by an
-   enormous margin: a visitor who reads the page will see it fifty times, so it
-   is tuned to survive the fiftieth rather than to impress on the first. Peak
-   luminance is around that of `--color-edge` — a hairline rule — and it is gone
-   in three quarters of a second.
+   The ring itself, in three ways — the wake is deleted, the peak alpha went from
+   0.13 to 0.085, and the easing is gone. See the header of `Ripple.module.css`.
+   Beyond that, nothing else on the page had to give anything up, because the
+   whole event still only happens in response to a click on NOTHING: every other
+   interaction here is attached to a specific object — the paper, the star, the
+   dock — and this one is attached to the empty space between them.
+
+   What pays for it instead is INTENSITY. This is the most-repeated motion on the
+   site by an enormous margin: a visitor who reads the page will see it fifty
+   times, so it is tuned to survive the fiftieth rather than to impress on the
+   first. Displacement peaks at a few pixels, and only within about a hand's
+   width of the click.
 
    The test it was tuned against: click twenty times in a row and ask whether
    you have started to resent it. Anything that passes that test on the twentieth
@@ -37,25 +63,24 @@ import styles from "./Ripple.module.css";
 
    ── Where it renders, and why in FRONT of the content ───────────────────────
 
-   In its own fixed, full-viewport root at `--layer-5-foreground`, mounted by
-   `<InteractionLayer />` as a sibling of the interaction root and BEFORE it in
-   the DOM. Three consequences, all of them wanted:
+   Inside the interaction layer's own document-tall root at
+   `--layer-5-foreground`, FIRST among its children on purpose. Three
+   consequences, all of them wanted:
 
-     - It is in front of the page's text, so the ring reads as a disturbance of
+     - It is in front of the page's text, so the crest reads as a disturbance of
        the surface you are looking THROUGH rather than of something behind it.
        Water is a surface you look through; a ripple that passed behind the
        words would just be a background effect.
      - It is behind the paper and behind the docked player, because they are
-       later in paint order at the same layer. Foreground objects float ON the
-       surface, so a ring passes underneath them and comes out the other side.
-       That is also a hard guarantee that this can never be drawn on top of the
-       one thing on the page you might be trying to press.
-     - It is FIXED, not absolute. The other half of this layer is a
-       document-tall absolute box because the paper is anchored to a place in
-       the PAGE. A ripple is not: it is anchored to the moment you touched the
-       glass, and it is over before scrolling is a question. Fixed also means the
-       click point is `clientX`/`clientY` with no scroll arithmetic and no
-       dependence on the measured page height.
+       later in paint order. Foreground objects float ON the surface, so a ring
+       passes underneath them and comes out the other side. That is also a hard
+       guarantee that this can never be drawn on top of the one thing on the page
+       you might be trying to press.
+     - It is DOCUMENT-anchored. It used to be a separate fixed, viewport-sized
+       root, which was right when the ring was alone — a ripple was over before
+       scrolling was a question. It is wrong now: the words the wave moves live
+       in the page, so a scroll during a wave would slide the crest away from the
+       displacement it is drawing. Both halves are anchored to the same place.
 
    Nothing here is ever clipped by the layer beneath it and nothing here can be
    clicked: the root and every element inside it are `pointer-events: none`.
@@ -72,12 +97,14 @@ import styles from "./Ripple.module.css";
 
    ── No second animation loop, and no dependency ─────────────────────────────
 
-   Each ring is a CSS one-shot animation on an element that exists for 800ms.
-   There is no rAF here — the page's one loop belongs to the atmosphere — no
-   canvas, no WebGL, no library, and no JavaScript running while a ripple is on
-   screen. React sees exactly two renders per ripple: one to add it, one to
-   remove it, and both are local to this component so nothing else on the page
-   re-renders.
+   The ring is a CSS one-shot animation on an element that exists for 800ms:
+   nothing in JavaScript touches it while it is on screen. The wave does need
+   frames, and it borrows the atmosphere's single rAF loop through
+   `holdPointerFrames()` and `subscribePointerFrame()`, exactly as dragging does,
+   and releases both on the frame every piece reaches rest. There is no second
+   loop, no canvas, no WebGL, no library and no new dependency. React sees
+   exactly two renders per ripple: one to add it, one to remove it, and both are
+   local to this component so nothing else on the page re-renders.
    ========================================================================== */
 
 /**
@@ -105,11 +132,10 @@ const MAX_CONCURRENT = 3;
 /**
  * How long a ripple element lives, in ms.
  *
- * The trailing ring starts 140ms late and runs for 600ms, so the last frame of
- * animation is at 740ms; the rest is margin so that removal can never race the
- * end of the animation and produce a visible cut. See the stylesheet for the
- * duration itself and for why 600ms did not need to become a fourth motion
- * band.
+ * The ring animates for 600ms — `--duration-transition-slow`, the top of the
+ * brief's TRANSITION band, and the same 600ms the wave itself travels for. The
+ * rest is margin so that removal can never race the end of the animation and
+ * produce a visible cut.
  */
 const RIPPLE_LIFETIME_MS = 800;
 
@@ -153,7 +179,9 @@ const NOT_THE_SURFACE = [
 
 interface Ripple {
   readonly id: number;
-  /** Viewport coordinates of the moment of contact. */
+  /** DOCUMENT coordinates of the moment of contact — the same frame of
+   *  reference the wave uses, so the crest and the displacement stay together
+   *  if the page is scrolled while they are alive. */
   readonly x: number;
   readonly y: number;
 }
@@ -164,6 +192,17 @@ export function RippleField() {
 
   const nextId = useRef(0);
   const timers = useRef(new Set<number>());
+
+  /* THE PAGE'S TEXT IS SPLIT HERE, and only here, and only when motion is
+     allowed. Mounting is what breaks the copy into movable pieces; the teardown
+     puts every original text node back, so turning the preference on mid-session
+     un-splits the document rather than merely freezing it. Under reduced motion
+     this effect does nothing at all and the markup is exactly what React
+     rendered. */
+  useEffect(() => {
+    if (reducedMotion) return;
+    return mountWaveField();
+  }, [reducedMotion]);
 
   /* Every timer this component has ever started is cancelled on unmount, and on
      the way into reduced motion — a pending removal firing into a component
@@ -190,10 +229,20 @@ export function RippleField() {
 
     /** The primary pointer currently down on the surface, if there is one. */
     let pointerId: number | null = null;
+    /** Viewport coordinates, for the travel test only. */
     let originX = 0;
     let originY = 0;
+    /** The same point in the document, for the wave and the crest. */
+    let originDocX = 0;
+    let originDocY = 0;
 
     const spawn = (x: number, y: number): void => {
+      /* The disturbance first, the drawing of it second. `emitWave` runs
+         synchronously here, in the event handler, because the one thing it may
+         have to do — re-measure every piece of text after a resize — is a layout
+         read, and a layout read belongs in an event and never in a frame. */
+      emitWave(x, y);
+
       const id = nextId.current++;
       /* Capped by construction rather than by a check: the slice is the cap. */
       setRipples((current) => [...current, { id, x, y }].slice(-MAX_CONCURRENT));
@@ -231,6 +280,11 @@ export function RippleField() {
       pointerId = event.pointerId;
       originX = event.clientX;
       originY = event.clientY;
+      /* Converted once, HERE, rather than on release: this is where the page was
+         touched, and if it scrolls under a held pointer that fact does not
+         change. */
+      originDocX = event.clientX + window.scrollX;
+      originDocY = event.clientY + window.scrollY;
     };
 
     const onPointerUp = (event: PointerEvent): void => {
@@ -247,7 +301,7 @@ export function RippleField() {
 
       /* Drawn where contact was MADE, not where it was released — within 6px of
          each other by definition, and the first one is the true one. */
-      spawn(originX, originY);
+      spawn(originDocX, originDocY);
     };
 
     const onPointerCancel = (event: PointerEvent): void => {
@@ -276,8 +330,19 @@ export function RippleField() {
      of the time. The root only exists while a ripple does. */
   if (ripples.length === 0) return null;
 
+  /* THE ONLY PLACE THE TWO HALVES ARE BOUND TOGETHER. Both numbers come from
+     `wave.ts`, so the drawn crest cannot drift away from the wave it is drawing:
+     the box is sized in CSS so that the gradient's peak lands on `--wave-radius`
+     at scale 1, and the animation starts from the same fraction the wave starts
+     from. Read at render, which is the same moment the wave was emitted, so a
+     resized window needs no listener here. */
+  const field: StyleVars = {
+    "--wave-radius": `${waveRadius()}px`,
+    "--ripple-scale-from": WAVE_START_FRACTION,
+  };
+
   return (
-    <div className={styles.field} aria-hidden="true">
+    <div className={styles.field} style={field} aria-hidden="true">
       {ripples.map((ripple) => {
         const style: StyleVars = {
           "--ripple-x": `${ripple.x}px`,
@@ -289,7 +354,6 @@ export function RippleField() {
         return (
           <span key={ripple.id} className={styles.ripple} style={style}>
             <span className={styles.ring} />
-            <span className={`${styles.ring} ${styles.trailing}`} />
           </span>
         );
       })}

@@ -1,115 +1,109 @@
 /* =============================================================================
-   THE RIPPLE — one disturbance of the surface, drawn twice
+   THE CREST — what is left of the ring now that the page itself moves
    =============================================================================
 
-   Monochrome, built from the tone tokens, and shaped like light on water rather
-   than like a control being pressed. What it is NOT, stated because every one of
-   these is the obvious first draft:
+   This used to be the effect. Two soft rings expanded from the point of contact
+   and that was the whole event, which is precisely the criticism it earned: a
+   ring drawn over the page is a decal. It travels in front of the content and
+   the content never learns about it.
 
-     - not a filled disc. A disc expanding from a click is Material Design's
-       touch feedback and it means "I registered your press". A RING means the
-       surface moved.
-     - not a stroked circle. A `border` gives a hard edge, and a hard edge in
-       the middle of a misty page reads as a drawn shape — the same mistake the
-       mark under the paper was corrected for. Both rings are soft radial bands
-       with no defined edge anywhere in them.
-     - not coloured, not blurred with a filter, not blended, not bouncing, and
-       not accompanied by anything else. One thing happens.
+   The disturbance now lives in `wave.ts`, which pushes the page's own words
+   outward and settles them back. So this file has one job left, and it is a
+   supporting one: to be the visible CREST of that wave. It is drawn where the
+   wave's band currently is, and it is dim enough that if it were removed
+   nothing about the interaction would stop working.
 
-   ── The two rings ──────────────────────────────────────────────────────────
+   ── What was taken away, and why (review question 7) ────────────────────────
 
-   A drop makes more than one ring. The trailing ring starts 140ms later, ends
-   smaller, and is dimmer, so the pair reads as one event dissipating rather than
-   as two effects — which is what stops a single ring from looking like a
-   deliberate outline being drawn.
+     - THE WAKE IS GONE. A second, later ring existed to stop a single ring from
+       reading as a deliberately drawn outline. That job now belongs to the
+       moving letters, and a second luminous band with no displacement under it
+       would be exactly the decal this work exists to remove. One event, one
+       crest.
+     - THE PEAK IS DIMMER, 0.13 → 0.085. The ring is also much larger than it
+       was, so holding the old alpha would have meant considerably more light on
+       screen, not the same amount.
+     - THE EASE IS GONE. `--ease-out` made the ring decelerate, which is what a
+       UI animation does. A wavefront travels at one speed and dies out; all of
+       the dissipation is now in the amplitude, and this scales LINEARLY so that
+       the drawn band and the moving words are in the same place at the same
+       time.
 
-   ── Duration, and why this did NOT need a fourth motion band ────────────────
+   It was worth asking whether to delete the ring outright. The answer is that
+   the page is mostly empty darkness: a click far from any text would otherwise
+   do nothing at all, and "the surface only exists where the words are" is a
+   worse world than "the surface is everywhere, and where there are words, the
+   words move". It stays, quieter, and subordinate.
 
-   Each ring animates for `--duration-transition-slow` — 600ms, the top of the
-   brief's TRANSITION band. Nothing here runs on a duration that is not one of
-   the three categories.
+   ── The correspondence, which is the whole point ────────────────────────────
 
-   The event nevertheless takes 740ms from first light to last, because the
-   trailing ring is OFFSET by 140ms. That offset is not a duration and does not
-   invent a band: it is compositional spacing between two motions, the same way
-   two objects at different depths may drift on the same duration and still not
-   arrive together. So the ripple reads slower and wetter than 600ms without
-   anything animating for longer than the brief allows. A single ring stretched
-   to 900ms was the alternative and it looked like a slow-motion replay; two
-   rings at 600ms look like water.
+   The ring is not tuned to look nice next to the wave; it is derived from it.
+   `Ripple.tsx` publishes the wave's final radius and its starting fraction as
+   custom properties, straight from the constants in `wave.ts`. This file sizes
+   its box so that the gradient's PEAK STOP lands exactly on that radius at full
+   scale, and animates scale linearly over the same duration. Change the wave
+   and the ring follows; there is no second set of numbers to keep in sync.
 
-   Within the 600ms, `--ease-out` does the work: most of the travel happens in
-   the first fifth and the ring then drifts to a stop while fading. That is
-   energy dissipating, which is the physical thing being described. The fade is
-   LINEAR — a ring that eased its own opacity would fade fastest when it was
-   brightest and read as a flash.
+   ── Anchoring ───────────────────────────────────────────────────────────────
 
-   ── Intensity ──────────────────────────────────────────────────────────────
+   Both are anchored to the DOCUMENT, not the viewport. This used to be a fixed,
+   viewport-sized root, and that was right when the ring was alone: a ripple was
+   over before scrolling was a question. It is wrong now — the words the wave is
+   moving live in the page, so a scroll during a wave would slide the crest away
+   from the displacement it is supposed to be drawing. Both now sit in the
+   interaction layer's own document-tall root, which already exists, is already
+   `overflow: clip` and already paints in front of the content and behind the
+   paper.
 
-   Peak is `--color-foreground` (mist) at 0.20 × 0.85 ≈ 0.17 alpha in a thin
-   band, and that peak lasts for the first frames only, at a diameter of about
-   38px. By the time the ring is large it is under 0.05. For scale: the page's
-   `--color-edge` — the hairline used to suggest the boundary of a material — is
-   mist at 0.12, and it is a permanent fixture nobody notices. This is a moving
-   version of that, for half a second.
+   ── Intensity ───────────────────────────────────────────────────────────────
 
-   Consequently a ring crossing a line of text lifts the field behind it by a
-   couple of values for a few frames and cannot touch legibility. Reading copy
-   sits at 16.3:1 on ink; the very brightest point of a ripple takes that to
-   roughly 15:1, and only where the band actually is.
+   Peak is mist at 0.085 × 0.72 ≈ 0.061 alpha in a soft band, at the smallest
+   diameter, for the first frames only. `--color-edge` — the hairline that
+   suggests the boundary of a material, a permanent fixture nobody notices — is
+   mist at 0.12. This is half of that, moving, for six tenths of a second, and it
+   cannot touch legibility: reading copy sits at 16.3:1 on ink and the brightest
+   instant of a crest crossing it takes that to roughly 15.6:1.
    ========================================================================== */
 
 .field {
-  /* FIXED, not absolute: this is the glass, not the page. See the header of
-     Ripple.tsx for why that is the right frame of reference, and why this root
-     sits in front of the content but behind the paper and the player. */
-  position: fixed;
+  /* Absolute, inside the interaction root, which is anchored at the document
+     origin and is as tall as the document. See ANCHORING above. */
+  position: absolute;
   inset: 0;
 
-  z-index: var(--layer-5-foreground);
-  /* The surface ends where the window does. Also guarantees a ring near an edge
-     can never add scrollable area. */
-  overflow: clip;
-
   /* Non-negotiable, and repeated on the children rather than inherited, because
-     this element covers the entire viewport in front of everything a visitor
-     might want to click, select or follow. */
+     this element covers the entire page in front of everything a visitor might
+     want to click, select or follow. */
   pointer-events: none;
 
   /* --------------------------------------------------------------------------
-     The dial. Everything tunable about a ripple is one of these five.
+     The dial. Two of these five arrive from `wave.ts` as inline properties;
+     the fallbacks here are what the ring would be if it were ever rendered
+     without them.
      ----------------------------------------------------------------------- */
 
-  /* Final diameter of the leading ring. Roughly a hand's width — far enough to
-     read as spreading, short enough that it never becomes an event that crosses
-     the composition. */
-  --ripple-size: 216px;
-  /* Diameter at the instant of contact, as a fraction. Not zero: a ring has to
-     have some size to be a ring rather than a point. */
-  --ripple-scale-from: 0.16;
-  --ripple-scale-to: 1;
-  /* Alpha of the band at its brightest, before the fade is applied.
-     TUNED DOWN ON SCREEN, from 0.20. At 0.20 the ring was a legible circle —
-     a smoke ring, an object in its own right — which is the exact failure this
-     was supposed to avoid: it looked like the page had drawn something rather
-     than like the page had been disturbed. 0.13 against the fade's 0.72 peak
-     puts the brightest instant at ~0.094 mist, a hair under `--color-edge`. */
-  --ripple-alpha: 0.13;
+  /* Where the gradient's brightest stop sits inside its own box, as a fraction
+     of the box's radius. MUST MATCH the 80% stop in `.ring` below — the two are
+     one number expressed twice because CSS gradients cannot read a variable
+     stop position and then be animated cheaply. */
+  --ripple-crest: 0.8;
+
+  /* The box is sized so that the crest lands exactly on the wave's radius when
+     the animation reaches scale 1. `--wave-radius` is published by the
+     component from `waveRadius()`. */
+  --ripple-size: calc(var(--wave-radius, 180px) * 2 / var(--ripple-crest));
+
+  /* Alpha of the band at its brightest, before the fade is applied. See
+     INTENSITY above for why this is half of what a hairline rule costs. */
+  --ripple-alpha: 0.085;
+
   /* No hue anywhere in this file: mist on ink, which is the whole palette a
      disturbance of light is allowed. */
   --ripple-tone: var(--color-foreground);
 }
 
-@media (max-width: 47.9375rem) {
-  .field {
-    /* A phone's surface is smaller and the finger covering it is not, so the
-       ring has to clear the fingertip sooner and stop sooner. */
-    --ripple-size: 152px;
-  }
-}
-
-/* A zero-sized anchor at the point of contact. Both rings are centred on it, so
-   the origin is exact regardless of what either of them does with scale. */
+/* A zero-sized anchor at the point of contact, in document coordinates, so the
+   crest stays with the words the wave is moving when the page scrolls. */
 .ripple {
   position: absolute;
   inset-inline-start: var(--ripple-x);
@@ -128,74 +122,52 @@
   margin-inline-start: calc(var(--ripple-size) / -2);
   margin-block-start: calc(var(--ripple-size) / -2);
 
-  /* The band. `closest-side` keeps the geometry independent of the box, and the
-     stops are spread wide enough that there is no edge to find: it climbs from
-     nothing at 44%, peaks at 72%, and is gone again by the rim. Widened from a
-     first version that started at 52% — a narrower band reads as a stroke, and
-     a stroke reads as something that was drawn. */
+  /* The band. `closest-side` keeps the geometry independent of the box. It
+     climbs from nothing at 40%, peaks at 80% — the crest, and the number
+     `--ripple-crest` above has to agree with — and is gone again by the rim.
+     There is no edge anywhere in it: a hard edge in the middle of a misty page
+     reads as a drawn shape, which is the failure mode this whole file is
+     recovering from. */
   background-image: radial-gradient(
     circle closest-side,
     rgb(from var(--ripple-tone) r g b / 0) 0%,
-    rgb(from var(--ripple-tone) r g b / 0) 44%,
-    rgb(from var(--ripple-tone) r g b / var(--ripple-alpha)) 72%,
-    rgb(from var(--ripple-tone) r g b / calc(var(--ripple-alpha) * 0.4)) 86%,
+    rgb(from var(--ripple-tone) r g b / 0) 40%,
+    rgb(from var(--ripple-tone) r g b / var(--ripple-alpha)) 80%,
+    rgb(from var(--ripple-tone) r g b / calc(var(--ripple-alpha) * 0.35)) 92%,
     rgb(from var(--ripple-tone) r g b / 0) 100%
   );
   border-radius: 50%;
 
-  /* The resting state, which is also the state during the trailing ring's
-     delay. `animation-fill-mode` is `forwards` and NOT `both` for exactly that
-     reason: `both` would apply the first keyframe during the delay and park a
-     bright dot on the page for 140ms before it moved. */
+  /* The resting state. */
   opacity: 0;
-  scale: var(--ripple-scale-from);
+  scale: var(--ripple-scale-from, 0.16);
 
-  /* Two animations rather than one, so each property gets the curve it needs —
-     see the note on easing in the header. Only `scale` and `opacity` are
-     touched, so this is composited and costs no layout and no paint. */
+  /* LINEAR, not eased, and matched to the wave — see THE CORRESPONDENCE above.
+     Only `scale` and `opacity` are touched, so this is composited: the gradient
+     is rasterised once and the frames cost no layout and no paint. The fade is
+     linear too, because a ring that eased its own opacity would fade fastest
+     when it was brightest and read as a flash. */
   animation:
-    ripple-spread var(--duration-transition-slow) var(--ease-out) forwards,
+    ripple-spread var(--duration-transition-slow) linear forwards,
     ripple-fade var(--duration-transition-slow) linear forwards;
 
   pointer-events: none;
 }
 
-/* The second ring. Later, smaller, dimmer — a wake, not a repeat.
-   140ms is an OFFSET between two motions, not a duration; nothing animates for
-   longer than the TRANSITION band because of it.
-
-   IT DOES NOT START FROM THE SAME POINT AS THE FIRST, and that correction is
-   the difference between water and a target symbol. Starting both at 0.16 put a
-   small, tight, hard-looking ring in the dead centre of a large soft one for
-   about 150ms, and the pair read as a bullseye — a graphic, and a very
-   recognisable one. So the wake begins at a third of the way out, already
-   inside the leading ring's wake rather than at the point of impact, and it
-   FADES IN over its first fifth instead of arriving lit. What appears is a
-   second band separating from the first, which is what a second ring actually
-   is. */
-.trailing {
-  --ripple-scale-from: 0.34;
-  --ripple-scale-to: 0.7;
-  --ripple-alpha: 0.075;
-  animation-delay: 140ms;
-  /* Only the fade is swapped. Duration, easing and fill-mode are inherited from
-     the shorthand above, so the two rings cannot drift apart in timing. */
-  animation-name: ripple-spread, ripple-wake;
-}
-
 @keyframes ripple-spread {
   from {
-    scale: var(--ripple-scale-from);
+    scale: var(--ripple-scale-from, 0.16);
   }
   to {
-    scale: var(--ripple-scale-to);
+    scale: 1;
   }
 }
 
 /* Arrives already lit — the moment of contact is the brightest thing that
-   happens and it does not fade in — then dissipates evenly. The 62% stop is
-   what keeps the last third of the expansion visible as a thinning trace
-   instead of the ring vanishing while it is still obviously moving. */
+   happens and it does not fade in — then dissipates. The 62% stop is what keeps
+   the last third of the expansion visible as a thinning trace instead of the
+   ring vanishing while it is still obviously moving, and it lands close to
+   where the wave's own taper begins. */
 @keyframes ripple-fade {
   0% {
     opacity: 0.72;
@@ -208,26 +180,11 @@
   }
 }
 
-/* The wake, which has to emerge rather than appear. */
-@keyframes ripple-wake {
-  0% {
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.62;
-  }
-  70% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 /* Belt and braces. The component does not render anything under reduced motion
    — it is gated in JS on the live hook, because a media query cannot reach a
-   listener — and this is here so that a future refactor which forgets that
-   cannot quietly reintroduce a 0ms flash. */
+   listener, and the same gate is what stops the page's text from being split at
+   all — and this is here so that a future refactor which forgets that cannot
+   quietly reintroduce a 0ms flash. */
 @media (prefers-reduced-motion: reduce) {
   .field {
     display: none;

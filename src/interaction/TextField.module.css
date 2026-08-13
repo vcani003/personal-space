@@ -1,0 +1,40 @@
+/* =============================================================================
+   A SPLIT WORD — one class, one declaration, and neither is decorative
+   =============================================================================
+
+   This is the entire stylesheet for the page's text once the wave has taken it
+   apart, and the list is short on purpose: every declaration added here is a
+   way for splitting to change how the page looks, which is the one thing it
+   must never do.
+
+   `display: inline-block` is not a stylistic choice, it is the requirement.
+   `translate` and `transform` DO NOT APPLY to non-replaced inline boxes — a
+   plain `<span>` around a word is an inline box, so moving it is simply
+   ignored. Making each word an atomic inline-level box is what makes it movable
+   at all. It also means a word cannot be broken across lines, which is the
+   behaviour it already had.
+
+   WHAT THIS COSTS, stated plainly:
+
+     - Kerning across a SPACE is lost, because the two words either side of it
+       are now shaped separately. There is almost never any: the worst measured
+       change to any line on this page is 0.16px, and the tightest wrap on the
+       page — the 80px name at a 390px viewport, which has 1.39px of slack —
+       moves by 0.02px. Kerning INSIDE a word, which is where kerning does its
+       work, is untouched. (Splitting further, per letter, costs 1.3% of the
+       line's width and reflows that heading onto two lines. See `textSplit.ts`.)
+     - Nothing else. Whitespace stays outside the pieces as real text nodes, so
+       line breaking, selection and copied text are untouched; every block box
+       on the page measures identically at both breakpoints.
+
+   NO `overflow`, no `position`, no `will-change`, no `contain` and above all no
+   `transition`: the movement is driven per frame by the wave, and a CSS
+   transition on top of it would be a second animation fighting the first. There
+   is no colour, no shadow and no filter here either — if a piece ever needs
+   one, the effect has stopped being a displacement of the medium and has become
+   decoration on the words.
+   ========================================================================== */
+
+.word {
+  display: inline-block;
+}
