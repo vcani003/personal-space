@@ -35,6 +35,20 @@
   border: 1px solid var(--color-edge);
 
   /* Clouded glass: a faint tonal shift, not a glossy gradient. */
+  /* OPAQUE, and it has to be.
+     This element carried no background-colour at all — only the translucent
+     sheen below — which cost nothing while the player sat in a section of the
+     page surrounded by empty darkness. Docked to the viewport it now passes
+     over prose, and page text was reading straight through the chassis and
+     mixing with the lyrics inside it. An object you can see through is not an
+     object; it is a pane.
+
+     --tone-charcoal sits ~7 values above the field, so the chassis still reads
+     as a faint lift out of the darkness rather than as a grey box, and the
+     sheen on top still does the lighting. The screen inside remains darker
+     than this, so the inset/outset inversion — the object's whole physics — is
+     untouched. */
+  background-color: var(--tone-charcoal);
   background-image: linear-gradient(
     168deg,
     rgb(from var(--tone-mist) r g b / 0.09) 0%,
