@@ -1,7 +1,7 @@
 import { useRef } from "react";
-import { usePageExtent } from "./hooks";
+import { useMeasuredAnchor, usePageExtent } from "./hooks";
 import { PaperFragment } from "./PaperFragment";
-import { paperAnchor, starSecrets } from "./placement";
+import { narrowGap, paperAnchor, starSecrets } from "./placement";
 import { RippleField } from "./Ripple";
 import { StarSecret } from "./StarSecret";
 import type { StyleVars } from "./vars";
@@ -57,6 +57,12 @@ export function InteractionLayer() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   usePageExtent(rootRef);
+
+  /* The narrow composition's vertical anchor is measured from the page rather
+     than authored, because the gap it names is a fixed margin whose PERCENTAGE
+     of the document is different on every phone. Published as a second property
+     the stylesheet prefers; the authored value below stays the fallback. */
+  useMeasuredAnchor(rootRef, narrowGap);
 
   /* The paper's two anchors and the mark's are the same four numbers by
      construction: they are published here, once, and both elements inherit

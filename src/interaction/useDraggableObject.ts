@@ -115,6 +115,24 @@ export interface DraggableOptions {
    *            measuring a page coordinate that does not exist.
    */
   readonly correction?: "page" | "owner";
+  /**
+   * Which directions a POINTER may drag in. Live, like `reducedMotion`.
+   *
+   *   "both"    (default) the object follows the pointer anywhere.
+   *   "inline"  vertical pointer travel is ignored entirely.
+   *
+   * This exists for one situation and should not be used for any other: an
+   * object sitting inside a scrollable column on touch, where `touch-action` has
+   * already given the vertical axis to the page. Without it the object still
+   * receives the first few pointermoves of a swipe — measured at 18.6px — and
+   * creeps upward a little every time somebody scrolls past it, which then gets
+   * persisted as though it were a decision. The rule is simply that this hook
+   * must not claim an axis the stylesheet has already given away.
+   *
+   * `nudge` is deliberately NOT constrained: the keyboard is not competing with
+   * a scroller, so the arrow keys keep all four directions at every width.
+   */
+  readonly dragAxis?: "both" | "inline";
   /** The press has become a drag. Fires once per gesture, after the threshold
    *  is crossed — the hold interaction uses this to abort itself. */
   readonly onDragStart?: () => void;
@@ -423,7 +441,11 @@ export function useDraggableObject(
     if (s.pointerId !== event.pointerId) return;
 
     const dx = event.clientX - s.originX;
-    const dy = event.clientY - s.originY;
+    /* An axis the stylesheet has given to the scroller is not ours to read, so
+       it is dropped here rather than clamped later — that way it cannot reach
+       the drag threshold either, and a vertical swipe over the object is not a
+       gesture at all. */
+    const dy = latest.current.dragAxis === "inline" ? 0 : event.clientY - s.originY;
 
     if (!s.dragging) {
       if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;

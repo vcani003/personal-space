@@ -63,6 +63,105 @@ export function useReducedMotion(): boolean {
   return useMediaQuery(REDUCED_MOTION_QUERY);
 }
 
+/**
+ * The custom property the measured narrow anchor is published on.
+ *
+ * Deliberately NOT `--anchor-narrow-y`, which React owns as an inline style on
+ * the same element. Two writers on one property is a bug waiting for a re-render;
+ * this is a second name that the stylesheet falls back FROM, so the authored
+ * value stays exactly where it was authored and this one simply takes precedence
+ * when it exists.
+ */
+const MEASURED_ANCHOR_PROPERTY = "--anchor-narrow-measured";
+
+/**
+ * Publishes the centre of one of the page's own vertical gaps, in document px.
+ *
+ * WHY THIS EXISTS. The narrow anchor cannot be a percentage of the document:
+ * the gap it names is a fixed 220px margin, but the document's height changes
+ * with the viewport width and with which font loaded, so the same gap sits
+ * anywhere between 22% and 32% depending on the phone. A single number covers
+ * two of those and puts the object on the prose at the rest. The measurement in
+ * `placement.ts` is the whole argument.
+ *
+ * WHAT IT DOES. Finds `selector`, takes the element before it, and publishes the
+ * midpoint between the bottom of the first and the top of the second — which is
+ * where an object centred on the anchor ends up with equal darkness on both
+ * sides of it, at every width, in every font.
+ *
+ * WHAT IT DELIBERATELY DOES NOT DO. It does not check the breakpoint. The
+ * property it writes is only READ inside the narrow media query, so the
+ * stylesheet decides whether the measurement is used and JavaScript never has to
+ * hold an opinion about which composition is on screen. It also never writes
+ * anything but a custom property, so it cannot move the page it is measuring.
+ *
+ * It is allowed to find nothing. A page where the selector does not resolve, or
+ * where the gap is too small to leave something in, simply keeps the authored
+ * fallback — the property is removed rather than set to something wrong.
+ */
+export function useMeasuredAnchor(
+  ref: RefObject<HTMLElement | null>,
+  gap: { readonly selector: string; readonly minimum: number },
+): void {
+  const { selector, minimum } = gap;
+
+  useEffect(() => {
+    const node = ref.current;
+    if (node === null) return;
+
+    let published = -1;
+
+    const measure = (): void => {
+      const end = document.querySelector(selector);
+      const start = end?.previousElementSibling;
+
+      /* No such element, or nothing before it: not an error, just a page this
+         measurement does not apply to. */
+      if (end == null || start == null) {
+        if (published !== -1) {
+          published = -1;
+          node.style.removeProperty(MEASURED_ANCHOR_PROPERTY);
+        }
+        return;
+      }
+
+      const top = start.getBoundingClientRect().bottom + window.scrollY;
+      const bottom = end.getBoundingClientRect().top + window.scrollY;
+
+      if (bottom - top < minimum) {
+        if (published !== -1) {
+          published = -1;
+          node.style.removeProperty(MEASURED_ANCHOR_PROPERTY);
+        }
+        return;
+      }
+
+      /* Rounded, so a sub-pixel reflow cannot produce a write per frame. */
+      const centre = Math.round((top + bottom) / 2);
+      if (centre === published) return;
+      published = centre;
+      node.style.setProperty(MEASURED_ANCHOR_PROPERTY, `${centre}px`);
+    };
+
+    measure();
+    window.addEventListener("resize", measure, { passive: true });
+
+    /* The page reflows when the fonts land, long after this effect runs, and the
+       first measurement would otherwise be the one taken against fallback
+       metrics and kept for the session. */
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(measure);
+      observer.observe(document.body);
+    }
+
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+    };
+  }, [ref, selector, minimum]);
+}
+
 /** The custom property this layer's height is published on. */
 const PAGE_EXTENT_PROPERTY = "--interaction-page-block-size";
 

@@ -23,9 +23,56 @@
    comes from the inset/outset pairing the brief names — an inner shadow that
    makes the edges recede against a surface that catches light at the top left.
 
-   ONE CONCESSION TO AFFORDANCE: `cursor: grab`. Not a novelty cursor, not an
-   instruction; the platform's own word for a physical thing. There is no hover
-   glow, no lift on hover, no outline and no tooltip.
+   -----------------------------------------------------------------------------
+   THE LIGHT ON IT — the object's ONE hint, and the whole of it
+   -----------------------------------------------------------------------------
+   Nothing about a torn scrap says it has anything to give. It needed to catch
+   the eye from across an empty region without becoming a control, so it catches
+   LIGHT — one source, upper left, the direction the page's own light comes
+   from, landing on two surfaces:
+
+     THE POOL     `.paper::before` — a soft, off-centre lift in the field the
+                  paper is sitting on. Unclipped, no edge anywhere in it, and
+                  markedly not concentric with the sheet: a halo centred on a
+                  shape reads as a glow effect, light falling past a shape reads
+                  as light.
+     THE SHEEN    the first background layer on `.sheet` — the upper-left corner
+                  catching that same light.
+
+   MEASURED, by sampling the rendered page rather than by reading the alphas:
+   luminance (Rec. 709, 0–255) with each layer switched off in turn, pointer
+   parked so parallax could not move the samples.
+
+     sheet's top-left corner     28.3  →  37.9      the sheen, +34%
+     sheet's centre              27.4  →  31.9
+     sheet's bottom-right        18.8  →  18.8      unlit, and stays unlit
+     field 24px above the sheet  17.4  →  20.3      the pool
+     field 30px to its left      15.2  →  18.5
+     field 90px above            16.9  →  17.0      effectively gone
+     field 300px away             …    →   …        untouched
+
+   For scale: the player's brightest pixels are 233 and the empty field around
+   the paper averages 12. This is a small object going from about 2.3× its
+   surroundings to about 3.1×. That is the entire change, and on a page whose
+   hierarchy is luminance it is enough to make the eye come back.
+
+   BOTH ARE STATIC. No pulse, no breathing, no hover state, no transition, no
+   `data-` attribute can reach either of them. That is what keeps this from
+   reading as "press me": a control changes when you approach it, and this does
+   not change at all, ever. It is simply the brightest thing in its neighbourhood
+   by a small margin, which is the page's entire hierarchy — luminance — applied
+   to one object.
+
+   HOW IT COEXISTS WITH `cursor: grab` — design-review question 7, answered
+   rather than dodged. They are not two affordances, because they never speak at
+   the same moment or to the same sense: the light is for the EYE and is there
+   before the pointer is anywhere near; the cursor is for the POINTER and only
+   exists once the pointer has arrived. Neither reacts to hover. And nothing was
+   added on top of them: still no hover brightening, no lift, no scale, no ring,
+   no outline, no tooltip, no custom cursor. When the paper is pressed, the ONE
+   thing that changes is that same light rising across the sheet (`.light`
+   below) — so the hint and the payoff are literally the same light, which is
+   why they read as one object rather than as two features.
    ========================================================================== */
 
 .paper {
@@ -33,9 +80,20 @@
      enough to read as a scrap. Both are also the touch target. */
   /* Smaller than the first pass. At 216×176 it read as a panel occupying the
      composition's most deliberate emptiness; a fragment should feel dropped
-     there, not installed. */
-  --paper-inline: 168px;
-  --paper-block: 132px;
+     there, not installed.
+     CORRECTED, and this one was a real bug rather than a taste call: at
+     168×132 with the padding below, the inner box was 104px wide, and the
+     sentence needs FIVE lines at that measure — 157px of text in 80px of room.
+     The payoff of the whole interaction was being clipped by the sheet it was
+     written on, which was invisible until it was looked at in a browser rather
+     than reasoned about.
+     Measured, in every face in the fallback stack: the line sets to three lines
+     (94px) at any measure of 136px or more, and jumps to five below it. So the
+     inner box has to clear 136×94, and this is that plus a margin — 184×148
+     with 14/20 padding gives 144×120. Still nearer the "dropped" size than the
+     first pass, and now legible. */
+  --paper-inline: 184px;
+  --paper-block: 148px;
 
   /* Slightly off square to the page, as anything set down by hand is. The
      second value is where it straightens a little while it is being held. */
@@ -110,6 +168,39 @@
 }
 
 /* ---------------------------------------------------------------------------
+   THE POOL — light in the field, not a halo on a widget
+   -----------------------------------------------------------------------------
+   Outside the sheet's `clip-path` on purpose (the clip lives on `.sheet`, one
+   level in), so this can spill past the torn edge the way light actually would.
+
+   `z-index: -1` keeps it behind the sheet without leaving the object: `.paper`
+   has a `transform`, so it is a stacking context, and a negative z-index inside
+   one cannot escape it. It is painted with the paper, moves with the paper when
+   it is dragged, and parallaxes with the paper — it belongs to the object, not
+   to the background.
+
+   The box is deliberately asymmetric — more room up and to the left — and the
+   gradient's centre is offset again inside it. Two offsets, because one is easy
+   to mistake for a badly centred glow and two read as a direction.
+   ------------------------------------------------------------------------ */
+
+.paper::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -38% -32% -28% -40%;
+  pointer-events: none;
+
+  background-image: radial-gradient(
+    54% 52% at 43% 40%,
+    rgb(from var(--tone-mist) r g b / 0.045) 0%,
+    rgb(from var(--tone-mist) r g b / 0.026) 38%,
+    rgb(from var(--tone-mist) r g b / 0.008) 68%,
+    rgb(from var(--tone-mist) r g b / 0) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------------
    THE SHEET
    -----------------------------------------------------------------------------
    A separate element from the button, for exactly one reason: `clip-path`
@@ -124,7 +215,10 @@
   position: absolute;
   inset: 0;
   display: block;
-  padding: var(--space-sm) var(--space-md) var(--space-md);
+  /* 184 × 148 less this is an inner box of 144 × 120, against a sentence that
+     sets to 136 × 94 in every face in the fallback stack. The margin is small on
+     purpose: a scrap with a wide mount around its writing reads as a card. */
+  padding: var(--space-xs) var(--space-sm);
 
   /* Keeps the grain blending against this sheet and nothing else. */
   isolation: isolate;
@@ -178,13 +272,30 @@
      ~25 above the field. Enough to be found and picked up, not enough to
      out-light the player or to become where the eye lands first. */
   background-color: var(--tone-charcoal);
-  background-image: linear-gradient(
-    163deg,
-    rgb(from var(--tone-plum) r g b / 0.78) 0%,
-    rgb(from var(--tone-plum) r g b / 0.42) 34%,
-    rgb(from var(--tone-plum) r g b / 0.24) 66%,
-    rgb(from var(--tone-plum) r g b / 0) 100%
-  );
+  /* TWO LAYERS. The sheen is FIRST, so it sits on top of the sheet's own
+     material — the corner of the paper catching the same light the pool in the
+     field comes from. It is static and unreachable from JavaScript: no state,
+     no transition, nothing that can turn it into a hover response. See the
+     header for the measured excursion — +9.6 of 255 at the very corner, a third
+     brighter at ONE corner and unchanged at the opposite one.
+     0.07 was chosen against 0.06 and 0.09 rendered side by side: at 0.09 the
+     sheen stops reading as a corner catching light and starts lighting the whole
+     sheet evenly, which is the flat-grey-panel failure the design lead already
+     corrected once. */
+  background-image:
+    radial-gradient(
+      72% 60% at 21% 7%,
+      rgb(from var(--tone-mist) r g b / 0.07) 0%,
+      rgb(from var(--tone-mist) r g b / 0.03) 46%,
+      rgb(from var(--tone-mist) r g b / 0) 78%
+    ),
+    linear-gradient(
+      163deg,
+      rgb(from var(--tone-plum) r g b / 0.78) 0%,
+      rgb(from var(--tone-plum) r g b / 0.42) 34%,
+      rgb(from var(--tone-plum) r g b / 0.24) 66%,
+      rgb(from var(--tone-plum) r g b / 0) 100%
+    );
   /* The recede half of the inset/outset pair. Used without its outer glow on
      purpose: `clip-path` clips a box-shadow's outer spread to the torn
      silhouette's bounding box, which would show as a rectangle. */
@@ -214,7 +325,17 @@
 
    Release early and it falls back over --duration-response-slow: an abort is a
    RESPONSE, not a state change, and it should feel like letting go rather than
-   like something being taken away.
+   like something being taken away. That same 300ms is what the light falls back
+   over when a reveal finally times out, half a second ahead of the writing's
+   600ms dissolve — the light stops first and the words go after it, which is
+   the order the eye expects and the reason it is not worth a third state to
+   make them finish together.
+
+   It rests at zero, and its zero is not darkness: the sheet already carries a
+   static sheen in its own background (see `.sheet`), so what this element does
+   is make an existing light GROW. There is no moment where light appears out of
+   nowhere, which is the difference between an object being lit and a widget
+   switching on.
    ------------------------------------------------------------------------ */
 
 .light {
@@ -240,10 +361,15 @@
   transition-timing-function: linear;
 }
 
-/* Held long enough: the light settles back a little as the writing arrives, so
-   the sheet is lit but no longer being lit. */
+/* Revealed: the light settles back as the writing arrives, so the sheet is lit
+   but no longer being lit.
+   It settles FURTHER than it used to (0.78 → 0.66) because this state is no
+   longer a moment. The writing now stays for ten seconds, and the brightest the
+   object ever gets should be the instant the gesture lands, not the ten seconds
+   that follow it — otherwise the paper spends most of a minute as the loudest
+   thing on the page. */
 .paper[data-revealed="true"] .light {
-  opacity: 0.78;
+  opacity: 0.66;
   transition-duration: var(--duration-transition);
   transition-timing-function: var(--ease-out);
 }
@@ -322,22 +448,57 @@
 }
 
 /* ---------------------------------------------------------------------------
-   NARROW — its own size, not the desktop one scaled
+   NARROW — a different object in a different place, not the desktop one scaled
    -----------------------------------------------------------------------------
-   Slightly smaller and slightly squarer, because at 390px the sheet has to sit
-   inside a single column of prose rather than in a margin, and because the same
-   sentence needs one more line at this width.
+   AT 390px THE PAPER WAS SITTING ON THE ABOUT COPY. Measured, not guessed: its
+   box was y 686.6–861.5 and the prose ran 662.4–870.5, so it covered 29 words
+   across five lines. At 360×740 it covered 25. Full-width prose and a
+   foreground object cannot share a column, and the writing wins that argument
+   every time.
+
+   It has moved into the page's own gutter — the gap between the end of the
+   about section and the `01 / Journal` label — and the anchor lives in
+   `placement.ts`, where the measurement that chose it is written down.
+
+   It is also SMALLER here, and the reason is not the screen: it is the gap. The
+   object now has to fit inside 220px of vertical emptiness with room left over
+   on both sides, or it stops reading as something dropped into a space and
+   starts reading as something wedged into one.
    ------------------------------------------------------------------------ */
 
 @media (max-width: 47.9375rem) {
   .paper {
-    --paper-inline: 186px;
-    --paper-block: 166px;
+    --paper-inline: 176px;
+    --paper-block: 132px;
     --paper-rotate: -2.8deg;
     --paper-rotate-held: -1.6deg;
+
+    /* -- TOUCH, AND THE ONE THING THAT OUTRANKS THE OBJECT ------------------
+       `pan-y`, NOT the `none` the wide composition uses, and this is the whole
+       reason the paper can live in the reading column at all.
+
+       `none` gives the drag every direction, which is correct in a desktop
+       margin nobody scrolls through. Here the paper is IN the column: a thumb
+       that lands on it while scrolling would find the page dead under its
+       finger, and a scroll that does not happen is a worse failure than any
+       interaction is a success.
+
+       `pan-y` hands vertical gestures straight to the scroller and keeps
+       horizontal ones for the paper. The object stays movable — sideways, which
+       is more than enough to slide it off the mark it is hiding, so the
+       discovery underneath survives on mobile — and the page never stops
+       scrolling. A thumb that starts a scroll here also gets a pointercancel
+       rather than a pointerup, so it does not reveal the writing either: you
+       have to actually stop and touch it. */
+    touch-action: pan-y;
   }
 
+  /* 176 × 132 less this padding is an inner box of 136 × 104, and the sentence
+     is 136 × 94 in EVERY face in the fallback stack — PP Eiko, Didot, Bodoni 72,
+     Iowan Old Style, Playfair, Georgia and the generic serif all set it to the
+     same three lines at this measure, which was checked rather than hoped for.
+     A deployed build has no Eiko in it, so that check is not academic. */
   .sheet {
-    padding: var(--space-xs) var(--space-sm) var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
   }
 }

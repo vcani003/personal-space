@@ -39,10 +39,21 @@
   --object-y: var(--anchor-wide-y);
 }
 
+/* NARROW. The vertical anchor prefers the MEASURED position of the page's own
+   gutter — see `useMeasuredAnchor` in hooks.ts — and falls back to the authored
+   percentage when there is nothing to measure. The percentage cannot be right at
+   every narrow width on its own: the gap is a fixed 220px margin, so it sits
+   anywhere between 22% and 32% of the document depending on the phone and on
+   which font loaded. `placement.ts` has the table.
+
+   This is also the seam that keeps the two writers apart. React owns
+   `--anchor-narrow-y` as an inline style; the hook owns
+   `--anchor-narrow-measured` and nothing else. Neither can overwrite the other,
+   and if the measurement never happens the authored value is still there. */
 @media (max-width: 47.9375rem) {
   .root {
     --object-x: var(--anchor-narrow-x);
-    --object-y: var(--anchor-narrow-y);
+    --object-y: var(--anchor-narrow-measured, var(--anchor-narrow-y));
   }
 }
 

@@ -1,4 +1,8 @@
-import { holdPointerFrames, subscribePointerFrame } from "../atmosphere";
+import {
+  disturbField,
+  holdPointerFrames,
+  subscribePointerFrame,
+} from "../atmosphere";
 import { lerp } from "../lib/math";
 import { splitPageText, type Particle, type TextField } from "./textSplit";
 
@@ -242,6 +246,22 @@ export function mountWaveField(): () => void {
  * not touches. See `Ripple.tsx`, which owns that distinction.
  */
 export function emitWave(x: number, y: number): void {
+  /* The sky is not text and is not in `particles`. `--star-push-x/y` has
+     exactly one writer — the atmosphere's own loop — so the wave is handed
+     over as a fact rather than written from here, and the geometry travels
+     with it so the drawn crest, the moving words and the moving stars cannot
+     drift apart if any one of them is retuned.
+
+     Above the particle guard on purpose: the sky still answers a click even on
+     a page where text splitting produced nothing. */
+  disturbField({
+    x,
+    y,
+    radius: waveRadius(),
+    startFraction: WAVE_START_FRACTION,
+    seconds: DURATION_SECONDS,
+  });
+
   if (particles.length === 0) return;
 
   /* Measured HERE, in an event handler, never in a frame — and only when
