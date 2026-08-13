@@ -1,0 +1,132 @@
+import { starLabel, starSentence } from "./copy";
+
+/* =============================================================================
+   WHERE THE INTERACTIVE OBJECTS SIT — authored against the same page map
+   =============================================================================
+
+   Coordinates use the atmosphere's system exactly: `x` is a percentage of the
+   VIEWPORT's width, `y` a percentage of the WHOLE DOCUMENT's height, and the
+   layer they live in is an absolutely positioned, document-tall box anchored at
+   the document origin — the same box the atmosphere uses, so a position here
+   and a position in `composition.ts` mean the same thing.
+
+   The page map that both files are composed against is the measured table at
+   the top of `atmosphere/composition.ts`. It is not repeated here; read it
+   there. The two regions used below:
+
+     11.1–15.9%   about prose occupies x 51–88%  →  EMPTY at x 0–51%
+     48.0–50.5%   the quote occupies x 36–88%    →  one star at x 5.5%, y 53.2%
+
+   -----------------------------------------------------------------------------
+   CLEARANCE — checked against every star, not assumed
+
+   The paper is the only foreground object on the page and the brief's seventh
+   review question applies hardest to it: what becomes quieter to make room?
+   Nothing can, because the stars are not this agent's file to edit. So the
+   paper was placed where it needs nothing to move.
+
+   MEASURED in the rendered page at 1280×900 (document 4675px), against the
+   sheet's rotated bounding box — x 168–395, y 537–726:
+
+     about-void       x 109  y 626   →  59px clear of the left edge
+     north-west       x 166  y 486   →  51px clear of the top edge
+     about-void-low   x 269  y 804   →  78px clear of the bottom edge
+     haze-north       its falloff ends at 11.2% of the page; the paper begins
+                      at 11.5%, so the scrap sits just under the weather
+
+   The visible torn shape is inset a further few pixels inside that box, so
+   every figure above is a floor rather than an estimate.
+
+   It sits just under the weather, in the emptiness the about prose creates by
+   being pushed right, and it touches nothing.
+
+   NARROW is not the wide placement rescaled. At 390px every block on the page
+   spans x 8–92%, so there is no left margin to leave something in; the paper
+   goes into the deep vertical gap between the about prose and the journal
+   (18.4–24.4%), pushed right of `n-about-gap`, the defocused disc at x 10%.
+   ========================================================================== */
+
+export interface Anchor {
+  /** Percentage of the viewport's inline size. */
+  readonly x: string;
+  /** Percentage of the document's block size. */
+  readonly y: string;
+}
+
+/**
+ * The paper's authored resting place — and the mark beneath it, which is the
+ * same coordinate by definition. One object, two anchors, chosen per breakpoint
+ * in CSS rather than by a media-query listener in JS.
+ *
+ * This is where the paper is BEFORE anyone touches it, and where it returns to
+ * if storage is unavailable, full, or holding something that fails validation.
+ */
+export const paperAnchor = {
+  wide: { x: "22%", y: "13.5%" },
+  narrow: { x: "42%", y: "21.4%" },
+} as const satisfies Record<string, Anchor>;
+
+/** Identifies the paper's saved offset inside the stored position map. */
+export const PAPER_OBJECT_ID = "paper";
+
+/* -----------------------------------------------------------------------------
+   THE HIDDEN STAR
+   -----------------------------------------------------------------------------
+   ONE star answers a click, and it is `quote-witness` — x 5.5%, y 53.2%, a
+   1.25px pinprick at intensity 0.2, the DIMMEST object on the page, alone below
+   the quote and outside its left edge. Its note in composition.ts says it
+   "witnesses the silence instead of filling it".
+
+   It was chosen over the bloom, which is brighter, larger, and already the
+   page's one pointer-reactive object — making it the secret too would spend
+   two effects on one star and advertise the secret with the reaction. It was
+   chosen over the closer, easier stars because a secret that is stumbled on
+   immediately is not one.
+
+   The sentence it reveals refers to the star itself. That is the whole reward:
+   the visitor learns that the faintest thing on the page knew it was faint.
+
+   THE ONLY HINT IS THE CURSOR. No glow, no hover brightening, no scale, no
+   custom cursor — the hit area is a plain button, so a pointer passing within
+   22px turns into a hand, and that is the entire advertisement. Keyboard
+   visitors get a focus ring instead, which is the same hint by another route.
+
+   NARROW gets `n-closing` — x 87%, y 92.4%, the last object on the mobile page,
+   "one point of light before the closing line, and a lot of nothing". Same
+   idea, same sentence, and the two are mutually exclusive: each is display:none
+   at the other's width, so a hidden button is never a phantom tab stop.
+   -------------------------------------------------------------------------- */
+
+export interface StarSecretData {
+  /** The star's id in `atmosphere/composition.ts`. Kept identical so the two
+   *  files can be diffed by eye if the composition ever moves. */
+  readonly id: string;
+  /** Which composition this star belongs to. Mirrors the atmosphere's
+   *  breakpoint at 48rem. */
+  readonly presence: "wide" | "narrow";
+  readonly position: Anchor;
+  /** Which side of the star the sentence unfolds toward. `end` for a star near
+   *  the right edge, so the line never runs off the page. */
+  readonly side: "start" | "end";
+  readonly label: string;
+  readonly sentence: string;
+}
+
+export const starSecrets: readonly StarSecretData[] = [
+  {
+    id: "quote-witness",
+    presence: "wide",
+    position: { x: "5.5%", y: "53.2%" },
+    side: "start",
+    label: starLabel,
+    sentence: starSentence,
+  },
+  {
+    id: "n-closing",
+    presence: "narrow",
+    position: { x: "87%", y: "92.4%" },
+    side: "end",
+    label: starLabel,
+    sentence: starSentence,
+  },
+];

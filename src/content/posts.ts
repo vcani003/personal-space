@@ -34,10 +34,31 @@ export const identity: SiteIdentity = {
  */
 export const closingLine = "Maybe it's kismet.";
 
-/** Short about copy. Placeholder, in-voice. */
+/**
+ * About. THIS IS VERO'S OWN WRITING — not placeholder. Kept verbatim, on
+ * purpose, including the run-on energy and the extra Ls.
+ *
+ * On the tension between this voice and the site's calm: the restraint is
+ * carried by the TYPOGRAPHY, not by the words. Eiko Thin at a narrow measure
+ * with generous leading and a great deal of empty space around it is what
+ * makes the page quiet. The sentences inside it are free to talk fast. The
+ * contrast is the point — exuberant writing set calmly reads as a person; the
+ * same writing set excitedly reads as a landing page.
+ *
+ * So: do not tidy this into brand copy, do not break it into bullet points,
+ * and do not "balance" it by making the layout busier to match.
+ *
+ * TWO THINGS FOR VERO:
+ *   1. `??` below is her own blank, left exactly as written — the sentence
+ *      wants the daylight half of the light/dark contrast.
+ *   2. "obsessions is" is hers verbatim; left alone rather than silently
+ *      corrected, since it may be the voice.
+ */
 export const about: readonly string[] = [
-  "This is where I keep the things I make. Some of them are finished. Most of them are still deciding.",
-  "I like objects that reward attention — a player that recedes until you look at it, a page that keeps a little back.",
+  "Veronica but pls u can call me Vero. I'm 30 and change my mind on my aesthetics a lot.",
+  "I love ?? in my daily life but my eyes belongs to dark mode.",
+  "This website will serve as a collection of works, my personality, thoughts, doodles and snaps. I love to find the whimsy in life.",
+  "My lifelong obsessions is learning lyrics to my favorite songs to sing them off key. Just gotta let the music confiscate my soulllllll",
 ];
 
 /**

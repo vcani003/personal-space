@@ -1,5 +1,6 @@
 import { Atmosphere } from "./atmosphere";
 import { Home } from "./Home";
+import { InteractionLayer } from "./interaction";
 
 /**
  * Mount point. The composition lives in Home.tsx; atmosphere will eventually
@@ -21,6 +22,11 @@ export function App() {
           with content for clicks or for the document's flow. */}
       <Atmosphere />
       <Home />
+      {/* In FRONT of the content, unlike the atmosphere. These are the only
+          objects on the page a visitor can actually pick up, so they are the
+          one layer that captures pointer events — layer 5 of the depth model,
+          which the atmosphere root deliberately left for it. */}
+      <InteractionLayer />
     </>
   );
 }

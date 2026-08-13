@@ -1,0 +1,343 @@
+/* =============================================================================
+   THE PAPER — built as material, not as a component
+   =============================================================================
+
+   There is no art for this and none is needed. A scrap of paper is a shape, a
+   surface, a rotation and the way light falls across it, and CSS has all four.
+
+   THE SHAPE is a `clip-path` polygon with a ragged perimeter — the technique
+   the Bunny Hop Player uses for its `.paperCorner`, and the only thing borrowed
+   from it. That one is a 5%-opacity, 5px-blurred suggestion of a torn corner
+   sitting behind lyrics. This is a real object at full opacity with a legible
+   silhouette, because the brief's `materials, not UI panels` rule cuts both
+   ways: if a thing is meant to be picked up, it has to look like it exists.
+
+   THE SURFACE is a dark grey-violet sheet, three or four values above the ink
+   field rather than the twenty a white note would be. This is a page lit by a
+   bloom star and a little haze; a bright piece of paper would out-light the
+   player and become the first thing anyone sees. It is legible as an object
+   because it is LIGHTER THAN THE FIELD, not because it is light.
+
+   WHAT IT IS NOT: no border, no radius, no backdrop-filter, no glass, no drop
+   shadow. A drop shadow on a near-black field is invisible arithmetic. Lift
+   comes from the inset/outset pairing the brief names — an inner shadow that
+   makes the edges recede against a surface that catches light at the top left.
+
+   ONE CONCESSION TO AFFORDANCE: `cursor: grab`. Not a novelty cursor, not an
+   instruction; the platform's own word for a physical thing. There is no hover
+   glow, no lift on hover, no outline and no tooltip.
+   ========================================================================== */
+
+.paper {
+  /* Big enough for one hand-written sentence at the body register, small
+     enough to read as a scrap. Both are also the touch target. */
+  /* Smaller than the first pass. At 216×176 it read as a panel occupying the
+     composition's most deliberate emptiness; a fragment should feel dropped
+     there, not installed. */
+  --paper-inline: 168px;
+  --paper-block: 132px;
+
+  /* Slightly off square to the page, as anything set down by hand is. The
+     second value is where it straightens a little while it is being held. */
+  --paper-rotate: -3.6deg;
+  --paper-rotate-held: -2.1deg;
+
+  position: absolute;
+  /* Authored on the layer root so this element and the mark beneath it cannot
+     drift apart, and so the narrow composition is one media query rather than
+     a second React tree. */
+  inset-block-start: var(--object-y);
+  inset-inline-start: var(--object-x);
+
+  inline-size: var(--paper-inline);
+  block-size: var(--paper-block);
+
+  /* Centred on the anchor, plus wherever it has been dragged. The drag engine
+     writes only the two offsets; the centring is stylesheet business. */
+  translate:
+    calc(-50% + var(--object-dx, 0px))
+    calc(-50% + var(--object-dy, 0px));
+  rotate: var(--paper-rotate);
+
+  /* -- PARALLAX -------------------------------------------------------------
+     `--parallax-near` (18px), not `--parallax-foreground` (26px), and the
+     difference is deliberate. This object is grabbable, and 26px of drift under
+     an approaching cursor makes a thing feel like it is avoiding the hand. The
+     sign is negated to match the atmosphere: the world moves AGAINST the
+     pointer, which is what a viewer stepping sideways in front of a window
+     actually sees. The `, 0` fallback is what makes this resolve to no movement
+     on touch and under reduced motion, where the signal is not published at
+     all.
+     `transform` rather than `translate` because `translate` is carrying the
+     drag. They compose; nothing here has to know about the other. */
+  transform: translate(
+    calc(var(--pointer-x, 0) * -1 * var(--parallax-near)),
+    calc(var(--pointer-y, 0) * -1 * var(--parallax-near))
+  );
+
+  border: none;
+  padding: 0;
+  background: none;
+  display: block;
+  text-align: start;
+  color: var(--color-foreground);
+
+  pointer-events: auto;
+  cursor: grab;
+
+  /* -- TOUCH ----------------------------------------------------------------
+     `none`, and only on this element.
+
+     A drag needs every direction, and any other value hands the gesture to the
+     browser's scroller the moment the finger moves the way it wants to scroll —
+     the object stops dead mid-drag and the page slides instead. `pan-y` would
+     keep the page scrolling at the price of a paper that can only be moved
+     sideways, which is worse than the trade it buys.
+
+     So the whole page scrolls exactly as it did, except within this one
+     216×176 rectangle in an empty margin. That is the deliberate choice: a
+     drag never fights page scroll, because they never share a pixel. */
+  touch-action: none;
+
+  /* A press-and-hold on iOS otherwise raises the selection callout, which would
+     eat the gesture and put a magnifier over the secret. */
+  user-select: none;
+  -webkit-touch-callout: none;
+
+  transition:
+    rotate var(--duration-response) var(--ease-out),
+    scale var(--duration-response) var(--ease-out);
+}
+
+/* ---------------------------------------------------------------------------
+   THE SHEET
+   -----------------------------------------------------------------------------
+   A separate element from the button, for exactly one reason: `clip-path`
+   clips the FOCUS OUTLINE along with everything else. With the torn shape on
+   the button itself, a keyboard visitor lands on the paper and sees nothing at
+   all — which was the state of this file until it was checked in a browser
+   rather than reasoned about. The clip lives one level in, the button's own box
+   stays unclipped, and the ring is drawn around it.
+   ------------------------------------------------------------------------ */
+
+.sheet {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+
+  /* Keeps the grain blending against this sheet and nothing else. */
+  isolation: isolate;
+
+  /* -- THE EDGE -------------------------------------------------------------
+     TWO CLEAN EDGES AND TWO TORN ONES, which is the whole reason this reads as
+     paper. A shape that is ragged the whole way round reads as a leaf, a stain
+     or a decorative "torn paper" asset; a scrap torn out of the corner of a
+     page keeps the page's own straight edges along the top and the left, and
+     tears down the right and along the bottom.
+
+     The tear itself is 38 points at 2–7% amplitude with deliberately uneven
+     spacing. Regular spacing at a constant amplitude is a zigzag — the one
+     thing that instantly reads as a graphic. */
+  clip-path: polygon(
+    /* top — cut */
+    0.6% 1.2%, 22% 0.6%, 45% 1.1%, 68% 0.5%, 88% 1%, 99% 0.4%,
+    /* right — torn */
+    98.9% 6.2%, 96.4% 9.8%, 99.2% 14.1%, 95.1% 17.6%, 97.8% 21.3%,
+    96.9% 26.4%, 99.4% 30.2%, 95.8% 33.9%, 98.2% 38.6%, 96.2% 43.1%,
+    93.4% 47.2%, 97.1% 50.8%, 98.8% 55.4%, 95.3% 59.7%, 97.4% 63.2%,
+    96% 68.5%, 99% 72.4%, 94.6% 76.8%, 97.9% 80.6%, 95.7% 85.2%,
+    98.3% 89.4%, 96.1% 93.8%,
+    /* bottom — torn */
+    92.8% 97.1%, 88.4% 99%, 83.1% 96.6%, 78.6% 98.8%, 73.2% 97.2%,
+    68.4% 99.3%, 62.9% 96.9%, 57.3% 98.9%, 52.8% 97.4%, 47.1% 99.2%,
+    41.6% 96.8%, 36.2% 98.9%, 30.9% 97.3%, 25.4% 99.1%, 19.8% 96.9%,
+    14.2% 98.7%, 8.6% 97%, 2.6% 98.4%,
+    /* left — cut */
+    0.6% 77%, 1.2% 50%, 0.5% 26%
+  );
+
+  /* -- THE SURFACE ----------------------------------------------------------
+     Light from the top left, falling away to the bottom right — the direction
+     the page's own light comes from.
+
+     DIM. The lightest corner is around #34313d and the darkest around #191922:
+     three to six values above the ink field, not the forty a white note would
+     be. This was brighter in the first pass and it was wrong — a pale sheet
+     became the brightest object on the page, out-lit the player, and turned
+     the composition's most deliberate emptiness into the place your eye lands
+     first. It is legible as an object because it is lighter than the field, not
+     because it is light. */
+  /* RETUNED BY THE DESIGN LEAD. The note above states the correct intent and
+     the values underneath it did not match: --tone-mauve (#454150) at 0.82
+     over --tone-smoke resolves to roughly #3D3A48, about FIFTY values above
+     the #08080c field rather than the three to six the comment claims. On
+     screen it was the brightest object on the page and read as a grey panel
+     rather than as paper.
+     Now built on plum over charcoal: the lightest corner lands near #212029,
+     ~25 above the field. Enough to be found and picked up, not enough to
+     out-light the player or to become where the eye lands first. */
+  background-color: var(--tone-charcoal);
+  background-image: linear-gradient(
+    163deg,
+    rgb(from var(--tone-plum) r g b / 0.78) 0%,
+    rgb(from var(--tone-plum) r g b / 0.42) 34%,
+    rgb(from var(--tone-plum) r g b / 0.24) 66%,
+    rgb(from var(--tone-plum) r g b / 0) 100%
+  );
+  /* The recede half of the inset/outset pair. Used without its outer glow on
+     purpose: `clip-path` clips a box-shadow's outer spread to the torn
+     silhouette's bounding box, which would show as a rectangle. */
+  box-shadow: var(--shadow-inset);
+}
+
+/* Picked up: straightens slightly and comes a hair closer. No shadow bloom, no
+   tilt-from-velocity, no lift animation — the whole cue is 2% of scale and a
+   degree and a half of rotation, and it registers because nothing else on the
+   page is doing anything. */
+.paper[data-dragging="true"] {
+  rotate: var(--paper-rotate-held);
+  scale: 1.02;
+  cursor: grabbing;
+}
+
+/* ---------------------------------------------------------------------------
+   THE LIGHT — feedback DURING the hold
+   -----------------------------------------------------------------------------
+   Not a progress bar, not a ring, not a percentage. Light gradually falling
+   across the sheet, arriving at full exactly as the threshold fires, because
+   the transition is driven by `--hold-duration` — the same constant the timer
+   in the component uses. One source of truth, no drift.
+
+   Linear, deliberately. An eased ramp would rush the middle and then appear to
+   stall, which reads as "it is not working" rather than "it is nearly there".
+
+   Release early and it falls back over --duration-response-slow: an abort is a
+   RESPONSE, not a state change, and it should feel like letting go rather than
+   like something being taken away.
+   ------------------------------------------------------------------------ */
+
+.light {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  opacity: 0;
+  background-image: radial-gradient(
+    118% 96% at 24% 6%,
+    rgb(from var(--tone-mist) r g b / 0.17) 0%,
+    rgb(from var(--tone-mist) r g b / 0.06) 40%,
+    rgb(from var(--tone-mist) r g b / 0) 74%
+  );
+
+  transition: opacity var(--duration-response-slow) var(--ease-out);
+}
+
+.paper[data-holding="true"] .light {
+  opacity: 1;
+  transition-duration: var(--hold-duration, 750ms);
+  transition-timing-function: linear;
+}
+
+/* Held long enough: the light settles back a little as the writing arrives, so
+   the sheet is lit but no longer being lit. */
+.paper[data-revealed="true"] .light {
+  opacity: 0.78;
+  transition-duration: var(--duration-transition);
+  transition-timing-function: var(--ease-out);
+}
+
+/* Under reduced motion the ramp is not a ramp. The feedback still exists — the
+   light is simply on for the duration of the press instead of growing across
+   it — and the threshold itself is untouched, because a gesture is not motion.
+   The RESPONSE and TRANSITION tokens are already 0ms here; only the hold's own
+   duration has to be overridden, since it is not a motion token. */
+@media (prefers-reduced-motion: reduce) {
+  .paper[data-holding="true"] .light {
+    transition-duration: 0ms;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   TOOTH — the paper's own grain
+   -----------------------------------------------------------------------------
+   The page's film grain sits at layer 2, BELOW the content, so an object in
+   front of the content receives none of it and would be the only perfectly
+   smooth surface in the world. Same feTurbulence technique as the atmosphere,
+   same blend mode, same opacity token, a finer frequency: paper fibre rather
+   than film stock.
+   ------------------------------------------------------------------------ */
+
+.tooth {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+
+  opacity: var(--grain-opacity);
+  mix-blend-mode: var(--grain-blend-mode);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='fibre' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23fibre)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 120px 120px;
+}
+
+/* ---------------------------------------------------------------------------
+   THE WRITING
+   -----------------------------------------------------------------------------
+   The content register — PP Eiko Thin at the body size — because this is
+   reading copy that happens to be on paper, not a label. It is NOT the display
+   italic: that face is spent, once, on the closing line, and the brief is
+   explicit that using it twice spends its effect. The hand comes from the
+   line's own rotation against the sheet instead.
+
+   CONTRAST, checked: --color-foreground (#e9e8ef) on this surface (#454150 at
+   the top, #272533 at the bottom) is 8.2:1 at the worst point. The token file's
+   rule is that a secret revealed by an interaction must be genuinely readable,
+   and a dimmer tone here would have been atmosphere pretending to be words.
+   ------------------------------------------------------------------------ */
+
+.writing {
+  position: relative;
+  z-index: 2;
+  display: block;
+
+  /* Written slightly across the sheet rather than square to it. */
+  rotate: -1deg;
+
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--leading-body);
+  letter-spacing: 0.005em;
+  color: var(--color-foreground);
+  text-wrap: pretty;
+
+  opacity: 0;
+  transition: opacity var(--duration-transition-slow) var(--ease-out);
+}
+
+.paper[data-revealed="true"] .writing {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW — its own size, not the desktop one scaled
+   -----------------------------------------------------------------------------
+   Slightly smaller and slightly squarer, because at 390px the sheet has to sit
+   inside a single column of prose rather than in a margin, and because the same
+   sentence needs one more line at this width.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .paper {
+    --paper-inline: 186px;
+    --paper-block: 166px;
+    --paper-rotate: -2.8deg;
+    --paper-rotate-held: -1.6deg;
+  }
+
+  .sheet {
+    padding: var(--space-xs) var(--space-sm) var(--space-sm);
+  }
+}

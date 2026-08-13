@@ -128,10 +128,11 @@
   );
 }
 
-/* -- pinprick: the default. Hard edge, no glow. --------------------------- */
+/* -- pinprick: the default. A hard core with a 3px halo. ------------------ */
 
 .star[data-kind="pinprick"] {
   background-color: rgb(from var(--star-tone) r g b / 0.92);
+  box-shadow: 0 0 3px rgb(from var(--star-tone) r g b / 0.3);
 }
 
 /* -- soft: a point that is slightly bigger than itself. ------------------- */

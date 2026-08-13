@@ -94,8 +94,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "62%", y: "2.3%" },
-    size: "1.5px",
-    intensity: 0.42,
+    size: "2.25px",
+    intensity: 0.6,
     tone: "lavender",
     note: "Above the content entirely, in the top gutter between the name's column and the nav's. The first thing on the page is not the name — it is a faint distant point above it.",
   },
@@ -106,7 +106,7 @@ const starsWide: readonly StarObject[] = [
     kind: "bloom",
     depth: "mid",
     position: { x: "24%", y: "7.4%" },
-    size: "2.5px",
+    size: "3.5px",
     intensity: 0.88,
     behavior: { pointerReactive: true },
     note: "The page's one bloom, and its light source. Centred in the largest empty region, left of centre, inside the first viewport — so the opening atmospheric statement is a single point of light rather than a texture. THE ONLY POINTER-REACTIVE OBJECT ON THE PAGE: it brightens about an eighth of a stop as the pointer comes within 200px. Chosen because it is the one object already asking to be looked at, it is the only one wide enough (96px of bloom) for a 13% opacity change to register at all, and it sits inside the first viewport in the empty band the pointer crosses on the way from the name to the prose — so it is found by accident rather than hunted for. Every other object in this file is still.",
@@ -116,8 +116,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "33.5%", y: "9.6%" },
-    size: "1.5px",
-    intensity: 0.5,
+    size: "2.25px",
+    intensity: 0.66,
     note: "Offset companion to the bloom. A lone point reads as an accident; an unequal pair reads as composed.",
   },
   {
@@ -125,8 +125,8 @@ const starsWide: readonly StarObject[] = [
     kind: "soft",
     depth: "mid",
     position: { x: "13%", y: "10.4%" },
-    size: "2px",
-    intensity: 0.55,
+    size: "3px",
+    intensity: 0.7,
     note: "Low and far left in the same band, below the about prose's left edge. It carries the eye down and left, which is where the page is about to become empty.",
   },
 
@@ -136,8 +136,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "8.5%", y: "13.4%" },
-    size: "1.5px",
-    intensity: 0.4,
+    size: "2.25px",
+    intensity: 0.56,
     note: "The about text is pushed to x 51–88% specifically to leave the left empty. This occupies that emptiness without filling it, which is what makes the choice read as deliberate.",
   },
   {
@@ -145,8 +145,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "21%", y: "17.2%" },
-    size: "1.25px",
-    intensity: 0.3,
+    size: "2px",
+    intensity: 0.44,
     tone: "lavender",
     note: "The dimmer half of that pair, further in and lower, so the left margin gets a diagonal rather than a column.",
   },
@@ -157,8 +157,8 @@ const starsWide: readonly StarObject[] = [
     kind: "soft",
     depth: "mid",
     position: { x: "86%", y: "23.2%" },
-    size: "2.25px",
-    intensity: 0.58,
+    size: "3.25px",
+    intensity: 0.7,
     note: "The journal entry stops at x 64%; this sits out in the margin it leaves, level with the entry's first lines.",
   },
   {
@@ -166,8 +166,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "76%", y: "27.4%" },
-    size: "1.5px",
-    intensity: 0.36,
+    size: "2.25px",
+    intensity: 0.5,
     note: "Below and inboard of it, in the gap before the photograph, so the pair does not read as two stars stuck to the right edge.",
   },
 
@@ -177,8 +177,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "6%", y: "31.8%" },
-    size: "1.25px",
-    intensity: 0.28,
+    size: "2px",
+    intensity: 0.42,
     tone: "lavender",
     note: "At the very edge of the page, dim enough to be uncertain. The horizontal vignette eats most of it, which is the point of putting it there.",
   },
@@ -187,8 +187,8 @@ const starsWide: readonly StarObject[] = [
     kind: "defocused",
     depth: "near",
     position: { x: "15%", y: "35.4%" },
-    size: "11px",
-    intensity: 0.4,
+    size: "15px",
+    intensity: 0.5,
     note: "The only near object on the page: a light outside the focal plane, opposite the photograph. It is what gives a sharp photograph something to be sharp against.",
   },
   {
@@ -196,8 +196,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "29%", y: "39.6%" },
-    size: "1.5px",
-    intensity: 0.45,
+    size: "2.5px",
+    intensity: 0.62,
     note: "A hard point beside the defocused disc, and the last object before the quote's silence begins. Sharp next to blurred is the depth cue; neither reads as depth alone.",
   },
 
@@ -207,8 +207,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "5.5%", y: "53.2%" },
-    size: "1.25px",
-    intensity: 0.2,
+    size: "1.75px",
+    intensity: 0.3,
     tone: "lavender",
     note: "The single star allowed anywhere near the quote: below it, far outside its left edge, and the dimmest object on the page. It witnesses the silence instead of filling it.",
   },
@@ -219,8 +219,8 @@ const starsWide: readonly StarObject[] = [
     kind: "soft",
     depth: "mid",
     position: { x: "84%", y: "59.8%" },
-    size: "2px",
-    intensity: 0.48,
+    size: "3px",
+    intensity: 0.62,
     note: "Level with the project link, out in the margin it leaves at x 57–100%. Atmosphere restarting after the quote's silence, quietly.",
   },
   {
@@ -228,8 +228,8 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "92%", y: "63.4%" },
-    size: "1.25px",
-    intensity: 0.28,
+    size: "2px",
+    intensity: 0.42,
     note: "The last object before the hole. Everything below this until 82% is deliberately empty.",
   },
 
@@ -241,8 +241,8 @@ const starsWide: readonly StarObject[] = [
     kind: "defocused",
     depth: "mid",
     position: { x: "89%", y: "87.4%" },
-    size: "7px",
-    intensity: 0.26,
+    size: "10px",
+    intensity: 0.34,
     tone: "lavender",
     note: "The first object after the hole, 330px clear of the drawing slot's bottom edge and level with the Elsewhere link, which leaves everything right of x 49% empty. Soft and very dim: it reopens the atmosphere without announcing that it had stopped.",
   },
@@ -251,9 +251,187 @@ const starsWide: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "12%", y: "94.6%" },
-    size: "1.5px",
-    intensity: 0.32,
+    size: "2.25px",
+    intensity: 0.46,
     note: "The last object on the page, above and opposite the closing line rather than beside it. The page ends on a point of light and a lot of nothing.",
+  },
+
+  /* ===========================================================================
+     DENSITY PASS — added after the site owner found the field too sparse:
+     "not expecting a full galaxy or night sky but something that feels like
+     oh this is in space / personal space (should feel fuller)".
+
+     Sizes and intensities across the whole field were raised ~50% and ~40% in
+     the same pass; this block is the count half of that answer, taking the wide
+     composition from 16 stars to 31.
+
+     Kept in one block, ordered top to bottom, rather than merged into the
+     regional groups above — so it stays obvious what was authored against the
+     original composition and what was added to fill it out, and so this can be
+     trimmed in one place if it goes too far.
+
+     EVERY ONE sits in a band the map marks as empty. The three protected zones
+     are untouched and must stay that way:
+       48.0–58.2%   the quote and its silence  (only `quote-witness`, dimmest)
+       66.7–80.3%   the player and the drawing slot  (NOTHING, ever)
+       ~12–15% at x 15–29%   the paper fragment's resting box
+     =========================================================================== */
+
+  /* -- The large empty band (5.3–11.1%) — it was weighted left; these give it
+        a right-hand half. --------------------------------------------------- */
+  {
+    id: "north-east-high",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "78%", y: "6.2%" },
+    size: "2px",
+    intensity: 0.42,
+    note: "The band runs full width but every original star sat left of centre, so the right half of the page opened with nothing above the nav. This answers the bloom across the gap.",
+  },
+  {
+    id: "north-east",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "88%", y: "9.4%" },
+    size: "2.25px",
+    intensity: 0.5,
+    note: "Lower and further out, so the right side gets a diagonal rather than a stack.",
+  },
+  {
+    id: "north-mid",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "52%", y: "10.2%" },
+    size: "1.75px",
+    intensity: 0.34,
+    tone: "lavender",
+    note: "Dim, centre-page, closing the distance between the bloom and the eastern pair so the band reads as one field instead of two clusters.",
+  },
+
+  /* -- The gap below the about prose (15.9–21.7%) --------------------------- */
+  {
+    id: "about-gap-east",
+    kind: "soft",
+    depth: "mid",
+    position: { x: "74%", y: "19.1%" },
+    size: "3px",
+    intensity: 0.6,
+    note: "Beneath where the prose ends. A mid-depth soft point here gives the right side something with presence, which it lacked between the nav and the journal margin.",
+  },
+  {
+    id: "about-gap-far",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "41%", y: "20.4%" },
+    size: "2px",
+    intensity: 0.4,
+    note: "Centre-left and dimmer, so the gap is not just an edge-to-edge pair.",
+  },
+
+  /* -- The gap below the journal entry (25.7–30.4%) ------------------------- */
+  {
+    id: "journal-gap-west",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "12%", y: "27.6%" },
+    size: "2.25px",
+    intensity: 0.48,
+    note: "Far left, in the margin the journal entry leaves when it starts at x 20%.",
+  },
+  {
+    id: "journal-gap-east",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "69%", y: "29.3%" },
+    size: "2px",
+    intensity: 0.4,
+    tone: "lavender",
+    note: "Opposite and lower, just above the photograph's top edge.",
+  },
+
+  /* -- The empty left of the photograph (30.4–40.3%) ------------------------ */
+  {
+    id: "photo-void-low",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "27%", y: "37.8%" },
+    size: "2px",
+    intensity: 0.42,
+    note: "The photograph occupies x 51–96% and leaves the left half empty for nine percent of the page. Three stars up there and none down here made the lower half of that void read as the field simply stopping.",
+  },
+
+  /* -- Approaching the quote's silence (40.3–48%) --------------------------- */
+  {
+    id: "quote-approach",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "93%", y: "41.2%" },
+    size: "1.75px",
+    intensity: 0.3,
+    note: "The ONLY addition anywhere near the quote, and deliberately the faintest star on the page: high in the approach, far out at the right edge, and well outside the quote's own x 36–88%. The silence still belongs to the quote — this is the last thing seen before it, not company for it.",
+  },
+
+  /* -- Right of the project link (58.2–60.9%) ------------------------------- */
+  {
+    id: "project-void-east",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "82%", y: "59.4%" },
+    size: "2.25px",
+    intensity: 0.5,
+    note: "The project link stops at x 57%; this occupies the margin it leaves.",
+  },
+
+  /* -- The last band before the player (60.9–66.7%) ------------------------- */
+  {
+    id: "pre-player-west",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "14%", y: "62.8%" },
+    size: "2px",
+    intensity: 0.44,
+    note: "The field thins deliberately as the player approaches, so this is small and low-contrast — the beginning of the fade into the empty band rather than a full stop at its edge.",
+  },
+  {
+    id: "pre-player-east",
+    kind: "soft",
+    depth: "mid",
+    position: { x: "76%", y: "64.6%" },
+    size: "3px",
+    intensity: 0.58,
+    note: "The last object with any real presence before the hole. After this the page goes quiet for fourteen percent of its height.",
+  },
+
+  /* -- After the player, before Elsewhere (80.3–86.1%) ---------------------- */
+  {
+    id: "post-player-west",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "22%", y: "83.2%" },
+    size: "2.25px",
+    intensity: 0.46,
+    note: "Reopening the field on the left, opposite `elsewhere-east` which reopens it on the right, so the atmosphere returns from both sides rather than one.",
+  },
+  {
+    id: "post-player-east",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "71%", y: "84.4%" },
+    size: "2px",
+    intensity: 0.38,
+    tone: "lavender",
+    note: "Dim, between the two, filling what was a 330px vertical gap with nothing in it.",
+  },
+
+  /* -- The run down to the closing line (88.7–96.4%) ------------------------ */
+  {
+    id: "closing-approach",
+    kind: "soft",
+    depth: "mid",
+    position: { x: "16%", y: "91.2%" },
+    size: "3px",
+    intensity: 0.52,
+    note: "The page's final stretch was one pinprick across eight percent of its height. This gives the descent to the closing line something to pass.",
   },
 ];
 
@@ -288,8 +466,8 @@ const starsNarrow: readonly StarObject[] = [
     kind: "soft",
     depth: "mid",
     position: { x: "78%", y: "5.6%" },
-    size: "2px",
-    intensity: 0.58,
+    size: "3px",
+    intensity: 0.7,
     note: "In the gap between the wrapped name and the nav. The one small glow mobile gets, standing in for the desktop's bloom.",
   },
   {
@@ -297,8 +475,8 @@ const starsNarrow: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "12%", y: "9.7%" },
-    size: "1.5px",
-    intensity: 0.38,
+    size: "2.25px",
+    intensity: 0.52,
     note: "Opposite side of the next gap down, so the top of the column reads as a diagonal rather than a list.",
   },
   {
@@ -306,17 +484,26 @@ const starsNarrow: readonly StarObject[] = [
     kind: "defocused",
     depth: "mid",
     position: { x: "10%", y: "21.4%" },
-    size: "8px",
-    intensity: 0.28,
+    size: "11px",
+    intensity: 0.36,
     note: "The one soft, out-of-focus object on mobile, in the deep gap between the about prose and the journal. Mobile keeps the focus cue and drops everything else.",
+  },
+  {
+    id: "n-quote-approach",
+    kind: "pinprick",
+    depth: "far",
+    position: { x: "88%", y: "33.4%" },
+    size: "2px",
+    intensity: 0.4,
+    note: "DENSITY PASS. The narrow page ran from the about gap at 21.4% to the project at 57.6% with nothing in between — a third of the page. This sits well above the quote (46.6–48.2%) and hard against the right edge, so the quote's silence is untouched.",
   },
   {
     id: "n-project",
     kind: "pinprick",
     depth: "far",
     position: { x: "89%", y: "57.6%" },
-    size: "1.25px",
-    intensity: 0.3,
+    size: "2px",
+    intensity: 0.44,
     note: "In the gap after the project link. The last object before the player.",
   },
   {
@@ -324,8 +511,8 @@ const starsNarrow: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "11%", y: "84.5%" },
-    size: "1.5px",
-    intensity: 0.32,
+    size: "2.25px",
+    intensity: 0.46,
     note: "The first object after the drawing slot clears. Nothing at all between here and 60.5%.",
   },
   {
@@ -333,8 +520,8 @@ const starsNarrow: readonly StarObject[] = [
     kind: "pinprick",
     depth: "far",
     position: { x: "87%", y: "92.4%" },
-    size: "1.5px",
-    intensity: 0.3,
+    size: "2.25px",
+    intensity: 0.44,
     note: "The ending, same idea as wide: one point of light before the closing line, and a lot of nothing.",
   },
 ];

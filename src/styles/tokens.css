@@ -315,6 +315,15 @@
      common factor, so layers drifting at different rates never resynchronise
      into a visible pulse. If these become 15 / 30 / 45 the whole atmosphere
      will start breathing in unison once a minute, and it will be obvious. */
+  /* There is deliberately NO --duration-hold here.
+     The press-and-hold threshold lives in TypeScript (`HOLD_MS` in
+     interaction/PaperFragment.tsx) and is published to CSS as
+     `--hold-duration` on the element. That direction is load-bearing: a JS
+     timer decides when the gesture completes, and the sheet's light has to
+     finish growing at that exact instant. A token here would be a second
+     declaration nothing reads, free to drift out of step with the timer.
+     A threshold consumed by JS belongs in JS. */
+
   --duration-atmosphere: 14s;
   --duration-atmosphere-slow: 26s;
   --duration-atmosphere-slowest: 44s;
