@@ -699,6 +699,18 @@ function publish(): void {
     root.style.setProperty(POINTER_VARS.y, nextY);
   }
 
+  const nextXSlow = currentXSlow.toFixed(PRECISION);
+  if (nextXSlow !== publishedXSlow) {
+    publishedXSlow = nextXSlow;
+    root.style.setProperty(POINTER_VARS.xSlow, nextXSlow);
+  }
+
+  const nextYSlow = currentYSlow.toFixed(PRECISION);
+  if (nextYSlow !== publishedYSlow) {
+    publishedYSlow = nextYSlow;
+    root.style.setProperty(POINTER_VARS.ySlow, nextYSlow);
+  }
+
   if (reactiveElement === null) return;
 
   const nextProximity = currentProximity.toFixed(PRECISION);

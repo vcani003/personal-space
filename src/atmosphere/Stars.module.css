@@ -20,6 +20,80 @@
       never changes.
    ========================================================================== */
 
+/* ---------------------------------------------------------------------------
+   THE STAR'S OWN NUMBERS, REGISTERED
+   -----------------------------------------------------------------------------
+   Every star's `translate` is now a small expression rather than one multiply
+   (see THE STAR below), and thirty-eight of them are re-evaluated on every
+   frame the pointer publishes. An UNREGISTERED custom property is stored as a
+   token stream and re-substituted at each `var()` — so `--star-view-x`, which
+   is itself a three-var calc and is read twice, gets expanded and re-parsed
+   four times per star per frame. Registering it means it is computed once per
+   element and stored as a number.
+
+   MEASURED, on the real page in headless Chrome — the cost of one published
+   frame, forced style + layout flush, 300-iteration blocks interleaved across
+   seven rounds:
+
+     stars held still                 baseline
+     depth travel only  (before)      +0.12 … 0.18ms
+     per-star variance, unregistered  +0.89ms
+     per-star variance, registered    +0.15ms
+
+   Six times cheaper, for identical output — the computed `translate` is
+   byte-for-byte the same value either way. On a browser too old to support
+   `@property` the declarations below are simply ignored and everything still
+   renders correctly, just at the unregistered cost. It is an optimisation, not
+   a dependency.
+
+   `inherits: false` on all of them: these are per-object, and a star's bloom
+   pseudo-element has no business seeing its parent's travel. The initial
+   values are the inert ones, so a star that somehow arrives without them falls
+   back to plain depth behaviour rather than to nothing.
+   ------------------------------------------------------------------------ */
+
+@property --star-parallax {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --star-skew-cos {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --star-skew-sin {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --star-lag {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --star-view-x {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --star-view-y {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --star-travel {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 .layer {
   position: absolute;
   inset: 0;
@@ -66,18 +140,50 @@
    `translate` carries the parallax. `--parallax-x` / `--parallax-y` are the
    unitless −1…1 viewing offset derived on the atmosphere root from the pointer
    signal (see Atmosphere.module.css); `--parallax-travel` is the depth's own
-   distance from the tokens. Multiply the two and a far star travels 2px while
-   the near defocused disc travels 6px, which is the entire depth cue.
+   distance from the tokens. Multiply the two and a far star travels 6px while
+   the near defocused disc travels 18px, which is the entire depth cue.
 
    Three things keep this from ever reading as an effect. The travel is small.
    The rAF loop interpolates toward it over ~140ms rather than snapping, so
    the field settles instead of tracking. And the travel tokens resolve to 0px
    under `prefers-reduced-motion`, where the loop does not run at all — the
    fallbacks below then leave the whole declaration at `0px 0px`.
+
+   -----------------------------------------------------------------------------
+   AND THEN THE DEPTH TOKEN IS NOT THE WHOLE ANSWER
+
+   Depth alone gives every star in a band an IDENTICAL vector, so the band
+   slides as one rigid plane and three bands read as three sheets of glass
+   rather than as a sky. Each star therefore carries three deviations of its
+   own, resolved from its `id` by a pure function in `variance.ts` — stable
+   across reloads, and printed as a table at the top of that file:
+
+     --star-parallax   multiplier on the depth's travel. Bounded so that the
+                       widest far star still travels less than the narrowest
+                       mid one; depth must stay legible as distance.
+     --star-skew-cos   a rotation of the travel vector, ±16°. Rotation preserves
+     --star-skew-sin   length, so it cannot disturb the bands — and a shared
+                       direction is most of what makes a field look rigid.
+     --star-lag        0…1 blend toward the SLOWER pointer channel, so the field
+                       arrives unevenly instead of all on one beat. Both
+                       channels share a target, so this changes nothing at rest.
+
+   All four have inert defaults here, which means a star rendered without them
+   falls back to exactly the old behaviour rather than to something broken.
+
+   The order of operations is: blend the two channels → rotate → scale. Scaling
+   last is what keeps the multiplier meaning "a fraction of this depth's travel"
+   no matter what the skew is doing.
    ------------------------------------------------------------------------ */
 
 .star {
   --star-tone: var(--tone-mist);
+
+  /* Inert defaults: no deviation from the depth's plain behaviour. */
+  --star-parallax: 1;
+  --star-skew-cos: 1;
+  --star-skew-sin: 0;
+  --star-lag: 0;
 
   position: absolute;
   inset-block-start: var(--star-y);
@@ -91,9 +197,33 @@
   border-radius: 50%;
   opacity: var(--star-intensity);
 
+  /* This star's own view of the pointer: the shared signal, pulled toward the
+     slower channel by its own lag. Named rather than inlined because each of
+     the two is needed twice by the rotation below. */
+  --star-view-x: calc(
+    var(--parallax-x, 0) +
+      (var(--parallax-x-slow, 0) - var(--parallax-x, 0)) * var(--star-lag)
+  );
+  --star-view-y: calc(
+    var(--parallax-y, 0) +
+      (var(--parallax-y-slow, 0) - var(--parallax-y, 0)) * var(--star-lag)
+  );
+
+  --star-travel: calc(var(--parallax-travel, 0px) * var(--star-parallax));
+
   translate:
-    calc(var(--parallax-x, 0) * var(--parallax-travel, 0px))
-    calc(var(--parallax-y, 0) * var(--parallax-travel, 0px));
+    calc(
+      (
+          var(--star-view-x) * var(--star-skew-cos) - var(--star-view-y) *
+            var(--star-skew-sin)
+        ) * var(--star-travel)
+    )
+    calc(
+      (
+          var(--star-view-x) * var(--star-skew-sin) + var(--star-view-y) *
+            var(--star-skew-cos)
+        ) * var(--star-travel)
+    );
 }
 
 /* ---------------------------------------------------------------------------

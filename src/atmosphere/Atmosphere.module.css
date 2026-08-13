@@ -74,9 +74,18 @@
 
      Defined once, here, and inherited by every layer. Nothing downstream
      negates anything or knows about the pointer at all.
+
+     THE SLOW PAIR is the same signal on a longer time constant (~286ms against
+     ~140ms), published by the same loop. Nothing follows it outright. Objects
+     that want to settle a beat late blend toward it by a fraction of their own
+     — see `--star-lag` in Stars.module.css. Both channels have the same
+     destination, so this is a difference in arrival, not in position: the field
+     deforms slightly on the way and agrees on where it is once it stops.
      ------------------------------------------------------------------------ */
   --parallax-x: calc(var(--pointer-x, 0) * -1);
   --parallax-y: calc(var(--pointer-y, 0) * -1);
+  --parallax-x-slow: calc(var(--pointer-x-slow, 0) * -1);
+  --parallax-y-slow: calc(var(--pointer-y-slow, 0) * -1);
 }
 
 /* ---------------------------------------------------------------------------

@@ -1,7 +1,12 @@
 import { useRef } from "react";
 import { composition as defaultComposition } from "./composition";
 import { Haze } from "./Haze";
-import { useAmbientVisibility, usePageExtent, usePointerField } from "./hooks";
+import {
+  useAmbientVisibility,
+  useDepthBandGuard,
+  usePageExtent,
+  usePointerField,
+} from "./hooks";
 import { Stars } from "./Stars";
 import type { Composition } from "./types";
 import styles from "./Atmosphere.module.css";
@@ -20,10 +25,12 @@ import styles from "./Atmosphere.module.css";
  *
  * WHAT IS HERE
  *   layer 0  the deep tonal field, plus a horizontal vignette
- *   layer 1  sixteen stars on wide, six on narrow, individually placed
+ *   layer 1  thirty-one stars on wide, seven on narrow, individually placed
  *   layer 2  two masses of haze, drifting; then film grain over all of it
  *   motion   the page's ONE rAF loop, publishing an interpolated pointer
- *            signal that every depth reads at its own travel. See pointer.ts.
+ *            signal that every depth reads at its own travel — and that every
+ *            individual star then reads at its own distance within that depth,
+ *            its own direction and its own beat. See pointer.ts, variance.ts.
  *
  * WHAT IS DELIBERATELY NOT HERE
  *   No scroll-driven motion: the composition is authored against the document
@@ -55,6 +62,7 @@ export function Atmosphere({
   usePageExtent(rootRef);
   useAmbientVisibility(rootRef, composition.haze.length);
   usePointerField(rootRef);
+  useDepthBandGuard(rootRef);
 
   return (
     <div ref={rootRef} className={styles.root} aria-hidden="true">

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { RefObject } from "react";
 import { mountPointerField } from "./pointer";
+import { assertDepthBands } from "./variance";
 
 /**
  * ATMOSPHERE LIFECYCLE HOOKS
@@ -110,6 +111,29 @@ export function useAmbientVisibility(
       observer.disconnect();
     };
   }, [ref, count]);
+}
+
+/**
+ * Development-only: check the depth bands still read as distances.
+ *
+ * Each object's parallax travel is its depth's token times a per-object
+ * multiplier (see variance.ts), and the width of that multiplier is calibrated
+ * against the four `--parallax-*` tokens as they currently stand. Those tokens
+ * belong to the design lead. If one moves far enough, a `far` object could
+ * start travelling further than a `mid` one, the depths would stop reading as
+ * depths, and nothing on screen would say so — the field would simply look
+ * slightly wrong. Four computed values, read once after mount, make that loud.
+ *
+ * Compiled out of production. Not in a frame, not on resize: the tokens are
+ * static, so once is enough.
+ */
+export function useDepthBandGuard(ref: RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const node = ref.current;
+    if (node === null) return;
+    assertDepthBands(node);
+  }, [ref]);
 }
 
 /**

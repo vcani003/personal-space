@@ -1,4 +1,5 @@
 import type { Depth, StarObject } from "./types";
+import { starVariance } from "./variance";
 import { TONE_VAR, type StyleVars } from "./vars";
 import styles from "./Stars.module.css";
 
@@ -11,10 +12,18 @@ import styles from "./Stars.module.css";
  *
  * Stars are grouped by depth rather than rendered flat, because depth is the
  * unit parallax moves in: each group carries one `--parallax-travel` resolved
- * from the depth tokens, and every star inside it inherits that distance. Two
+ * from the depth tokens, and every star inside it inherits that distance. Four
  * numbers published on the document element by the rAF loop in `pointer.ts`
- * then move the whole sky, at three different rates, without this component
- * knowing that a pointer exists.
+ * then move the whole sky without this component knowing a pointer exists.
+ *
+ * A DEPTH IS NOT A DISTANCE, THOUGH — it is a band of them. Left at the group's
+ * travel alone, every star in a band moves by the identical amount along the
+ * identical vector, and the band slides as one rigid plane; three of those read
+ * as three sheets of glass rather than as a sky of separate objects. So each
+ * star also carries its own multiplier, its own small rotation and its own
+ * settle rate, resolved from its `id` by `variance.ts`. Four numbers per star,
+ * written once at render, consumed entirely in CSS. Nothing per-star runs in a
+ * frame and there is still exactly one rAF loop on the page.
  */
 
 /* Painted far to near. Foreground is part of the model and unused: layer 5 is
@@ -44,21 +53,35 @@ export function Stars({ stars }: StarsProps) {
   );
 }
 
+/* Enough precision to be smooth, few enough digits to keep the inline style
+   readable when someone inspects a star to see why it moves the way it does. */
+function round(value: number, places: number): number {
+  const scale = 10 ** places;
+  return Math.round(value * scale) / scale;
+}
+
 function Star({ star }: { star: StarObject }) {
+  /* Pure and deterministic — same id, same movement, every reload. The values
+     are emitted rather than derived in CSS precisely so they are visible on the
+     element in DevTools; see the table at the top of variance.ts. */
+  const variance = starVariance(star.id, star.depth, star.behavior?.parallax);
+
   const style: StyleVars = {
     "--star-x": star.position.x,
     "--star-y": star.position.y,
     "--star-size": star.size,
     "--star-intensity": star.intensity,
     "--star-tone": TONE_VAR[star.tone ?? "mist"],
-  };
 
-  /* A per-object parallax override replaces the depth's travel for this star
-     alone. No star in the current composition uses it — depth is doing the
-     work, which is how it should stay. */
-  if (star.behavior?.parallax !== undefined) {
-    style["--parallax-travel"] = `${star.behavior.parallax}px`;
-  }
+    /* Its own distance within its depth band, its own direction, its own beat.
+       The rotation arrives pre-resolved as a cosine and a sine rather than as
+       an angle: CSS could do the trigonometry itself, but the angle never
+       changes, and this keeps the per-frame expression down to multiplies. */
+    "--star-parallax": round(variance.travel, 3),
+    "--star-skew-cos": round(Math.cos(variance.skew), 4),
+    "--star-skew-sin": round(Math.sin(variance.skew), 4),
+    "--star-lag": round(variance.lag, 3),
+  };
 
   return (
     <span

@@ -46,6 +46,12 @@
  *      --pointer-x   unitless, −1 … 1, viewport LEFT edge → RIGHT edge
  *      --pointer-y   unitless, −1 … 1, viewport TOP edge → BOTTOM edge
  *
+ *    There is also a slower pair, `--pointer-x-slow` / `--pointer-y-slow`:
+ *    the same signal and the same destination on a ~286ms time constant rather
+ *    than ~140ms. It exists so a field of objects can arrive on different beats
+ *    without anybody running a second loop. Blend toward it by a fraction if
+ *    you want something to settle late; do not follow it outright.
+ *
  *    Centre of the viewport is 0, 0. Both are published on
  *    `document.documentElement`, so every element on the page inherits them.
  *    They are VIEWPORT-relative and independent of scroll — scrolling does not
@@ -98,6 +104,24 @@ export {
   subscribePointerFrame,
 } from "./pointer";
 export type { PointerReading } from "./pointer";
+/**
+ * How one environmental object deviates from the plain behaviour of its depth.
+ *
+ * Exported for anything that needs to MOVE WITH a specific star rather than
+ * merely near it — the hidden-star hit area in `src/interaction`, for one,
+ * currently follows `--parallax-far` while `quote-witness` itself follows
+ * ×0.800 of it rotated 6.9°. The two diverge by at most 1.93px at the corner of
+ * the viewport, inside a 44px target, so nothing is broken; but if a revealed
+ * element should sit exactly on its star, this is where the numbers are.
+ */
+export {
+  DEPTH_TRAVEL_SPREAD,
+  LAG_MAX,
+  SKEW_MAX_RADIANS,
+  starVariance,
+  starVarianceTable,
+} from "./variance";
+export type { StarVariance, VarianceRow } from "./variance";
 export type {
   Composition,
   Depth,

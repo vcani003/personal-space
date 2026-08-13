@@ -60,10 +60,23 @@ export interface EnvironmentObject {
    */
   behavior?: {
     /**
-     * Overrides the depth's default parallax travel, in px at full pointer
-     * extent. Emitted as `--parallax-travel` on the element. Unused by the
-     * current composition, and it should stay that way: depth is supposed to
-     * be legible as a small number of distances, not as a per-object dial.
+     * A MULTIPLIER on the depth's parallax travel. 1 is exactly the band
+     * default; 1.2 is twenty percent further; 0.8 is twenty percent less.
+     *
+     * Every object already gets a multiplier of its own, derived from its `id`
+     * — a depth is a band of distances, not one distance, and without that the
+     * band slides as a rigid sheet. See `variance.ts` for the derivation and
+     * for the resolved table.
+     *
+     * SETTING IT HERE OVERRIDES THAT DERIVATION, and is for the case where an
+     * object has a compositional reason to sit at a particular distance —
+     * defended by its `note`, like every other authored value. It is not the
+     * general mechanism for making the field feel varied; that already works.
+     *
+     * The value is CLAMPED to what the object's band can carry without
+     * overlapping its neighbour. If a `far` object could be pushed past a
+     * `mid` one, the depths would stop reading as distances, and no single
+     * star gets to spend the page's depth cue on itself.
      */
     parallax?: number;
     /**
