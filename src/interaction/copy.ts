@@ -1,3 +1,5 @@
+import type { DockCorner } from "./dockCorner";
+
 /* =============================================================================
    PLACEHOLDER COPY — EVERY WORD AN INTERACTION CAN SAY
    =============================================================================
@@ -11,10 +13,11 @@
    one file so it can be found and rewritten without touching behaviour. If a
    future interaction says something, its words come here too.
 
-   Two of these strings are read by assistive technology only. They are the one
-   place this feature is allowed to explain itself: the visual design carries no
-   instructions, but a keyboard or screen-reader visitor cannot infer a gesture
-   from a rotation and a torn edge. Keep them short and in the same voice.
+   Most of these strings are read by assistive technology only. They are the one
+   place these features are allowed to explain themselves: the visual design
+   carries no instructions, but a keyboard or screen-reader visitor cannot infer
+   a gesture from a rotation and a torn edge, or from a cursor changing shape.
+   Keep them short and in the same voice.
    ========================================================================== */
 
 /** Revealed on the paper by pressing and holding it. PLACEHOLDER. */
@@ -37,3 +40,27 @@ export const paperDescription =
 /** The hidden star's accessible name. Deliberately not "reveal a message" —
  *  the surprise is the reward, for everyone. PLACEHOLDER. */
 export const starLabel = "a faint star";
+
+/* -----------------------------------------------------------------------------
+   THE DOCKED PLAYER — also never rendered visually
+   -----------------------------------------------------------------------------
+   The player can be picked up and dropped into any corner of the screen. With a
+   pointer the only hint is the cursor, which is where the affordance belongs;
+   these three strings are the same hint by the only other route there is.
+   -------------------------------------------------------------------------- */
+
+/** The accessible name of the movable dock — not of the player inside it,
+ *  which names itself. PLACEHOLDER. */
+export const dockLabel = "the player";
+
+/** How the player is moved without a pointer. PLACEHOLDER. */
+export const dockDescription =
+  "arrow keys move it to another corner of the screen.";
+
+/** Announced after a keyboard move, and only then. PLACEHOLDER. */
+export const dockCornerSpoken: Record<DockCorner, string> = {
+  "top-start": "the player is in the top left corner.",
+  "top-end": "the player is in the top right corner.",
+  "bottom-start": "the player is in the bottom left corner.",
+  "bottom-end": "the player is in the bottom right corner.",
+};

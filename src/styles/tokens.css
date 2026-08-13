@@ -337,26 +337,37 @@
   --ease-drift: cubic-bezier(0.45, 0, 0.55, 1);
 
   /* Parallax depth response, in px of travel at FULL pointer extent.
-     TUNED ON SCREEN — these are ~3× the brief's suggested starting values, and
-     the brief expects exactly this ("tune movement after visual assets exist").
+     TUNED ON SCREEN — these are well above the brief's suggested starting
+     values, and the brief expects exactly this ("tune movement after visual
+     assets exist").
 
      Why the starting values were too quiet in practice: the pointer signal is
      −1…1 across the whole VIEWPORT, so a token only reaches its full travel
      when the cursor is at the very edge of the window. Ordinary movement
      around the middle of the screen produces roughly ±0.4, so `far` at 2px was
-     actually moving well under one pixel — and 17 of the 25 authored stars are
+     actually moving well under one pixel — and 22 of the 31 wide stars are
      `far`. The effect was arithmetically present and perceptually absent.
 
-     The 1 : 2 : 3 ratio between far / middle / near is the part that matters.
-     That differential is what reads as depth; the absolute magnitude only
-     decides whether it is noticeable at all. Keep the ratio when retuning.
+     RAISED A SECOND TIME (6/12/18/26 → 10/18/26/34), because `far` at 6px was
+     still reading as nearly static and `far` is most of the sky. The whole
+     ladder moved rather than `far` alone: each band carries a per-object spread
+     (see DEPTH_TRAVEL_SPREAD in atmosphere/variance.ts) and the width a band can
+     afford is set by its RATIO to the next one, so raising the floor without
+     raising the ceiling would have had to be paid for by flattening the
+     variance. The ratios are now 1.80 / 1.44 / 1.31 — tighter than the old
+     2.00 / 1.50 / 1.44 but still clear of the minimum the spreads require
+     (1.54 / 1.31 / 1.22), which `assertDepthBands` checks in development.
+
+     The DIFFERENTIAL between the bands is what reads as depth; the absolute
+     magnitude only decides whether it is noticeable at all. Keep the ladder
+     monotonic and keep the gaps when retuning.
 
      Still governed by: a viewer should perceive DEPTH before consciously
      perceiving PARALLAX, and the page must never visibly swing. */
-  --parallax-far: 6px;
-  --parallax-middle: 12px;
-  --parallax-near: 18px;
-  --parallax-foreground: 26px;
+  --parallax-far: 10px;
+  --parallax-middle: 18px;
+  --parallax-near: 26px;
+  --parallax-foreground: 34px;
 
   /* ==========================================================================
      6. DEPTH — the six layers
@@ -432,6 +443,19 @@
      design-review question 6 first: does this content need a panel at all? */
   --radius-sm: 2px;
   --radius-md: 4px;
+
+  /* The PLAYER's radius, and only the player's.
+     It lived on `.chassis` in Player.module.css, which was right while the
+     player was one element. Now the dock wraps it and needs the same number to
+     draw a focus ring that follows the object's actual shape — and a parent
+     cannot read a custom property declared on its child. The choice was a
+     duplicated 22px in two files or one token here.
+
+     This is NOT a page radius. The page has essentially no rounded rectangles;
+     that is what --radius-sm/-md are for, and they are barely used. If you are
+     reaching for this value outside src/player/, you are about to give the page
+     the player's material — see design-review question 6. */
+  --player-radius: 22px;
 
   /* Minimum touch target. Accessibility floor, not a style choice. */
   --touch-target-min: 44px;

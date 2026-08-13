@@ -15,10 +15,22 @@
  * WHAT IS HERE — the whole MVP 1 interaction budget, and it is a ceiling
  * =============================================================================
  *
- *   ONE draggable object    a torn scrap of paper in the empty left margin,
- *                           opposite the about prose. Pointer Events and
- *                           pointer capture, so mouse, finger and stylus are
- *                           one code path. Position remembered across visits.
+ *   TWO draggable objects   a torn scrap of paper in the empty left margin,
+ *                           opposite the about prose; and the docked player,
+ *                           which can be moved out of the way and settles into
+ *                           the nearest corner of the screen when it is let go.
+ *                           Pointer Events and pointer capture, so mouse,
+ *                           finger and stylus are one code path. Both remember
+ *                           where they were left.
+ *
+ *                           That is the brief's ceiling — "1–2 draggable
+ *                           objects" — and it is now spent. They are not the
+ *                           same kind of thing, which is the only reason two of
+ *                           them do not read as a page full of draggables: the
+ *                           paper is whimsy, something to find; the player is
+ *                           furniture, something to move when it is in your
+ *                           way. Adding a third because dragging works is
+ *                           exactly the failure the ceiling exists to prevent.
  *
  *   ONE press-and-hold      750ms on that same paper. Light grows across the
  *                           sheet for the whole 750ms, then faint writing
@@ -74,3 +86,19 @@
 export { InteractionLayer } from "./InteractionLayer";
 export { paperAnchor, starSecrets, PAPER_OBJECT_ID } from "./placement";
 export type { Anchor, StarSecretData } from "./placement";
+
+/**
+ * THE OTHER MOVABLE OBJECT — and the last one.
+ *
+ * The docked player is not rendered by this layer: it is mounted separately, in
+ * front of everything, because it travels with the viewport rather than living
+ * in the page. But picking it up is an interaction, so the gesture lives here
+ * with the rest of them, on the same drag engine and the same borrowed frames.
+ *
+ * `<PlayerDock />` wires these to its element. Nothing else should.
+ */
+export { useDockDrag } from "./useDockDrag";
+export type { DockDrag } from "./useDockDrag";
+export { DEFAULT_DOCK_CORNER } from "./dockCorner";
+export type { DockCorner } from "./dockCorner";
+export { dockDescription, dockLabel } from "./copy";

@@ -38,24 +38,131 @@
    It floats clear of BOTH edges. A player flush to the corner reads as browser
    chrome; one with real margin around it reads as a small object resting on
    the screen. That gap is the entire difference and it is not negotiable.
+
+   -----------------------------------------------------------------------------
+   AND IT IS NOW ONE OF FOUR CORNERS
+   -----------------------------------------------------------------------------
+
+   Bottom left is where the player STARTS and where it returns to when nothing
+   has been remembered. It can be picked up and dropped, and it settles into
+   whichever corner it was released nearest — because the paragraph above is an
+   argument about the least bad default, not a guarantee that it is right for
+   the thing a particular visitor is reading right now.
+
+   The corner is a `data-corner` attribute and the four rules below are the
+   entire layout consequence. Everything else about the gesture — the threshold,
+   the settle, what is remembered — is in `interaction/useDockDrag.ts`. Two
+   things follow from doing it this way and both are load-bearing:
+
+     · THE MARGIN IS DECLARED ONCE, as `--dock-margin`, and is the same in all
+       four corners. The gesture never reads it: the drag code measures where
+       the dock actually is and derives the gap from that, so the token below
+       cannot drift from a number in TypeScript.
+     · A RESIZE COSTS NOTHING. The dock is anchored, not positioned, so a window
+       that changes shape re-anchors it with no measurement, no clamp and no
+       JavaScript at all. The drag offset is zero at every moment except while
+       something is moving.
+
+   The attribute is ABSENT below the breakpoints at the bottom of this file, so
+   the corner rules and `touch-action` simply do not exist where the dock is not
+   draggable. Do not give them a default value here.
    ========================================================================== */
 
 .dock {
+  /* The gap between the object and the edge of the screen. One value, four
+     corners — the drag code assumes the margins are symmetric because this is
+     what makes them so. */
+  --dock-margin: var(--space-md);
+
   position: fixed;
-  inset-block-end: var(--space-md);
-  inset-inline-start: var(--space-md);
+  inset-block-end: var(--dock-margin);
+  inset-inline-start: var(--dock-margin);
 
   /* Narrower than the six-column block it replaced. At this width the player's
      own container query (`@container player (max-width: 340px)`) takes over and
      tightens the screen padding and the active lyric, so the compact treatment
      is inherited rather than re-specified here. */
   inline-size: 322px;
-  max-inline-size: calc(100vw - var(--space-md) * 2);
+  max-inline-size: calc(100vw - var(--dock-margin) * 2);
 
   /* In front of page content, alongside the interaction layer rather than
-     above it — the paper is on the other side of the screen, so they never
-     compete, and neither should be able to bury the other. */
+     above it — the paper is a different object on a different layer of the same
+     depth, so they never compete, and neither should be able to bury the
+     other. */
   z-index: var(--layer-5-foreground);
+
+  /* WHERE THE DRAG GOES. Written by the drag engine, in px, and zero at every
+     moment the dock is not being moved or settling. `translate` rather than
+     `transform` so the player's own transforms, if it ever grows one, compose
+     with this instead of fighting it — and so this stays a compositor property.
+     No layout animation: the insets above never transition. */
+  translate: var(--object-dx, 0px) var(--object-dy, 0px);
+}
+
+/* ---------------------------------------------------------------------------
+   THE FOUR CORNERS
+   -----------------------------------------------------------------------------
+   `top` / `bottom` is the block axis, `start` / `end` the inline one. The
+   default rule above IS bottom-start, so that case needs nothing; the other
+   three only have to move an inset from one side to the other.
+   ------------------------------------------------------------------------ */
+
+.dock[data-corner="top-start"],
+.dock[data-corner="top-end"] {
+  inset-block: var(--dock-margin) auto;
+}
+
+.dock[data-corner="top-end"],
+.dock[data-corner="bottom-end"] {
+  inset-inline: auto var(--dock-margin);
+}
+
+/* ---------------------------------------------------------------------------
+   PICKING IT UP
+   -----------------------------------------------------------------------------
+   The cursor is the whole affordance. No handle, no dots, no hover lift, no
+   outline, no tooltip — the object's own character is the invitation, and
+   `grab` is the platform's existing word for it rather than an invented one.
+   It is deliberately NOT applied to the transport buttons: `button` already
+   carries `cursor: pointer` from base.css and a disabled one carries `default`,
+   so each control keeps telling the truth about itself.
+   ------------------------------------------------------------------------ */
+
+.dock[data-draggable="true"] {
+  cursor: grab;
+
+  /* -- TOUCH ----------------------------------------------------------------
+     `none`, and only where the attribute exists — which is never at the narrow
+     breakpoint, where the dock is a full-width band across the bottom of a
+     phone screen and taking the page's scrolling away inside it would be
+     indefensible. Above 48rem the dock is a 322px object in a corner, the
+     gesture needs every direction (`pan-y` would keep scrolling at the price of
+     a player that can only move sideways, which is worse than the trade it
+     buys), and the rest of the page scrolls exactly as it did. */
+  touch-action: none;
+
+  /* A drag that highlights the lyric it started on feels broken. The cost is
+     that the lyrics cannot be selected on a wide screen; they are placeholder
+     text with no lyric timing behind them yet, and when the real player arrives
+     selection is worth revisiting against a real scrubber. */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.dock[data-dragging="true"] {
+  cursor: grabbing;
+  /* Only while the offset is actually changing. A permanent hint would keep the
+     dock on its own layer for the entire session to save 200ms of work. */
+  will-change: translate;
+}
+
+/* The global focus ring sets `--radius-sm` on whatever it lands on, which would
+   draw an almost square outline around a 22px-radius object. The chassis owns
+   that radius and declares it on itself, so it cannot be read from up here:
+   this is the one duplicated number in this file, and it is the chassis radius
+   plus the ring's own offset. */
+.dock:focus-visible {
+  border-radius: calc(var(--player-radius) + var(--focus-ring-offset));
 }
 
 /* ---------------------------------------------------------------------------
@@ -66,12 +173,23 @@
    the bottom, and gives up its side margins — at this width the object reads
    clearly enough from its radius and glow alone, and the horizontal gap is
    worth less than the reading width it costs.
+
+   It is also not draggable here, and the corner rules above cannot fire because
+   the component stops rendering the attribute at exactly this breakpoint. A
+   dock that spans the width has no corners to be nearest to, and the gesture is
+   not worth a band of dead scrolling across the bottom of a phone.
    ------------------------------------------------------------------------ */
 
 @media (max-width: 47.9375rem) {
-  .dock {
-    inset-block-end: var(--space-2xs);
-    inset-inline: var(--space-2xs);
+  .dock,
+  /* Belt and braces, at the cost of one selector: the attribute is not
+     rendered at this width, but if this breakpoint and the component's ever
+     drift apart, the thing that breaks must not be the layout. */
+  .dock[data-corner] {
+    --dock-margin: var(--space-2xs);
+
+    inset-block: auto var(--dock-margin);
+    inset-inline: var(--dock-margin);
     inline-size: auto;
     max-inline-size: none;
   }
@@ -84,10 +202,22 @@
    200px object. Rather than shrink it past legibility, the dock scrolls away
    with the page — the player goes back to being something in the document.
    Better an honestly absent player than one covering half the text.
+
+   Not draggable either, for the plainest possible reason: it is not fixed to
+   the viewport here, so it has no corner of the viewport to settle into.
    ------------------------------------------------------------------------ */
 
 @media (max-height: 26rem) {
   .dock {
     position: absolute;
+  }
+}
+
+/* The same belt and braces as the narrow breakpoint, scoped so it cannot reach
+   a viewport that is short AND narrow — that one is the rule above's. */
+@media (min-width: 48rem) and (max-height: 26rem) {
+  .dock[data-corner] {
+    inset-block: auto var(--dock-margin);
+    inset-inline: var(--dock-margin) auto;
   }
 }

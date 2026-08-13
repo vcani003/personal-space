@@ -4,12 +4,48 @@ import type { RefObject } from "react";
 /**
  * INTERACTION LIFECYCLE HOOKS
  *
- * Two small ones. Neither writes state on a gesture, and both clean up after
+ * Three small ones. None writes state on a gesture, and all clean up after
  * themselves — a foreground layer that leaks a listener leaks it for the whole
  * session, because unlike a modal it is never unmounted.
  */
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+/**
+ * A media query as a boolean, LIVE.
+ *
+ * Subscribed rather than sampled, for the reason spelled out under
+ * `useReducedMotion` below: a page that is open while the window is resized, a
+ * phone that is rotated, or a preference changed in the OS must all take effect
+ * without a reload.
+ *
+ * Re-renders only when the ANSWER changes, which for a breakpoint means twice
+ * during a drag across it rather than once a frame. Nothing continuous should
+ * ever be routed through this.
+ */
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() =>
+    typeof window === "undefined" ? false : window.matchMedia(query).matches,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const sync = (): void => {
+      setMatches(media.matches);
+    };
+
+    /* Re-read on mount: the answer can change between the initial render and
+       this effect, and in StrictMode it certainly can. */
+    sync();
+    media.addEventListener("change", sync);
+
+    return () => {
+      media.removeEventListener("change", sync);
+    };
+  }, [query]);
+
+  return matches;
+}
 
 /**
  * The visitor's motion preference, LIVE.
@@ -24,29 +60,7 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
  * unreachable and no content disappears.
  */
 export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() =>
-    typeof window === "undefined"
-      ? false
-      : window.matchMedia(REDUCED_MOTION_QUERY).matches,
-  );
-
-  useEffect(() => {
-    const query = window.matchMedia(REDUCED_MOTION_QUERY);
-    const sync = (): void => {
-      setReduced(query.matches);
-    };
-
-    /* Re-read on mount: the preference can change between the initial render
-       and this effect, and in StrictMode it certainly can. */
-    sync();
-    query.addEventListener("change", sync);
-
-    return () => {
-      query.removeEventListener("change", sync);
-    };
-  }, []);
-
-  return reduced;
+  return useMediaQuery(REDUCED_MOTION_QUERY);
 }
 
 /** The custom property this layer's height is published on. */

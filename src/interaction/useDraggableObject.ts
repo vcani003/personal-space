@@ -51,12 +51,22 @@ import type { Offset } from "./positions";
    becomes large again lets it return. See `desired` and `reclaim` below: a
    clamp is never mistaken for something the visitor wanted.
 
+   ── Snapping is NOT in here ────────────────────────────────────────────────
+
+   The docked player settles to the nearest corner of the viewport when it is
+   released. That rule is not this file's business and is not written into it:
+   the owner is told the gesture ended, decides where the object belongs, and
+   sends it there with `moveTo`. The engine still just glides toward a target.
+   One consequence worth stating — the corner settle uses the SAME approach at
+   the SAME λ as the paper's settle, because it IS the paper's settle with a
+   different destination. There is no second easing curve on this page.
+
    ── What this hook deliberately does not do ────────────────────────────────
 
    No inertia or fling: thrown objects are a toy, and this is a piece of paper
-   on a desk. No drop targets, no snapping, no collision, no rotation from
-   velocity, no drag preview, no ghost. No React state anywhere in the gesture —
-   position leaves through two custom properties on the element.
+   on a desk. No drop targets, no collision, no rotation from velocity, no drag
+   preview, no ghost. No React state anywhere in the gesture — position leaves
+   through two custom properties on the element.
    ========================================================================== */
 
 /** Position, in px, published for CSS to add to the authored anchor. */
@@ -90,14 +100,41 @@ export interface DraggableOptions {
    * instantly: dragging still works, it simply does not glide.
    */
   readonly reducedMotion: boolean;
+  /**
+   * Who puts the object back when the window or the page changes shape.
+   *
+   *   "page"   (default) this hook does, by clamping the remembered offset
+   *            against the document — see `reclaim` at the bottom of the file.
+   *            Right for an object anchored to a position in the PAGE.
+   *
+   *   "owner"  nobody in here. Correct for an object anchored to the VIEWPORT,
+   *            whose resting place is not a px offset at all: the docked player
+   *            rests at a CORNER, its offset is always zero between gestures,
+   *            and a resize needs no JS because CSS re-anchors it. Running the
+   *            page-scoped clamp on a `position: fixed` element would be
+   *            measuring a page coordinate that does not exist.
+   */
+  readonly correction?: "page" | "owner";
   /** The press has become a drag. Fires once per gesture, after the threshold
    *  is crossed — the hold interaction uses this to abort itself. */
   readonly onDragStart?: () => void;
-  /** The pointer is up. The object may still be settling. */
+  /** The pointer is up. The object may still be settling. This is where an
+   *  owner decides on a destination and calls `moveTo`. */
   readonly onDragEnd?: () => void;
   /** The object has stopped moving at a new position. Persist here. */
   readonly onCommit?: (offset: Offset) => void;
+  /**
+   * The object has stopped moving, wherever that is. Fires once per movement,
+   * after `onCommit`, including when reduced motion collapsed the movement into
+   * a placement — so it is the moment a settle has finished whether or not it
+   * was ever animated. An `instant` `moveTo` is a placement rather than a
+   * movement and does not fire it.
+   */
+  readonly onSettle?: () => void;
 }
+
+/** How an object asked to move gets there. */
+export type Arrival = "glide" | "instant";
 
 export interface Draggable {
   onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void;
@@ -105,6 +142,17 @@ export interface Draggable {
   onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void;
   /** Move the object by a fixed step. The keyboard's whole drag vocabulary. */
   nudge: (stepX: number, stepY: number) => void;
+  /**
+   * Send the object to an absolute offset from its anchor.
+   *
+   *   "glide"    travels there under the same approach a drag uses, and
+   *              announces `onSettle` when it arrives. Reduced motion turns
+   *              this into a placement, and still announces.
+   *   "instant"  places it and says nothing. This is a CORRECTION — re-anchored
+   *              in CSS, pushed back into view — not something the visitor did,
+   *              so it must not be mistaken for one.
+   */
+  moveTo: (offset: Offset, arrival?: Arrival) => void;
 }
 
 export function useDraggableObject(
@@ -137,6 +185,9 @@ export function useDraggableObject(
 
     pointerId: null as number | null,
     dragging: false,
+    /** Something has asked the object to move since the last settle. Stops one
+     *  gesture announcing its arrival twice — see `finish`. */
+    moved: false,
     /** Pointer position and object offset at the moment of pointerdown. */
     originX: 0,
     originY: 0,
@@ -169,6 +220,22 @@ export function useDraggableObject(
     if (s.desired.x === s.committed.x && s.desired.y === s.committed.y) return;
     s.committed = { x: s.desired.x, y: s.desired.y };
     latest.current.onCommit?.(s.committed);
+  };
+
+  /**
+   * The object has arrived. Persist, then tell the owner.
+   *
+   * Guarded by `moved`, and it has to be: one gesture can reach this by two
+   * routes — the last frame of a settle, and the reduced-motion branches that
+   * have no frames to be the last of — and an owner that re-anchors itself here
+   * must not be asked to do it twice for one release.
+   */
+  const finish = (): void => {
+    const s = state.current;
+    if (!s.moved) return;
+    s.moved = false;
+    commit();
+    latest.current.onSettle?.();
   };
 
   const stopFrames = (): void => {
@@ -205,7 +272,7 @@ export function useDraggableObject(
        which is the moment the position is worth remembering. */
     if (settled && !s.dragging) {
       stopFrames();
-      commit();
+      finish();
     }
   };
 
@@ -224,16 +291,41 @@ export function useDraggableObject(
     s.desired.y = y;
     s.target.x = x;
     s.target.y = y;
+    s.moved = true;
 
     if (latest.current.reducedMotion) {
       s.drawn.x = x;
       s.drawn.y = y;
       apply();
-      if (!s.dragging) commit();
+      if (!s.dragging) finish();
       return;
     }
 
     startFrames();
+  };
+
+  /** Put the object somewhere. Nothing travels, nothing is announced, nothing
+   *  is persisted: this is the object being placed, not moved. */
+  const place = (x: number, y: number): void => {
+    const s = state.current;
+    s.desired.x = x;
+    s.desired.y = y;
+    s.target.x = x;
+    s.target.y = y;
+    s.drawn.x = x;
+    s.drawn.y = y;
+    /* At the target by definition — so a frame still in flight will see a
+       settle with nothing to announce rather than announcing this placement. */
+    s.moved = false;
+    apply();
+  };
+
+  const moveTo = (offset: Offset, arrival: Arrival = "glide"): void => {
+    if (arrival === "instant") {
+      place(offset.x, offset.y);
+      return;
+    }
+    setTarget(offset.x, offset.y);
   };
 
   /**
@@ -362,10 +454,14 @@ export function useDraggableObject(
 
     if (!s.dragging) return; // a press, not a drag — nothing moved
     s.dragging = false;
+    /* Before the settle, deliberately: an owner with somewhere else in mind
+       gets to name it here, and the glide below then runs once, toward the
+       destination, instead of stopping where the finger left off and moving
+       again. */
     latest.current.onDragEnd?.();
 
     if (latest.current.reducedMotion) {
-      commit();
+      finish();
       stopFrames();
       return;
     }
@@ -412,6 +508,15 @@ export function useDraggableObject(
      * document is a different height) would clamp the object once and keep it
      * there for the rest of the session.
      */
+    /* An object anchored to the viewport corrects itself in CSS and re-anchors
+       itself in its own component. Nothing to observe, nothing to clamp, and no
+       resize listener at all. */
+    if (latest.current.correction === "owner") {
+      return () => {
+        stopFrames();
+      };
+    }
+
     const reclaim = (): void => {
       const s = state.current;
       if (s.pointerId !== null) return;
@@ -448,5 +553,5 @@ export function useDraggableObject(
     /* Mount only. Everything the effect touches is a ref. */
   }, [ref]);
 
-  return { onPointerDown, onPointerMove, onPointerUp, nudge };
+  return { onPointerDown, onPointerMove, onPointerUp, nudge, moveTo };
 }

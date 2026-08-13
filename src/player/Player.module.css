@@ -28,7 +28,11 @@
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-sm) var(--space-xs);
 
-  --player-radius: 22px;
+  /* `--player-radius` now lives in tokens.css, because the dock wraps this
+     element and cannot read a property declared on its own child — it needs the
+     same number to draw a focus ring that follows the object's shape. The
+     screen's radius stays here: nothing outside this file has any business
+     knowing it. */
   --player-screen-radius: 15px;
 
   border-radius: var(--player-radius);
