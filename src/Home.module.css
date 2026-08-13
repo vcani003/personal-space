@@ -23,7 +23,17 @@
   max-inline-size: var(--page-max-width);
   margin-inline: auto;
   padding-inline: var(--page-gutter-inline);
-  padding-block: var(--page-gutter-block) var(--space-2xl);
+  /* The end padding clears the docked player.
+     The dock is `position: fixed`, so the page can otherwise scroll its last
+     element permanently underneath it — and the last element is the closing
+     line, which would become literally unreachable. This buys enough room that
+     the page can always be scrolled past the dock.
+
+     A fixed figure rather than a measured one: the dock's height is content
+     driven (~219px) and measuring it in JS to publish a variable would put a
+     layout read on every resize to solve a problem a generous constant already
+     solves. If the player ever grows a fourth band, raise this. */
+  padding-block: var(--page-gutter-block) calc(var(--space-2xl) + 260px);
 }
 
 /* Anchored headings must not land flush against the viewport's top edge. */
@@ -115,24 +125,22 @@
 }
 
 /* ---------------------------------------------------------------------------
-   CURRENTLY — the player, and something opposite it to balance its weight
+   THE DRAWING
+   -----------------------------------------------------------------------------
+   The `.player` rule that used to live here is gone: the player is now pinned
+   to the viewport (see player/PlayerDock.module.css) and no longer occupies a
+   row in this grid.
+
+   The drawing keeps its place. It was originally positioned as a counterweight
+   to the player on the same row; with the player gone it is now the only
+   object in this band, so it moves in from the far edge and no longer needs
+   the deep offset that was there to break their alignment.
    ------------------------------------------------------------------------ */
 
-/* Shares a row with `02 / Currently`, and the drawing shares it too: the
-   player starts where the label ends, the drawing starts where the player
-   ends. Three items, one row, no wrappers. */
-.player {
-  grid-column: 3 / 9;
-  align-self: start;
-  margin-block-start: var(--space-3xl);
-}
-
 .entryDrawing {
-  grid-column: 9 / 13;
+  grid-column: 8 / 12;
   align-self: start;
-  /* Dropped below the player's top edge so the pair reads as composed rather
-     than as two columns of equal weight. */
-  margin-block-start: calc(var(--space-3xl) + var(--space-xl));
+  margin-block-start: var(--space-2xl);
 }
 
 /* ---------------------------------------------------------------------------
@@ -225,13 +233,8 @@
     grid-column: 1 / 9;
   }
 
-  .player {
-    grid-column: 1 / 10;
-    margin-block-start: var(--space-md);
-  }
-
   .entryDrawing {
-    grid-column: 7 / 13;
+    grid-column: 5 / 13;
     margin-block-start: var(--space-xl);
   }
 
@@ -276,7 +279,6 @@
   .entryPhotograph,
   .entryQuote,
   .entryProject,
-  .player,
   .entryDrawing,
   .entryElsewhere,
   .closing {

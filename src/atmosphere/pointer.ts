@@ -11,8 +11,17 @@ import { clamp, lerp } from "../lib/math";
 
    WHAT IT PUBLISHES
 
-     --pointer-x   −1 … 1   viewport left edge → right edge, centre 0
-     --pointer-y   −1 … 1   viewport top edge  → bottom edge, centre 0
+     --pointer-x        −1 … 1   viewport left edge → right edge, centre 0
+     --pointer-y        −1 … 1   viewport top edge  → bottom edge, centre 0
+     --pointer-x-slow   the same signal on a slower time constant
+     --pointer-y-slow   the same signal on a slower time constant
+
+   The slow pair exists so that individual objects can settle at slightly
+   different speeds without anybody running a second loop or a per-object
+   animation. An object blends between the two channels by however much it
+   wants — see `variance.ts`. Both channels converge on the SAME target, so the
+   difference is entirely in the settle and there is none at rest: the field
+   deforms slightly on its way to a position and then agrees on it.
 
    Unitless numbers, written on `document.documentElement` so every element on
    the page inherits them — the atmosphere sits at a negative z-index as an
@@ -55,6 +64,10 @@ export const POINTER_VARS = {
   x: "--pointer-x",
   /** Unitless −1…1. Viewport top edge → bottom edge. */
   y: "--pointer-y",
+  /** The same as `x`, on a ~286ms time constant instead of ~140ms. */
+  xSlow: "--pointer-x-slow",
+  /** The same as `y`, on a ~286ms time constant instead of ~140ms. */
+  ySlow: "--pointer-y-slow",
 } as const;
 
 /** The proximity property published on the one pointer-reactive object. */
@@ -79,9 +92,18 @@ const PROXIMITY_VAR = "--star-proximity";
    in ~330ms. That places the perceptible part of the settle inside the
    RESPONSE band (120–300ms) while the tail keeps travelling for another beat,
    which is what makes it read as the world settling rather than as tracking.
+
+   THE SECOND, SLOWER CHANNEL. λ = 3.5 is an e-folding time of ~286ms — the far
+   end of the RESPONSE band. It is not a separate signal, only the same target
+   approached more gently, and no object follows it outright: the most laggard
+   star in the composition blends 55% of it, landing at roughly 220ms. The
+   channel exists so that a field of objects does not arrive at its new
+   position all on the same beat, which is the other half of what makes a
+   parallax layer read as one rigid sheet.
    -------------------------------------------------------------------------- */
 
 const PARALLAX_LAMBDA = 7;
+const PARALLAX_LAMBDA_SLOW = 3.5;
 const PROXIMITY_LAMBDA = 9;
 
 /* Below this the value is snapped to target and the loop is allowed to stop.
@@ -131,6 +153,9 @@ let targetX = 0;
 let targetY = 0;
 let currentX = 0;
 let currentY = 0;
+/* The same target, approached at PARALLAX_LAMBDA_SLOW. */
+let currentXSlow = 0;
+let currentYSlow = 0;
 
 let clientX: number | null = null;
 let clientY: number | null = null;
@@ -146,6 +171,8 @@ let currentProximity = 0;
 /* Last strings written, so an unchanged value costs no CSSOM write. */
 let publishedX = "";
 let publishedY = "";
+let publishedXSlow = "";
+let publishedYSlow = "";
 let publishedProximity = "";
 
 const frameListeners = new Set<(reading: PointerReading) => void>();
@@ -402,6 +429,8 @@ function deactivate(): void {
   targetY = 0;
   currentX = 0;
   currentY = 0;
+  currentXSlow = 0;
+  currentYSlow = 0;
   targetProximity = 0;
   currentProximity = 0;
   clientX = null;
@@ -410,9 +439,13 @@ function deactivate(): void {
   const root = document.documentElement;
   root.style.removeProperty(POINTER_VARS.x);
   root.style.removeProperty(POINTER_VARS.y);
+  root.style.removeProperty(POINTER_VARS.xSlow);
+  root.style.removeProperty(POINTER_VARS.ySlow);
   reactiveElement?.style.removeProperty(PROXIMITY_VAR);
   publishedX = "";
   publishedY = "";
+  publishedXSlow = "";
+  publishedYSlow = "";
   publishedProximity = "";
 }
 
@@ -604,16 +637,29 @@ function step(now: number): void {
      and the loop has nothing to do — it may still be running for a hold. */
   if (active && clientX !== null) {
     const parallaxT = 1 - Math.exp(-PARALLAX_LAMBDA * dt);
+    const parallaxSlowT = 1 - Math.exp(-PARALLAX_LAMBDA_SLOW * dt);
     const proximityT = 1 - Math.exp(-PROXIMITY_LAMBDA * dt);
 
     currentX = lerp(currentX, targetX, parallaxT);
     currentY = lerp(currentY, targetY, parallaxT);
+    currentXSlow = lerp(currentXSlow, targetX, parallaxSlowT);
+    currentYSlow = lerp(currentYSlow, targetY, parallaxSlowT);
     currentProximity = lerp(currentProximity, targetProximity, proximityT);
 
     if (Math.abs(targetX - currentX) < PARALLAX_EPSILON) currentX = targetX;
     else settled = false;
 
     if (Math.abs(targetY - currentY) < PARALLAX_EPSILON) currentY = targetY;
+    else settled = false;
+
+    /* The slow channel is what actually decides when the loop may stop: it is
+       always the last thing still travelling. Omitting it here would freeze the
+       laggard stars part-way through their settle, which is a worse artefact
+       than the rigidity this whole mechanism exists to fix. */
+    if (Math.abs(targetX - currentXSlow) < PARALLAX_EPSILON) currentXSlow = targetX;
+    else settled = false;
+
+    if (Math.abs(targetY - currentYSlow) < PARALLAX_EPSILON) currentYSlow = targetY;
     else settled = false;
 
     if (Math.abs(targetProximity - currentProximity) < PROXIMITY_EPSILON) {

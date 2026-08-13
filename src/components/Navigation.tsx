@@ -17,7 +17,9 @@ import styles from "./Navigation.module.css";
 const LINKS = [
   { href: "#about", label: "About" },
   { href: "#journal", label: "Journal" },
-  { href: "#currently", label: "Currently" },
+  /* No `Currently` entry. It used to anchor the player's section; the player
+     is now permanently docked to the viewport, so a link that scrolled you to
+     something already on screen would do nothing a visitor could perceive. */
   { href: "#elsewhere", label: "Elsewhere" },
 ] as const;
 

@@ -4,7 +4,6 @@ import { JournalEntry } from "./components/Journal";
 import { Meta } from "./components/Meta";
 import { Navigation } from "./components/Navigation";
 import { closingLine, postById } from "./content/posts";
-import { Player } from "./player/Player";
 import styles from "./Home.module.css";
 
 /**
@@ -92,22 +91,16 @@ export function Home() {
 
       {/* -- 02 / Currently ----------------------------------------------- */}
 
-      <Meta
-        as="h2"
-        id="currently"
-        tracking="wide"
-        className={styles.sectionLabel}
-      >
-        02 / Currently
-      </Meta>
+      {/*
+        The `02 / Currently` section used to live here, holding the player.
 
-      {/* The player is placed left of centre with a drawing opposite it, so it
-          reads as situated in a composition rather than dropped into the
-          middle of the page. The emptiness around it is doing as much work as
-          the object itself. */}
-      <div className={styles.player}>
-        <Player />
-      </div>
+        It was removed when the player became permanently docked to the
+        viewport (see PlayerDock, mounted in App.tsx). A section heading whose
+        only job was to introduce an object that is now always on screen is a
+        label pointing at something the visitor is already looking at. The
+        drawing stays — it belongs to the journal, not to the player — and
+        Elsewhere moves up to 02.
+      */}
 
       {drawing && (
         <div className={styles.entryDrawing}>
@@ -115,7 +108,7 @@ export function Home() {
         </div>
       )}
 
-      {/* -- 03 / Elsewhere ----------------------------------------------- */}
+      {/* -- 02 / Elsewhere ----------------------------------------------- */}
 
       <Meta
         as="h2"
@@ -123,7 +116,7 @@ export function Home() {
         tracking="wide"
         className={styles.sectionLabel}
       >
-        03 / Elsewhere
+        02 / Elsewhere
       </Meta>
 
       {elsewhere && (

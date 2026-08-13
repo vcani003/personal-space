@@ -1,6 +1,7 @@
 import { Atmosphere } from "./atmosphere";
 import { Home } from "./Home";
 import { InteractionLayer } from "./interaction";
+import { PlayerDock } from "./player";
 
 /**
  * Mount point. The composition lives in Home.tsx; atmosphere will eventually
@@ -27,6 +28,10 @@ export function App() {
           one layer that captures pointer events — layer 5 of the depth model,
           which the atmosphere root deliberately left for it. */}
       <InteractionLayer />
+      {/* Pinned to the viewport rather than placed in the page, so it is
+          reachable while attention is somewhere else — which is the whole
+          premise of this particular object. */}
+      <PlayerDock />
     </>
   );
 }

@@ -220,12 +220,48 @@
    NARROW
    ------------------------------------------------------------------------ */
 
+/* Tightened when the player is small — which, since it became permanently
+   docked to the viewport, is its normal state rather than an edge case.
+
+   Height is the scarce resource now. An object that is always on screen is
+   always spending it, so every band gives some back: the chassis and screen
+   pad less, the three lyric lines sit closer, and the active line drops to
+   reading size. It still reads as the same object — the three-band rhythm,
+   the inset screen and the outset glow are all untouched, and those are what
+   carry its identity, not its generosity. */
 @container player (max-width: 340px) {
+  .chassis {
+    gap: var(--space-2xs);
+    padding: var(--space-xs) var(--space-xs) var(--space-2xs);
+  }
+
   .screen {
     padding: var(--space-sm) var(--space-xs);
   }
 
+  .lines {
+    gap: var(--space-2xs);
+  }
+
+  .line {
+    font-size: var(--text-meta);
+  }
+
   .active {
     font-size: var(--text-body);
+  }
+
+  .deck {
+    gap: var(--space-3xs);
+  }
+
+  .primary {
+    inline-size: 30px;
+    block-size: 30px;
+  }
+
+  .control {
+    inline-size: 19px;
+    block-size: 19px;
   }
 }

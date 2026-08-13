@@ -1,0 +1,93 @@
+/* =============================================================================
+   THE DOCK — positioning only
+   =============================================================================
+
+   This file decides WHERE the player lives and HOW BIG it is. Everything about
+   what it looks like stays in Player.module.css, untouched, so the object is
+   the same object whether it is docked or (one day) placed in a page again.
+
+   BOTTOM LEFT, chosen by measuring both sides rather than by taste.
+
+   Anything pinned to a viewport occludes content sometimes; the only real
+   question is WHAT. Measured across seven scroll positions at 1440×900, the
+   raw counts were nearly identical — but the two sides hide very different
+   things, because this composition puts its big moments on the RIGHT:
+
+     right  covers the About prose AT SCROLL ZERO (the first thing anyone
+            reads), the photograph, and THE QUOTE — the page's centrepiece,
+            the one element the whole space system is built around.
+     left   opens clean, never touches the About or the quote, and instead
+            crosses the journal prose, the project link and the Elsewhere
+            link at mid-scroll.
+
+   Covering links is worse functionally, but covering the introduction and the
+   quote is worse for the page, and the landing state is the one a visitor is
+   guaranteed to see. Left wins.
+
+   Measured after the switch: at 1440×900 the landing state is completely
+   clear, the quote and the About are never touched, and the remaining
+   collisions are the journal entry around 400px of scroll and the Elsewhere
+   link near the end.
+
+   The draggable paper fragment also lives on the left (x 22% / y 13.5%), and
+   was expected to be a problem here. It is not — verified, it clears the dock
+   at scroll zero, because it sits high in the document while the dock sits at
+   the bottom of the viewport. Nothing had to move. If the paper's anchor is
+   ever lowered, re-check this.
+
+   It floats clear of BOTH edges. A player flush to the corner reads as browser
+   chrome; one with real margin around it reads as a small object resting on
+   the screen. That gap is the entire difference and it is not negotiable.
+   ========================================================================== */
+
+.dock {
+  position: fixed;
+  inset-block-end: var(--space-md);
+  inset-inline-start: var(--space-md);
+
+  /* Narrower than the six-column block it replaced. At this width the player's
+     own container query (`@container player (max-width: 340px)`) takes over and
+     tightens the screen padding and the active lyric, so the compact treatment
+     is inherited rather than re-specified here. */
+  inline-size: 322px;
+  max-inline-size: calc(100vw - var(--space-md) * 2);
+
+  /* In front of page content, alongside the interaction layer rather than
+     above it — the paper is on the other side of the screen, so they never
+     compete, and neither should be able to bury the other. */
+  z-index: var(--layer-5-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW
+   -----------------------------------------------------------------------------
+   A fixed player is far more expensive on a phone: it is permanently spending
+   screen that the page has very little of. So it gets smaller, sits tight to
+   the bottom, and gives up its side margins — at this width the object reads
+   clearly enough from its radius and glow alone, and the horizontal gap is
+   worth less than the reading width it costs.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .dock {
+    inset-block-end: var(--space-2xs);
+    inset-inline: var(--space-2xs);
+    inline-size: auto;
+    max-inline-size: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   SHORT VIEWPORTS
+   -----------------------------------------------------------------------------
+   A landscape phone or a short window has no room to permanently surrender a
+   200px object. Rather than shrink it past legibility, the dock scrolls away
+   with the page — the player goes back to being something in the document.
+   Better an honestly absent player than one covering half the text.
+   ------------------------------------------------------------------------ */
+
+@media (max-height: 26rem) {
+  .dock {
+    position: absolute;
+  }
+}
