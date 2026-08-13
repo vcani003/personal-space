@@ -25,8 +25,14 @@
 
   position: relative;
   display: grid;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-sm) var(--space-xs);
+
+  /* Compact by default, not by query. The player is now permanently docked at
+     322px on every viewport, so "small" is its normal state rather than an
+     edge case — and the compaction cannot live in the container query below,
+     because the chassis is the container and cannot match it. If this object
+     is ever embedded large again, that variant declares its own generosity. */
+  gap: var(--space-2xs);
+  padding: var(--space-xs) var(--space-xs) var(--space-2xs);
 
   /* `--player-radius` now lives in tokens.css, because the dock wraps this
      element and cannot read a property declared on its own child — it needs the
@@ -34,6 +40,19 @@
      screen's radius stays here: nothing outside this file has any business
      knowing it. */
   --player-screen-radius: 15px;
+
+  /* The transport's two sizes, declared once here for the same reason as the
+     screen radius: they are this object's proportions, not the page's, and
+     there is no site-wide control scale for them to come from. Written as
+     properties rather than as literals inside `.control` / `.primary` so the
+     dense variant at the bottom of this file retunes the object by changing
+     two numbers in one place instead of hunting rules.
+
+     The RATIO is the load-bearing part, not the absolute sizes: the primary
+     reads as primary through size alone, so if these ever move they move
+     together. */
+  --player-control-size: 22px;
+  --player-control-primary-size: 34px;
 
   border-radius: var(--player-radius);
   border: 1px solid var(--color-edge);
@@ -201,10 +220,14 @@
 }
 
 .control {
+  /* Positioned so the dense variant can hang an invisible touch target off it.
+     No z-index, so this creates no stacking context and changes nothing here. */
+  position: relative;
+
   display: grid;
   place-items: center;
-  inline-size: 22px;
-  block-size: 22px;
+  inline-size: var(--player-control-size);
+  block-size: var(--player-control-size);
   color: var(--color-foreground-faint);
   transition: color var(--duration-response) var(--ease-out);
 }
@@ -215,8 +238,8 @@
 }
 
 .primary {
-  inline-size: 34px;
-  block-size: 34px;
+  inline-size: var(--player-control-primary-size);
+  block-size: var(--player-control-primary-size);
   border: 1px solid var(--color-edge);
   border-radius: 50%;
   background-color: rgb(from var(--tone-mist) r g b / 0.1);
@@ -249,7 +272,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   NARROW
+   COMPACT — a small object, still showing three lines
    ------------------------------------------------------------------------ */
 
 /* Tightened when the player is small — which, since it became permanently
@@ -260,11 +283,30 @@
    pad less, the three lyric lines sit closer, and the active line drops to
    reading size. It still reads as the same object — the three-band rhythm,
    the inset screen and the outset glow are all untouched, and those are what
-   carry its identity, not its generosity. */
+   carry its identity, not its generosity.
+
+   THIS IS THE DESKTOP DOCK'S BRANCH. The dock is 322px wide there, which is
+   inside this query, so everything below is what a wide viewport actually
+   renders. The phone gets the DENSE block after it, which is keyed to the
+   viewport rather than to the container and therefore overrides this one.
+   Source order is load-bearing: dense must stay last. */
 @container player (max-width: 340px) {
-  .chassis {
-    gap: var(--space-2xs);
-    padding: var(--space-xs) var(--space-xs) var(--space-2xs);
+  /* NOTHING TARGETING `.chassis` MAY LIVE IN THIS BLOCK.
+     `.chassis` declares `container-type`, so it IS the container — and an
+     element cannot match its own container query. Rules for it here are
+     silently dead: they parse, they never apply, and nothing warns.
+
+     Two separate regressions came from this. The chassis padding and gap were
+     "tightened" here and never were. Then the transport sizes were moved into
+     `--player-control-*` on this same dead rule, which quietly returned the
+     controls to their base size and grew the docked object by 15px.
+
+     The control sizes now sit on `.deck`, which is a descendant and does
+     match; `.control` and `.primary` inherit them. Chassis-level spacing moved
+     to the base rule at the top of this file. */
+  .deck {
+    --player-control-size: 19px;
+    --player-control-primary-size: 30px;
   }
 
   .screen {
@@ -286,14 +328,150 @@
   .deck {
     gap: var(--space-3xs);
   }
+}
 
-  .primary {
-    inline-size: 30px;
-    block-size: 30px;
+/* ---------------------------------------------------------------------------
+   DENSE — the phone composition
+   -----------------------------------------------------------------------------
+
+   A DIFFERENT COMPOSITION, NOT A SMALLER ONE.
+
+   Docking the player made it permanent, and permanence is charged by the
+   pixel on a phone: at 844px of screen the compact object above was spending
+   a quarter of it forever, on three lines of lyric two of which are decoration
+   at 2:1 contrast. This block spends roughly half that and gives the half back
+   to the page.
+
+   WHAT IT KEEPS, deliberately and in order of how much identity they carry:
+
+     · The three-band rhythm. Metadata, inset screen, deck — same order, same
+       silhouette, closer together. Compressed, never rearranged: a lyric
+       BESIDE a play button is denser still, and it is also the exact shape of
+       every media bar ever shipped. The vertical stack is what makes this an
+       object rather than chrome, and it was not available to spend.
+     · The inset/outset inversion, untouched. Both halves or neither.
+     · One lyric, dominating on luminance and scale. It is now the ONLY thing
+       in the screen, so it dominates more here than it did before.
+     · Its own radius, edge and frosted material, all unchanged.
+     · The subordinate metadata tokens.
+
+   WHAT IT SPENDS, and what that costs:
+
+     · The previous and next lines. They were the object's sense of being a
+       window onto a moving stream, and losing them is a real loss — but they
+       cost ~52px, they sit at --color-foreground-ghost (2:1, decoration by
+       the token's own definition), and on a phone held at arm's length they
+       are texture rather than text. The screen keeps a fixed height with the
+       one line CENTRED IN IT, so the darkness above and below now does the
+       job the ghost lines were doing: this still reads as a window with room
+       in it, not as a label with a lyric printed on it.
+     · Roughly half the padding everywhere.
+
+   The screen's height is FIXED at two lines rather than sized to content, so
+   the object does not change shape every time the lyric does once real timing
+   arrives. One-line lyrics get air; two-line lyrics fill it; the rare third
+   line grows the object rather than being clipped, because the lyric is the
+   point and nothing in it may be cut off.
+
+   Keyed to the viewport, not the container, because the question is "how much
+   of this screen may one object own forever", which is a viewport question.
+   The breakpoint MIRRORS PlayerDock.module.css and DRAGGABLE_VIEWPORT in
+   interaction/useDockDrag.ts — it is the width at which this site already says
+   "small screen". A fourth, nearly-identical breakpoint would only be a fourth
+   thing to keep in sync.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .chassis {
+    /* Display type that WRAPS. Reads --leading-lyric, which now exists in
+       tokens.css — lyrics are the only place the display register wraps at a
+       small size, and --leading-display (1.04) is drawn for 28–80px headlines
+       occupying one line. The local alias stays so the calc below has one name
+       to reference. */
+    --player-lyric-leading: var(--leading-lyric);
+    --player-screen-pad-block: var(--space-3xs);
+
+    /* Unchanged from the compact branch. The height came out of padding and a
+       band, not out of the controls — shrinking those would have bought ~2px
+       and cost legibility, and the play button is the one thing here a thumb
+       has to find. */
+    --player-control-size: 19px;
+    --player-control-primary-size: 30px;
+
+    gap: var(--space-3xs);
+    padding: var(--space-2xs) var(--space-xs) var(--space-3xs);
   }
 
-  .control {
-    inline-size: 19px;
-    block-size: 19px;
+  /* A letterbox window with one line floating in the middle of it. `align-content`
+     rather than `place-items` on purpose: it centres the row in the block axis
+     while leaving the line stretched across the inline axis, so a long lyric
+     still uses the full width before it wraps. */
+  .screen {
+    display: grid;
+    align-content: center;
+    padding: var(--player-screen-pad-block) var(--space-2xs);
+    min-block-size: calc(
+      2 * var(--player-lyric-leading) * var(--text-body) +
+        2 * var(--player-screen-pad-block)
+    );
+  }
+
+  /* The ghost lines. Removed from layout AND from the accessibility tree,
+     which is the honest result: on this screen the player shows one lyric, so
+     one lyric is what it should announce. */
+  .line:not(.active) {
+    display: none;
+  }
+
+  .active {
+    font-size: var(--text-body);
+    line-height: var(--player-lyric-leading);
+  }
+
+  /* The progress hairline now spans the object's full inner width and sits
+     close to its lower edge — a horizon line rather than a widget. Costs 1px
+     of height and is the cheapest possible statement that time is passing, so
+     it survives the cut that the ghost lyrics did not. */
+  .deck {
+    gap: var(--space-3xs);
+    padding-inline: 0;
+    padding-block-end: 0;
+  }
+
+  /* Restates the base value on purpose rather than by accident. It is what
+     makes the 44px targets below TILE rather than overlap: at 30px and 19px
+     the button centres land 24.5px + gap apart, so 20px of gap puts them at
+     44.5px — just clear. If the base transport gap is ever tightened, this is
+     the rule that has to stay behind, and the number is why. */
+  .transport {
+    gap: var(--space-sm);
+  }
+
+  /* -- THE TOUCH TARGET ------------------------------------------------------
+     An accessibility floor, met without letting it into the composition.
+
+     A 44px play button would be the largest element in a 128px object — larger
+     than the lyric — and the lyric leading by size is not negotiable. So the
+     TARGET is 44px and the CONTROL is 30px: an invisible box centred on each
+     button, overflowing it into padding where there is nothing else to press.
+     `max()` so it can only ever grow a control, never shrink one.
+
+     The secondary buttons' boxes reach ~3px past the chassis' lower border,
+     which is accepted rather than clamped: 44px is a floor, and three pixels
+     of a transparent box over empty page costs less than a target that misses
+     the standard by three pixels.
+
+     Scoped here rather than to `.control` globally on purpose. On a wide
+     viewport the dock is draggable, and three 44px boxes would carve dead
+     zones out of the grab area — that is the drag engine's call to make, not
+     this file's. LEAD: worth promoting once interaction/ is quiet. */
+  .control::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+    inline-size: max(100%, var(--touch-target-min));
+    block-size: max(100%, var(--touch-target-min));
   }
 }

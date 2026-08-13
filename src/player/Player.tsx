@@ -24,6 +24,17 @@ import styles from "./Player.module.css";
  * `container-type: size`, and the bunny sprites. See
  * player-integration-notes.md.
  *
+ * THE PHONE SHOWS ONE LINE, NOT THREE. There is a dense composition at the
+ * bottom of Player.module.css that hides the previous and next lines below
+ * 48rem, because an object docked to a phone screen is spending that height
+ * permanently and those two lines sit at decoration contrast. This markup does
+ * not change: all three are always rendered and CSS decides. That is on
+ * purpose — a viewport is not a fact about the component, and reaching for
+ * `matchMedia` here would put layout in JavaScript, hydrate at the wrong size,
+ * and give the escaped-lyrics work in Phase 6 a DOM that changes shape
+ * underneath it. If a screen reader on a phone announces one lyric, that is
+ * also the correct answer rather than a side effect.
+ *
  * The bunny emblem is intentionally absent until the real lyric line is live —
  * it belongs beside an ACTIVE lyric, and there isn't one yet.
  */

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { usePageExtent } from "./hooks";
 import { PaperFragment } from "./PaperFragment";
 import { paperAnchor, starSecrets } from "./placement";
+import { RippleField } from "./Ripple";
 import { StarSecret } from "./StarSecret";
 import type { StyleVars } from "./vars";
 import styles from "./InteractionLayer.module.css";
@@ -38,11 +39,18 @@ import styles from "./InteractionLayer.module.css";
  *   ONE draggable object          the paper
  *   ONE press-and-hold            on that same paper
  *   TWO hidden discoveries        the mark beneath the paper; one star
+ *   THE SURFACE                   a ring where the page is touched
  *
- * That is the entire MVP interaction budget, and it is a ceiling rather than a
- * target. Nothing else on this page is interactive, and the reason the paper
- * feels like an object rather than a widget is precisely that it has no
- * company. A second draggable would not double the delight; it would halve it.
+ * The first three are the entire MVP interaction budget, and it is a ceiling
+ * rather than a target. Nothing else on this page is interactive, and the reason
+ * the paper feels like an object rather than a widget is precisely that it has
+ * no company. A second draggable would not double the delight; it would halve
+ * it.
+ *
+ * The surface is not a fourth object and does not spend from that budget: it is
+ * attached to the empty space BETWEEN the objects, it can never be aimed at, and
+ * it does nothing. It is the one place on the page where the answer to a click
+ * is not "something happened" but "you are touching something". See Ripple.tsx.
  */
 
 export function InteractionLayer() {
@@ -62,17 +70,26 @@ export function InteractionLayer() {
   };
 
   return (
-    <div ref={rootRef} className={styles.root} style={style}>
-      {/* DISCOVERY ONE. Rendered BEFORE the paper so the paper covers it, and
-          given no transition, no animation and no reveal of any kind — it is
-          not shown, it is uncovered. See the stylesheet. */}
-      <span className={styles.mark} aria-hidden="true" />
+    <>
+      {/* The surface. Its own fixed, viewport-sized root, and FIRST in the
+          fragment on purpose: same z-index, earlier in paint order, so a ring
+          passes in front of the page's text but underneath the paper and the
+          player. Objects float on the surface; they are not part of it. It
+          renders nothing at all when no ripple is on screen. */}
+      <RippleField />
 
-      <PaperFragment />
+      <div ref={rootRef} className={styles.root} style={style}>
+        {/* DISCOVERY ONE. Rendered BEFORE the paper so the paper covers it,
+            and given no transition, no animation and no reveal of any kind —
+            it is not shown, it is uncovered. See the stylesheet. */}
+        <span className={styles.mark} aria-hidden="true" />
 
-      {starSecrets.map((secret) => (
-        <StarSecret key={secret.id} secret={secret} />
-      ))}
-    </div>
+        <PaperFragment />
+
+        {starSecrets.map((secret) => (
+          <StarSecret key={secret.id} secret={secret} />
+        ))}
+      </div>
+    </>
   );
 }

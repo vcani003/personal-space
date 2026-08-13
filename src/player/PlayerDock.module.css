@@ -169,15 +169,45 @@
    NARROW
    -----------------------------------------------------------------------------
    A fixed player is far more expensive on a phone: it is permanently spending
-   screen that the page has very little of. So it gets smaller, sits tight to
-   the bottom, and gives up its side margins — at this width the object reads
-   clearly enough from its radius and glow alone, and the horizontal gap is
-   worth less than the reading width it costs.
+   screen that the page has very little of. The answer used to be "let it span
+   the width and take away its side margins". That was backwards, and it is
+   worth writing down why, because it is the trap this breakpoint invites.
 
-   It is also not draggable here, and the corner rules above cannot fire because
-   the component stops rendering the attribute at exactly this breakpoint. A
-   dock that spans the width has no corners to be nearest to, and the gesture is
-   not worth a band of dead scrolling across the bottom of a phone.
+   The player got DENSER — see the dense block at the bottom of
+   Player.module.css, which is roughly 128px tall against the compact object's
+   ~206. Height alone is not the whole cost, though. A short element that still
+   spans edge to edge is not a smaller object; it is a BAR, and the closer its
+   height falls the more it looks like one, because the only thing left telling
+   you it is not browser chrome is a radius the full-bleed width has already
+   made ambiguous.
+
+   So it loses width as it loses height, and it keeps the SAME 322px it has on
+   a wide screen — one object, one size, a denser interior on a phone. At 390px
+   that leaves roughly 48px of live page down the right-hand side, which is the
+   entire point: you can see the world continuing past the player, so the
+   player is resting ON the screen rather than welded to the bottom of it.
+
+   The margin GREW, 8px to 20px, for the same reason. 8px is smaller than the
+   corner radius and well inside the outer glow's 48px falloff, so the object's
+   own light was spilling off the edge of the display and its silhouette was
+   being read against the bezel instead of against the page. 20px is a real
+   gap. It is deliberately less than the wide viewport's 32px — a phone cannot
+   afford that — but it is a gap rather than a seam, and the brief is explicit
+   that this distance is not negotiable down to zero.
+
+   Everything else is inherited from the base rule above: `inline-size: 322px`
+   and `max-inline-size: calc(100vw - var(--dock-margin) * 2)` already do the
+   right thing once the margin is set, and the clamp keeps the object inside a
+   320px phone without a second number to maintain. Nothing here re-specifies
+   a width.
+
+   It is still not draggable here, and the corner rules above cannot fire
+   because the component stops rendering the attribute at exactly this
+   breakpoint. NOTE FOR THE LEAD: reason 1 in DRAGGABLE_VIEWPORT's comment
+   ("the dock spans the full width... corner affinity has nothing to be affine
+   to") is now stale — a 322px object on a 390px screen does have four
+   distinguishable corners. Reasons 2 and 3 still stand on their own, so the
+   behaviour is unchanged and this is a note, not a request.
    ------------------------------------------------------------------------ */
 
 @media (max-width: 47.9375rem) {
@@ -186,12 +216,10 @@
      rendered at this width, but if this breakpoint and the component's ever
      drift apart, the thing that breaks must not be the layout. */
   .dock[data-corner] {
-    --dock-margin: var(--space-2xs);
+    --dock-margin: var(--space-sm);
 
     inset-block: auto var(--dock-margin);
-    inset-inline: var(--dock-margin);
-    inline-size: auto;
-    max-inline-size: none;
+    inset-inline: var(--dock-margin) auto;
   }
 }
 

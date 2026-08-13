@@ -41,6 +41,18 @@
  *                           revealed; and one specific faint star that answers
  *                           a click with one sentence.
  *
+ *   THE SURFACE             a faint ring, and a fainter one behind it, spreading
+ *                           from wherever the page is touched and thinning to
+ *                           nothing. It is not a fifth object and does not spend
+ *                           from the budget above: it belongs to the empty space
+ *                           BETWEEN the objects, it cannot be aimed at, it does
+ *                           nothing, and it never fires for a click that already
+ *                           means something — a link, a control, the paper, the
+ *                           player. A drag does not produce one either. It is
+ *                           two CSS animations on an element that lives 800ms,
+ *                           and it does not exist at all under reduced motion.
+ *                           See Ripple.tsx.
+ *
  * Four objects react on this entire page. Everything else is still, which is
  * the only reason these register at all:
  *

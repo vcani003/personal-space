@@ -237,6 +237,14 @@
   --text-display-xl-fluid: clamp(2.75rem, 1.6rem + 5.2vw, 5rem);
 
   --leading-display: 1.04;    /* tight — big Eiko wants its lines close */
+
+  /* Lyrics are the one place the display face WRAPS at a small size, and they
+     need their own leading because of it. --leading-display is drawn for
+     28–80px headlines that occupy one line; applied to a 19px lyric running to
+     two lines it puts descenders into the next line's ascenders. Not a third
+     typographic register — the same register, at the only size where wrapping
+     actually happens. */
+  --leading-lyric: 1.25;
   --leading-body: 1.65;       /* generous — Thin at 19px on dark needs air */
   --tracking-display: -0.015em;
 

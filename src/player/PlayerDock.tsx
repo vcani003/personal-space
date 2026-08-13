@@ -62,6 +62,11 @@ export function PlayerDock() {
     <div
       ref={ref}
       className={styles.dock}
+      /* The player is an object floating ON the surface, not part of it, so
+         touching it does not ripple. Declared here rather than inferred from
+         markup: the ripple layer's fallback is a guess at this component's
+         internals, and this attribute is what makes that guess deletable. */
+      data-no-ripple=""
       /* Both are absent, not false, when this viewport does not offer the
          gesture: the corner rules and `touch-action: none` must not exist at a
          width where the dock spans the screen and the page needs to scroll
