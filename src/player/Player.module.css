@@ -35,20 +35,29 @@
   border: 1px solid var(--color-edge);
 
   /* Clouded glass: a faint tonal shift, not a glossy gradient. */
-  /* OPAQUE, and it has to be.
-     This element carried no background-colour at all — only the translucent
-     sheen below — which cost nothing while the player sat in a section of the
-     page surrounded by empty darkness. Docked to the viewport it now passes
-     over prose, and page text was reading straight through the chassis and
-     mixing with the lyrics inside it. An object you can see through is not an
-     object; it is a pane.
+  /* CLOUDED GLASS — translucent, but not see-through.
+     Three states, and the middle one is the design:
 
-     --tone-charcoal sits ~7 values above the field, so the chassis still reads
-     as a faint lift out of the darkness rather than as a grey box, and the
-     sheen on top still does the lighting. The screen inside remains darker
-     than this, so the inset/outset inversion — the object's whole physics — is
-     untouched. */
-  background-color: var(--tone-charcoal);
+       no background at all   page text read straight through and mixed with
+                              the lyrics. Not an object, a pane.
+       fully opaque           text stopped, but so did the glass. A grey box.
+       frosted (this)         you can sense the page behind it without being
+                              able to read a word of it.
+
+     Plain alpha cannot land in between: at any opacity where depth is
+     perceptible, text behind is still legible and the mixing returns. Blur is
+     what separates "translucent" from "see-through", which is why real frosted
+     glass is frosted rather than merely tinted. It is also literally Bunny Hop
+     Player's own stated material ("clouded glass over a dark inset display").
+
+     The earlier note in this file said no `backdrop-filter`, because in the
+     page-embedded version it would have smeared the atmosphere deliberately
+     placed behind the object. That reasoning expired when the player was
+     docked: it now sits over prose, not over composed emptiness, and blurring
+     what is behind it is the point rather than a side effect. */
+  background-color: rgb(from var(--tone-charcoal) r g b / 0.72);
+  backdrop-filter: blur(14px) saturate(0.9);
+  -webkit-backdrop-filter: blur(14px) saturate(0.9);
   background-image: linear-gradient(
     168deg,
     rgb(from var(--tone-mist) r g b / 0.09) 0%,
@@ -63,10 +72,15 @@
     var(--glow-soft),
     0 22px 55px rgb(from var(--tone-ink) r g b / 0.5);
 
-  /* NOTE: no `backdrop-filter`. In the extension it sampled a flat dark field;
-     here it would sample grain, stars and haze — smearing the atmosphere we
-     deliberately placed behind the object, at a per-frame GPU cost. See
-     player-integration-notes.md §6. */
+}
+
+/* Without `backdrop-filter` there is no frosting, so translucency would mean
+   legible text bleeding through — the original defect. Those browsers get the
+   opaque chassis instead: less glass, but still an object. */
+@supports not (backdrop-filter: blur(1px)) {
+  .chassis {
+    background-color: var(--tone-charcoal);
+  }
 }
 
 /* ---------------------------------------------------------------------------
