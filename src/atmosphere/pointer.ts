@@ -52,15 +52,29 @@ import { clamp, lerp } from "../lib/math";
    That is parallax, and it is the reason this module can be a single pair of
    numbers on the document element.
 
-   The push pair is not that. It is per-object LOCAL REPULSION — each star
-   reacts to its own distance and direction from the cursor and is displaced
-   away from it. A star forty pixels from the pointer moves; its neighbour four
-   hundred pixels away does not know anything happened. There is no global
-   quantity that can express it, so it cannot be published once and read by CSS;
-   the loop has to compute a vector per object and write it on that object.
+   The push pair is not that. It is per-object LOCAL DISPLACEMENT — each star
+   reacts to its own distance and direction from something happening near it and
+   is moved away from it. A star forty pixels from the disturbance moves; its
+   neighbour four hundred pixels away does not know anything happened. There is
+   no global quantity that can express it, so it cannot be published once and
+   read by CSS; the loop has to compute a vector per object and write it on that
+   object.
 
-   The two are additive — see `translate` in Stars.module.css. The world seen
-   from a slightly different angle, plus the world disturbed in one place.
+   TWO THINGS DRIVE THAT ONE CHANNEL, and this module owns both because there
+   can only ever be one writer of it — a value written from anywhere else would
+   never be noticed by the cache below and never corrected, and the star would
+   be left displaced for the rest of the session.
+
+     THE CURSOR   a steady-state disc, 140px, centred on the pointer.
+     THE WAVEFRONT an expanding annulus in DOCUMENT space, emitted when the page
+                  is touched, which passes over the sky and dies. The gesture
+                  that emits it belongs to `src/interaction`; that layer calls
+                  `disturbField()` and this module does the moving.
+
+   The two are summed into one target per object before easing, which is what
+   superposition means, and the sum is additive with parallax on top of that —
+   see `translate` in Stars.module.css. The world seen from a slightly different
+   angle, plus the world disturbed in one place.
 
    That per-object work is bounded on purpose. Positions are measured on resize
    and cached; the frame does arithmetic only. Of the 38 stars, the frame's real
@@ -201,6 +215,120 @@ const PUSH_CORE = 8;
 const PUSH_LAMBDA_ENGAGE = 9;
 const PUSH_LAMBDA_RELEASE = 5;
 
+/* -----------------------------------------------------------------------------
+   THE SECOND DRIVER — a wavefront crossing the sky
+   -----------------------------------------------------------------------------
+   Everything above is the cursor: a disc that sits still and is always there.
+   This is the other thing that displaces a star, and it arrives from outside
+   this module. When the page is touched, `src/interaction` emits an expanding
+   annulus that pushes the page's own words outward and lets them settle back.
+   Most clicks land in empty space, which is exactly where the stars are, so a
+   wave that moved words and left the sky rigid was the most visible
+   inconsistency on the page.
+
+   WHY THE INTERACTION LAYER DOES NOT WRITE THE STARS ITSELF. `--star-push-x/y`
+   is a cached channel: this module remembers the last string it published on
+   each object and skips the write when the value has not changed. A value
+   written by anyone else would never be noticed and never corrected, and the
+   star would stay displaced. So the seam is a NOTIFICATION, not a write —
+   `disturbField()` below — and the ownership split is unchanged by it:
+   interaction owns the discrete gesture and decides that a touch happened, the
+   atmosphere owns the continuous field and decides what the world does about
+   it.
+
+   THE MODEL, for a wave of age u (0…1) and a star at distance d from where the
+   page was touched:
+
+     radius   = R · (start + (1 − start)·u)      linear: constant speed
+     s        = (d − radius) / WAVE_BAND         where in the band it sits
+     shape    = (1 − s²)²             for |s| < 1, else 0
+     strength = GAIN · R₀/(R₀ + radius) · taper(u)
+     push     = amplitude · strength · shape · (star − origin)/(d + WAVE_CORE)
+
+   It is deliberately the same arithmetic as `interaction/wave.ts`, and R, the
+   start fraction and the duration are PASSED IN rather than duplicated —
+   otherwise the drawn crest and the moving stars would be free to drift apart
+   the day one of them is retuned. Band, decay, taper and core are local
+   constants that happen to match; they shape the feel of the push rather than
+   where the front is, so a divergence there would be a choice rather than a
+   bug.
+
+   THE AMPLITUDE IS `data-push`, THE SAME NUMBER THE CURSOR USES, times GAIN.
+   That is the point of routing this through here rather than giving stars a
+   flat wave displacement: the depth ladder is already in that number
+   (DEPTH_PUSH in variance.ts, far 3.6 → foreground 9, times each object's own
+   travel multiplier), so a near star is moved harder than a far one by a
+   disturbance at the same distance, exactly as it is by the cursor. The wave
+   reinforces the depth ladder instead of flattening it.
+
+   GAIN = 0.7 MAKES IT THE QUIETER OF THE TWO. MEASURED, driving this module
+   with a crest passing over a star at 100px — peak displacement, including
+   everything the easing takes off it:
+
+     far    1.10 … 1.80px     (cursor: 1.90 … 3.13px)
+     mid    2.09 … 2.48px     (cursor: 3.32 … 4.30px)
+     near   2.68px            (cursor: 4.64px)
+
+   — 57% of what the cursor does to the same star, and in family with the words
+   the same wave is moving. Put the whole event in one column and the ladder is
+   the point:
+
+     far stars          1.1 … 1.8px      furthest away
+     prose              2.5px            the page's own surface
+     mid stars          2.1 … 2.5px
+     near star          2.7px
+     identity heading   4.0px            authored louder, deliberately
+
+   The sky behind the page moves less than the page does, and moves more the
+   nearer it is. That is the depth ladder reinforced by a click rather than
+   flattened by one, which is the whole reason this routes through the same
+   `data-push` amplitude instead of giving every star the same nudge.
+
+   Being brushed past by the cursor stays the larger local event, which is
+   right: that one is caused by the visitor's own hand, it is the reaction the
+   interaction hierarchy is already spending its budget on, and a click should
+   not be able to shout over it.
+
+   THE TAPER IS A CORRECTNESS REQUIREMENT, not a decoration — the same one
+   `wave.ts` documents. The front stops growing at R, so without a taper a star
+   sitting at exactly d = R would be parked at the peak of a band that has
+   stopped moving. The amplitude is run to zero over the last quarter of the
+   wave's life instead, so the outermost stars get a whisper and a return.
+
+   THE EASING IS THE ONE ABOVE. λ = 9 out, λ = 5 back, unchanged: a star has one
+   way of moving, whatever disturbed it. The wave's own envelope rises over
+   ~400ms, so a 111ms lag costs it around a tenth of its peak and buys the star
+   a softer entry into the band.
+   -------------------------------------------------------------------------- */
+
+/** Half-width of the moving band, in px. Wide relative to the travel: a narrow
+ *  band snaps objects up and down as it passes, a wide one swells them. */
+const WAVE_BAND = 100;
+
+/** Softens the direction vector at the point of contact, so the star you
+ *  clicked ON is barely moved. Same job as `PUSH_CORE`. */
+const WAVE_CORE = 12;
+
+/** The amplitude halves once the front has travelled this far. The energy in a
+ *  ring is spread over its circumference, so it thins as it grows. */
+const WAVE_DECAY_RADIUS = 260;
+
+/** When the amplitude starts being taken away, as a fraction of the life. */
+const WAVE_TAPER_START = 0.75;
+
+/** How much of a star's push amplitude a wave is allowed to spend. See above. */
+const WAVE_GAIN = 0.7;
+
+/** How many wavefronts may exist at once. Three, matching the rings and the
+ *  words. The oldest is dropped; the stars it was holding simply ease back. */
+const MAX_DISTURBANCES = 3;
+
+/** Fallbacks for a caller that does not describe its own wave. These are the
+ *  wave as authored in `interaction/wave.ts` today; passing them explicitly is
+ *  what keeps the crest and the stars from ever drifting apart. */
+const WAVE_SECONDS = 0.6;
+const WAVE_START_FRACTION = 0.16;
+
 /* A hundredth of a pixel. Below this the object is snapped to its target and
    stops being a reason for the loop to keep running. */
 const PUSH_EPSILON = 0.01;
@@ -282,6 +410,42 @@ interface PushTarget {
 }
 
 let pushTargets: PushTarget[] = [];
+
+/* -----------------------------------------------------------------------------
+   THE LIVE WAVEFRONTS
+   -----------------------------------------------------------------------------
+   At most three, each alive for well under a second. `x` / `y` are DOCUMENT
+   coordinates — the same frame of reference the push targets are cached in, so
+   the two compose without any conversion and a scroll during a live wave
+   changes neither of them. (The cursor is the one thing here that is
+   viewport-relative, and it is the only thing `scrollTop` is used for.)
+
+   `radius`, `reach` and `strength` are derived once per frame in
+   `advanceDisturbances` and then read by every star, rather than recomputed per
+   star.
+   -------------------------------------------------------------------------- */
+
+interface Disturbance {
+  /** Where the page was touched, in DOCUMENT coordinates. */
+  readonly x: number;
+  readonly y: number;
+  /** Final radius in px, fixed at emission: a resize mid-wave must not move it. */
+  readonly maxRadius: number;
+  /** Where the front starts, as a fraction of `maxRadius`. */
+  readonly startFraction: number;
+  /** How long the front takes to cross, in seconds. */
+  readonly seconds: number;
+  /** Age, 0…1. */
+  u: number;
+  radius: number;
+  reach: number;
+  strength: number;
+}
+
+/* `const`, and mutated in place — emptied with `length = 0` rather than
+   reassigned — so that there is only ever one array and nothing can end up
+   advancing a wave that some other reference is no longer looking at. */
+const disturbances: Disturbance[] = [];
 
 /* The single pointer-reactive object. */
 let reactiveElement: HTMLElement | null = null;
@@ -409,6 +573,93 @@ export function holdPointerFrames(): () => void {
     released = true;
     holds = Math.max(0, holds - 1);
   };
+}
+
+/**
+ * A disturbance of the world: the page was touched HERE, and a front spreads
+ * out from it.
+ *
+ * All coordinates are DOCUMENT coordinates — `clientX + window.scrollX` — so
+ * that the wave stays with the page if it is scrolled while the wave is alive.
+ * That is the same frame of reference `interaction/wave.ts` and the drawn ring
+ * already use, and the same one the stars' positions are cached in.
+ */
+export interface FieldDisturbance {
+  /** Document x of the point of contact, in px. */
+  x: number;
+  /** Document y of the point of contact, in px. */
+  y: number;
+  /** How far the front travels before it dies, in px. */
+  radius: number;
+  /**
+   * Where the front starts, as a fraction of `radius`. A disturbance has a
+   * size; it is not born at a point. Defaults to 0.16, which is the wave the
+   * interaction layer emits today — pass your own so the two cannot drift.
+   */
+  startFraction?: number;
+  /**
+   * How long the front takes to cross `radius`, in seconds. Defaults to 0.6.
+   * Objects then settle for another beat behind it; that is a settle, not a
+   * duration, and it is not included here.
+   */
+  seconds?: number;
+}
+
+/**
+ * Tell the field that the page was touched, and let it move what is near.
+ *
+ * This is the seam between the two layers, and it is deliberately a
+ * notification rather than a write. The interaction layer owns the GESTURE —
+ * deciding that a press was a touch and not a drag, that it did not land on a
+ * link or on the player, that a ring should be drawn — and calls this once, in
+ * its own event handler. The atmosphere owns the FIELD, and decides which
+ * objects that touch reaches, how far each of them moves and how it comes back.
+ * Nothing outside this module ever writes `--star-push-x/y`, which is what
+ * makes it safe for this module to cache what it published.
+ *
+ * Synchronous, allocates one small object per call, and does no layout reads —
+ * safe to call from a pointer handler. It starts no loop of its own; it wakes
+ * the one loop, which stops again when the wave has died and everything it
+ * moved is back at rest.
+ *
+ * NOTHING HAPPENS when the field is inactive — a coarse pointer, no hover, or
+ * `prefers-reduced-motion: reduce`. Not a quieter version: nothing. The call is
+ * always safe to make, so the caller does not need to know the state of the
+ * field, and a page under reduced motion publishes no property at all.
+ */
+export function disturbField(disturbance: FieldDisturbance): void {
+  if (!active || pushTargets.length === 0) return;
+
+  const { x, y, radius } = disturbance;
+  const seconds = disturbance.seconds ?? WAVE_SECONDS;
+  const startFraction = clamp(
+    disturbance.startFraction ?? WAVE_START_FRACTION,
+    0,
+    1,
+  );
+
+  /* A NaN here would poison every star it touched for the rest of the session:
+     `lerp` toward NaN never converges, so the object would never settle, the
+     loop would never stop, and the published transform would be invalid CSS.
+     Cheaper to refuse it at the door than to defend against it in the frame. */
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+  if (!Number.isFinite(radius) || radius <= 0) return;
+  if (!Number.isFinite(seconds) || seconds <= 0) return;
+
+  disturbances.push({
+    x,
+    y,
+    maxRadius: radius,
+    startFraction,
+    seconds,
+    u: 0,
+    radius: 0,
+    reach: 0,
+    strength: 0,
+  });
+  if (disturbances.length > MAX_DISTURBANCES) disturbances.shift();
+
+  wake();
 }
 
 /* =============================================================================
@@ -590,6 +841,12 @@ function deactivate(): void {
   publishedXSlow = "";
   publishedYSlow = "";
   publishedProximity = "";
+
+  /* Any wave still crossing the sky is abandoned, not run out. Reduced motion
+     was switched on mid-wave; finishing it would be one last animation, and a
+     wave left in the array would keep the loop scheduling frames for something
+     nobody can see. */
+  disturbances.length = 0;
 
   /* Same reasoning for the push offsets, and one addition: this is the path
      taken when reduced motion is switched ON while a star is mid-displacement.
@@ -878,6 +1135,21 @@ function step(now: number): void {
 
   let settled = true;
 
+  /* Waves age first, so that every star this frame reads the same front. Two
+     numbers and a compaction for at most three of them; on the overwhelming
+     majority of frames the array is empty and this is one comparison.
+
+     A LIVE WAVE IS ITSELF A REASON TO KEEP GOING, even on a frame where it
+     happens to be crossing empty sky and nothing is displaced. Otherwise the
+     loop would stop with a wave still in the array, and the next pointer move —
+     possibly seconds later — would resume it mid-flight at whatever radius it
+     had frozen at. Bounded by the wave's own life, which is well under a
+     second. */
+  if (disturbances.length > 0) {
+    advanceDisturbances(dt);
+    if (disturbances.length > 0) settled = false;
+  }
+
   /* `active` is the capability gate; `clientX !== null` is "the pointer has
      been somewhere at least once". Until both hold, the signal stays unpublished
      and the loop has nothing to do — it may still be running for a hold. */
@@ -1007,6 +1279,39 @@ function publish(): void {
    and the CSSOM write is not. That is why the effort here goes into not writing
    — the `continue`, the rounding, the radius — and none of it goes into making
    the maths faster.
+
+   -----------------------------------------------------------------------------
+   AND WHAT THE WAVEFRONT ADDED TO THAT
+   -----------------------------------------------------------------------------
+   Same 31 wide stars, at their real composed positions on a 1280×4200 page,
+   200,000 frames per row:
+
+     no wave alive                    0.12µs per frame   (unchanged)
+     three waves alive, none in reach 0.52µs per frame
+
+   So the ceiling on the ADDED arithmetic is 0.4µs — three ten-thousandths of a
+   frame — and it is only paid while a wave is actually crossing the page. The
+   ordinary frame pays one comparison for the hoisted `waves > 0`, which does
+   not move the first row.
+
+   THE WRITES ARE THE REAL COST, as always, and there are few of them. Every
+   click on a 40px grid over the whole page, 3,224 of them, counting the objects
+   that wrote in each frame:
+
+     0 stars   42.7%      mean         0.81 stars per frame
+     1 star    38.2%      worst seen   5 stars, in the densest corner
+     2 stars   14.9%      duration     64 frames per click, ~1.07s
+     3 stars    3.7%
+     4 stars    0.4%
+
+   At the 0.042ms per displaced object measured above that is 0.034ms on a
+   typical frame of a live wave and 0.21ms in the worst case the composition can
+   produce — 1.3% of a 60fps budget, for a second at a time, and only after a
+   click. It is also NOT the expensive kind of invalidation: these properties
+   are written on the star itself and read by the star's own `translate`, so
+   each one dirties one absolutely positioned 2px box. The 1.4ms whole-tree
+   sweep belongs to the document-root signal at the top of this file and this
+   adds nothing to it.
    ========================================================================== */
 
 function stepPush(dt: number): boolean {
@@ -1020,6 +1325,10 @@ function stepPush(dt: number): boolean {
   const engaged = active && pointerInside && clientX !== null && clientY !== null;
   const pointerX = clientX ?? 0;
   const pointerY = clientY ?? 0;
+
+  /* Hoisted so that the ordinary frame — no wave anywhere on the page — costs
+     one comparison per object and not a loop setup per object. */
+  const waves = disturbances.length;
 
   let settled = true;
 
@@ -1049,6 +1358,38 @@ function stepPush(dt: number): boolean {
           toX = dx * scale;
           toY = dy * scale;
         }
+      }
+    }
+
+    /* AND THEN THE WAVES, SUMMED ONTO THE SAME TARGET. Superposition: a star
+       caught by a wavefront while the cursor is also near it gets both, which
+       is what two disturbances of one medium do. It is not a special case and
+       there is no arbitration.
+
+       No scroll conversion on this half — both the wave's origin and the
+       star's cached centre are DOCUMENT coordinates, so their difference is
+       already the right vector and stays right across a scroll. The cursor
+       above is the only viewport-relative thing in this function. */
+    if (waves > 0 && target.present) {
+      for (const wave of disturbances) {
+        const dx = target.docX - wave.x;
+        const dy = target.docY - wave.y;
+
+        /* Four comparisons before any square root, as above. Everything outside
+           the annulus's bounding box — which is nearly the whole sky — leaves
+           here. */
+        if (dx > wave.reach || dx < -wave.reach) continue;
+        if (dy > wave.reach || dy < -wave.reach) continue;
+
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const s = (distance - wave.radius) / WAVE_BAND;
+        if (s <= -1 || s >= 1) continue;
+
+        const shape = (1 - s * s) * (1 - s * s);
+        const scale =
+          (target.amplitude * wave.strength * shape) / (distance + WAVE_CORE);
+        toX += dx * scale;
+        toY += dy * scale;
       }
     }
 
@@ -1089,6 +1430,54 @@ function stepPush(dt: number): boolean {
   return settled;
 }
 
+/* =============================================================================
+   THE WAVEFRONTS — three numbers per wave per frame, and then they are gone
+   =============================================================================
+   Aged in place and compacted in place, so a frame allocates nothing and a dead
+   wave leaves the array on the frame it dies. Once the array is empty the loop
+   settles and stops on its own.
+
+   THE RETURN TO ZERO IS STRUCTURAL, not a cleanup step. A star's target is
+   recomputed from scratch every frame as a pure function of (cursor, live
+   waves); nothing is ever accumulated into it. When the last wave is dropped
+   and the cursor is out of range the target is exactly 0, the easing in
+   `stepPush` snaps to it once the remaining distance falls under a hundredth of
+   a pixel, and `currentX === 0` exactly. Twenty clicks in a row cannot leave a
+   residue, because there is nowhere for one to accumulate.
+   ========================================================================== */
+
+function advanceDisturbances(dt: number): void {
+  let live = 0;
+
+  for (const wave of disturbances) {
+    wave.u += dt / wave.seconds;
+    if (wave.u >= 1) continue;
+
+    /* Constant speed. A front that decelerates is a UI animation playing an
+       ease-out; a front that travels at one speed and dies out is a wave. All
+       of the dissipation belongs in the amplitude. */
+    wave.radius =
+      wave.maxRadius *
+      (wave.startFraction + (1 - wave.startFraction) * wave.u);
+    wave.reach = wave.radius + WAVE_BAND;
+    wave.strength =
+      (WAVE_GAIN * WAVE_DECAY_RADIUS) / (WAVE_DECAY_RADIUS + wave.radius) *
+      waveTaper(wave.u);
+
+    disturbances[live] = wave;
+    live += 1;
+  }
+
+  disturbances.length = live;
+}
+
+/** 1 until `WAVE_TAPER_START`, then smoothly to 0 at the end of the life. */
+function waveTaper(u: number): number {
+  if (u <= WAVE_TAPER_START) return 1;
+  const k = (u - WAVE_TAPER_START) / (1 - WAVE_TAPER_START);
+  return 1 - k * k * (3 - 2 * k);
+}
+
 /* -----------------------------------------------------------------------------
    TEST SEAM
    -----------------------------------------------------------------------------
@@ -1100,4 +1489,20 @@ function stepPush(dt: number): boolean {
 /** True while a frame is scheduled. Development diagnostics only. */
 export function isPointerLoopRunning(): boolean {
   return frame !== null;
+}
+
+/**
+ * How many wavefronts are still crossing the sky. Development diagnostics only.
+ *
+ * Exposed for the same reason as the above: "the wave ends and the stars go
+ * back to exactly zero" is a claim about a value reaching 0 and an array
+ * reaching empty, and both are easier to observe than to argue about.
+ */
+export function liveDisturbanceCount(): number {
+  return disturbances.length;
+}
+
+/** Every pushed object's current displacement, in px. Diagnostics only. */
+export function pushOffsets(): { x: number; y: number }[] {
+  return pushTargets.map((target) => ({ x: target.currentX, y: target.currentY }));
 }

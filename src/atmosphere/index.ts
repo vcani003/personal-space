@@ -70,17 +70,26 @@
  *
  *    THERE IS ALSO A NON-GLOBAL CHANNEL, and it is not published for reuse.
  *    `--star-push-x` / `--star-push-y` are written by the same loop onto
- *    individual stars: LOCAL REPULSION, each object displaced away from a
- *    cursor that comes within 140px of it. That cannot be one pair of numbers
- *    on the document element, because it is a different vector per object, so
- *    it is not something other code can read from CSS. If something outside the
+ *    individual stars: LOCAL DISPLACEMENT, each object moved away from
+ *    something happening near it. That cannot be one pair of numbers on the
+ *    document element, because it is a different vector per object, so it is
+ *    not something other code can read from CSS. If something outside the
  *    atmosphere ever needs the same behaviour, add it to the loop's `pushed`
  *    list — do not compute distances in a second place, and above all do not
  *    start a second loop to do it.
  *
- *    Parallax and repulsion ADD. Parallax says the viewer moved; repulsion says
- *    one small part of the world was disturbed. Keeping them separate is what
- *    keeps depth legible: only the parallax term is scaled by the depth ladder.
+ *    THAT CHANNEL HAS EXACTLY ONE WRITER and it must stay that way. The loop
+ *    caches the last string it published on each object and skips the write
+ *    when nothing changed, so a value written from outside would never be
+ *    noticed and never corrected — the star would simply stay where the other
+ *    writer left it, for the rest of the session. Anything that wants to move a
+ *    star tells the field what happened and lets the field do the moving; see
+ *    `disturbField` below.
+ *
+ *    Parallax and local displacement ADD. Parallax says the viewer moved;
+ *    displacement says one small part of the world was disturbed. Keeping them
+ *    separate is what keeps depth legible: only the parallax term is scaled by
+ *    the depth ladder, and the displacement carries its own smaller one.
  *
  * 2. `readPointer()` — a synchronous snapshot, for inside an event handler.
  *    Returns smoothed `x` / `y` in the same −1…1 space, the RAW `clientX` /
@@ -93,6 +102,30 @@
  *
  * `holdPointerFrames()` keeps the loop awake for work of your own — a drag, an
  * inertial settle — and returns a release function. Releasing is not optional.
+ *
+ * -----------------------------------------------------------------------------
+ * AND ONE WAY TO WRITE TO IT — `disturbField()`
+ * -----------------------------------------------------------------------------
+ * Everything above is read-only, because the field is a signal. There is one
+ * exception, and it is a notification rather than a write:
+ *
+ *     disturbField({ x, y, radius, startFraction, seconds })
+ *
+ * "The page was touched at this DOCUMENT point, and a front spreads out from
+ * it." The atmosphere answers by displacing the objects it owns — the stars are
+ * pushed outward along the front's radius, by depth, and settle back to exactly
+ * where they were. The caller does not say which objects, how far, or how they
+ * come back; those are the field's business.
+ *
+ * THIS IS THE OWNERSHIP SPLIT, NOT AN EXCEPTION TO IT. Interaction owns the
+ * gesture: whether a press was a touch or a drag, whether it landed on a link
+ * or on the player, whether a ring is drawn. Atmosphere owns the continuous
+ * field and the one loop. The call carries the fact, not the consequences. Do
+ * not, instead, write `--star-push-x/y` from outside — see the warning above.
+ *
+ * Safe to call from a pointer handler: synchronous, no layout reads, no loop of
+ * its own. Does NOTHING when the field is inactive — coarse pointer, no hover,
+ * or `prefers-reduced-motion` — so the caller never has to check first.
  *
  * -----------------------------------------------------------------------------
  * WHEN THE SIGNAL IS OFF
@@ -113,11 +146,12 @@ export type { AtmosphereProps } from "./Atmosphere";
 export { composition } from "./composition";
 export {
   POINTER_VARS,
+  disturbField,
   holdPointerFrames,
   readPointer,
   subscribePointerFrame,
 } from "./pointer";
-export type { PointerReading } from "./pointer";
+export type { FieldDisturbance, PointerReading } from "./pointer";
 /**
  * How one environmental object deviates from the plain behaviour of its depth.
  *
@@ -126,13 +160,16 @@ export type { PointerReading } from "./pointer";
  * currently follows `--parallax-far` while `quote-witness` itself follows
  * ×0.800 of it rotated 6.9°.
  *
- * That divergence is now larger, and there are two terms to it. The parallax
+ * That divergence is now larger, and there are three terms to it. The parallax
  * mismatch went from 1.93px to 3.21px at the corner of the viewport, because
- * `--parallax-far` was raised from 6px to 10px. And local repulsion moves the
- * star by up to a further 2.0px while the hit area, which knows nothing about
- * it, stays put. Worst case they are ~5.2px apart, and only while the cursor is
- * within 140px of the star — which is to say while it is already well inside a
- * 44px target. Nothing is broken. But if a revealed element should sit exactly
+ * `--parallax-far` was raised from 6px to 10px. Local repulsion moves the star
+ * by up to a further 2.0px while the hit area, which knows nothing about it,
+ * stays put. And a wavefront from a click landing near it adds up to 1.2px more
+ * for about a second. Worst case they are ~6.4px apart, and only in the moment
+ * when the cursor is within 140px of the star AND a wave is crossing it —
+ * which is to say while it is already well inside a 44px target, immediately
+ * after clicking next to it. Nothing is broken. But if a revealed element
+ * should sit exactly
  * on its star rather than merely near it, this is where the numbers are, and
  * `starVariance("quote-witness", "far")` returns all four of them including the
  * push amplitude.
