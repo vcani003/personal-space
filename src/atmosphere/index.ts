@@ -59,7 +59,7 @@
  *
  *    They are the SMOOTHED values, not the raw cursor: the loop interpolates
  *    toward the pointer with a ~140ms time constant. Multiply by a distance to
- *    use them:  `translate: calc(var(--pointer-x, 0) * 6px) …`. Always supply
+ *    use them:  `translate: calc(var(--pointer-x, 0) * 10px) …`. Always supply
  *    the `, 0` fallback — under reduced motion, on touch, and before the first
  *    pointer move, the properties are NOT SET AT ALL, and the fallback is what
  *    makes that state resolve to no movement instead of to invalid CSS.
@@ -67,6 +67,20 @@
  *    Prefer the atmosphere's own `--parallax-x` / `--parallax-y` if you are
  *    inside the atmosphere root; those are the same signal with the sign the
  *    depth model uses. On page content, use `--pointer-*`.
+ *
+ *    THERE IS ALSO A NON-GLOBAL CHANNEL, and it is not published for reuse.
+ *    `--star-push-x` / `--star-push-y` are written by the same loop onto
+ *    individual stars: LOCAL REPULSION, each object displaced away from a
+ *    cursor that comes within 140px of it. That cannot be one pair of numbers
+ *    on the document element, because it is a different vector per object, so
+ *    it is not something other code can read from CSS. If something outside the
+ *    atmosphere ever needs the same behaviour, add it to the loop's `pushed`
+ *    list — do not compute distances in a second place, and above all do not
+ *    start a second loop to do it.
+ *
+ *    Parallax and repulsion ADD. Parallax says the viewer moved; repulsion says
+ *    one small part of the world was disturbed. Keeping them separate is what
+ *    keeps depth legible: only the parallax term is scaled by the depth ladder.
  *
  * 2. `readPointer()` — a synchronous snapshot, for inside an event handler.
  *    Returns smoothed `x` / `y` in the same −1…1 space, the RAW `clientX` /
@@ -110,11 +124,21 @@ export type { PointerReading } from "./pointer";
  * Exported for anything that needs to MOVE WITH a specific star rather than
  * merely near it — the hidden-star hit area in `src/interaction`, for one,
  * currently follows `--parallax-far` while `quote-witness` itself follows
- * ×0.800 of it rotated 6.9°. The two diverge by at most 1.93px at the corner of
- * the viewport, inside a 44px target, so nothing is broken; but if a revealed
- * element should sit exactly on its star, this is where the numbers are.
+ * ×0.800 of it rotated 6.9°.
+ *
+ * That divergence is now larger, and there are two terms to it. The parallax
+ * mismatch went from 1.93px to 3.21px at the corner of the viewport, because
+ * `--parallax-far` was raised from 6px to 10px. And local repulsion moves the
+ * star by up to a further 2.0px while the hit area, which knows nothing about
+ * it, stays put. Worst case they are ~5.2px apart, and only while the cursor is
+ * within 140px of the star — which is to say while it is already well inside a
+ * 44px target. Nothing is broken. But if a revealed element should sit exactly
+ * on its star rather than merely near it, this is where the numbers are, and
+ * `starVariance("quote-witness", "far")` returns all four of them including the
+ * push amplitude.
  */
 export {
+  DEPTH_PUSH,
   DEPTH_TRAVEL_SPREAD,
   LAG_MAX,
   SKEW_MAX_RADIANS,
@@ -126,6 +150,7 @@ export type {
   Composition,
   Depth,
   EnvironmentObject,
+  GlowSource,
   HazeMass,
   Presence,
   StarObject,

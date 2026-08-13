@@ -1,0 +1,172 @@
+/* =============================================================================
+   LAYER 1½ — DISTANT LIGHT
+   =============================================================================
+
+   Two objects on the wide page, one on narrow. They are not stars and they are
+   not haze, and the reason they get their own layer is that they behave like
+   neither.
+
+   WHAT SEPARATES A LIGHT FROM A BLOB
+
+   A blob is a gaussian. It has a radius, an edge, and a shape you could trace.
+   A light seen through a lot of air has none of those: the scattered intensity
+   falls off roughly as an inverse square, which means it drops very fast near
+   the source and then almost stops dropping, trailing off across a distance
+   several times the size of anything you would call "the glow". There is no
+   radius at which you could say it ends.
+
+   So the stop list below is authored to that curve rather than to a smooth
+   ramp — 0.13 at the core, an eighth of that a sixth of the way out, and a
+   further half of the box spent going from 1% to nothing. Ten stops, because on
+   a near-black field a coarse ramp bands, and a banded glow is a target.
+
+   And it has a CORE. `::before` is a small, much brighter disc about a tenth of
+   the radius across: the part of the light you can still resolve. Without it
+   the falloff alone reads as fog with a bright middle. With it, the eye reads
+   "something is emitting that", which is the whole point of the object.
+
+   WHERE THEY SIT IN THE MODEL
+
+   Between the stars and the haze. A distant light has air in front of it, so
+   the mist must be allowed to veil it — painted over the stars, painted under
+   the fog. That single z-index is doing as much work as the gradient is.
+
+   NOTHING HERE IS BLURRED WITH A FILTER. Same rule as the stars: a radial
+   falloff is free and a filter is a render pass on a layer that never changes.
+   ========================================================================== */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  /* Stars at 10, haze at 20. The lights sit between them and are veiled by the
+     fog, which is the entire reason they are a separate layer and not a star
+     kind. */
+  z-index: calc(var(--layer-1-stars) + 5);
+}
+
+.source {
+  position: absolute;
+  inset-block-start: var(--glow-y);
+  inset-inline-start: var(--glow-x);
+
+  /* `aspect` stretches the box horizontally, and `ellipse closest-side` below
+     then fills whatever box it is given. Real distant light is rarely round —
+     it is smeared by whatever is between it and you. Kept near 1: past about
+     1.3 this stops reading as light and starts reading as a shape. */
+  inline-size: calc(var(--glow-radius) * 2 * var(--glow-aspect, 1));
+  block-size: calc(var(--glow-radius) * 2);
+  /* Centred on its coordinate with static margins, so `transform` stays free
+     for the breath and `translate` for parallax. Nothing animates layout. */
+  margin-block-start: calc(var(--glow-radius) * -1);
+  margin-inline-start: calc(var(--glow-radius) * -1 * var(--glow-aspect, 1));
+
+  opacity: var(--glow-intensity);
+
+  background-image: radial-gradient(
+    ellipse closest-side,
+    rgb(from var(--glow-tone) r g b / 0.115) 0%,
+    rgb(from var(--glow-tone) r g b / 0.098) 4%,
+    rgb(from var(--glow-tone) r g b / 0.074) 9%,
+    rgb(from var(--glow-tone) r g b / 0.054) 16%,
+    rgb(from var(--glow-tone) r g b / 0.037) 26%,
+    rgb(from var(--glow-tone) r g b / 0.024) 38%,
+    rgb(from var(--glow-tone) r g b / 0.015) 52%,
+    rgb(from var(--glow-tone) r g b / 0.0085) 68%,
+    rgb(from var(--glow-tone) r g b / 0.0035) 84%,
+    rgb(from var(--glow-tone) r g b / 0) 100%
+  );
+
+  translate:
+    calc(var(--parallax-x, 0) * var(--parallax-travel, 0px))
+    calc(var(--parallax-y, 0) * var(--parallax-travel, 0px));
+
+  /* ATMOSPHERE band, at the slow end of it. Nine percent of an already dim
+     value across forty-four seconds is a fifth of a percent per second — the
+     air in front of the light moving, not the light doing anything. The delay
+     is a different multiple of a different token from either haze cycle, so a
+     glow and the mass it sits inside never breathe together. */
+  animation: lantern var(--duration-atmosphere-slowest) var(--ease-drift)
+    calc(var(--duration-atmosphere-slow) * -0.41) infinite;
+}
+
+/* -- the core: the part of the light you can still resolve ---------------- */
+
+.source::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  /* A ninth of the radius, which on the north light is a 26px disc inside a
+     600px halo. The first version made this a fifth and the object stopped
+     reading as a light — a soft 46px core inside a soft halo is cotton wool.
+     What says "source" is the RATIO: something small and definite at the
+     middle of something large and indefinite. */
+  inline-size: calc(var(--glow-radius) * 0.09);
+  block-size: calc(var(--glow-radius) * 0.09);
+  translate: -50% -50%;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    circle closest-side,
+    rgb(from var(--glow-tone) r g b / 0.36) 0%,
+    rgb(from var(--glow-tone) r g b / 0.21) 26%,
+    rgb(from var(--glow-tone) r g b / 0.09) 52%,
+    rgb(from var(--glow-tone) r g b / 0.025) 76%,
+    rgb(from var(--glow-tone) r g b / 0) 100%
+  );
+}
+
+/* Depth, read from the composition. A glow is a long way off, so these are the
+   two quiet ends of the ladder; nothing here is `near`. */
+.source[data-depth="far"] {
+  --parallax-travel: var(--parallax-far);
+}
+
+.source[data-depth="mid"] {
+  --parallax-travel: var(--parallax-middle);
+}
+
+.source[data-depth="near"] {
+  --parallax-travel: var(--parallax-near);
+}
+
+.source[data-depth="foreground"] {
+  --parallax-travel: var(--parallax-foreground);
+}
+
+/* Off-screen lights stop breathing. Set by the intersection observer in
+   hooks.ts; unset means "not yet observed", which must not pause. */
+.source[data-onscreen="false"] {
+  animation-play-state: paused;
+}
+
+@keyframes lantern {
+  0%,
+  100% {
+    opacity: var(--glow-intensity);
+  }
+  50% {
+    opacity: calc(var(--glow-intensity) * 1.09);
+  }
+}
+
+/* Two compositions, not one composition scaled. Same rule as the stars. */
+
+@media (min-width: 48rem) {
+  .source[data-presence="narrow"] {
+    display: none;
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .source[data-presence="wide"] {
+    display: none;
+  }
+}
+
+/* The light stays. It simply stops breathing — the keyframes' 0% and 100% are
+   the element's own resting state, so nothing about how it looks changes. */
+@media (prefers-reduced-motion: reduce) {
+  .source {
+    animation: none;
+  }
+}

@@ -137,25 +137,33 @@ export function useDepthBandGuard(ref: RefObject<HTMLElement | null>): void {
 }
 
 /**
- * Starts the page's single pointer loop and hands it the one reactive object.
+ * Starts the page's single pointer loop and hands it the objects it moves.
  *
- * The reactive object is found by query rather than by ref, for the same
- * reason the ambient observer is: the renderers own their own markup, and the
- * composition — not this hook — decides which object it is. A star opts in
- * with `behavior.pointerReactive` in `composition.ts`.
+ * Both lists are found by query rather than by ref, for the same reason the
+ * ambient observer is: the renderers own their own markup, and the composition
+ * — not this hook — decides what is in them.
  *
- * EXACTLY ONE. If the composition declares more, the first in document order
- * is wired and the rest are ignored, loudly in development. That is not a
- * limitation to be worked around later — the shared brief's interaction
- * hierarchy is a scarcity rule, and the difference between "wait, did that
- * move?" and "this website has a mouse effect" is entirely a question of how
- * many things answer the pointer.
+ * THE REACTIVE OBJECT: EXACTLY ONE. A star opts in with
+ * `behavior.pointerReactive` in `composition.ts`. If the composition declares
+ * more, the first in document order is wired and the rest are ignored, loudly
+ * in development. That is not a limitation to be worked around later — the
+ * shared brief's interaction hierarchy is a scarcity rule, and the difference
+ * between "wait, did that move?" and "this website has a mouse effect" is
+ * entirely a question of how many things answer the pointer.
+ *
+ * THE PUSHED OBJECTS: ALL OF THEM, and that is not a contradiction of the
+ * paragraph above. Every star already moves with the pointer — parallax is the
+ * whole field responding at once. Local repulsion is the same continuous signal
+ * read per object instead of globally, so it does not make any one star special
+ * and there is nothing to ration. What keeps it quiet is the 140px radius: at
+ * any moment the number of stars actually displaced is usually zero.
  */
 export function usePointerField(ref: RefObject<HTMLElement | null>): void {
   useEffect(() => {
     const node = ref.current;
     const reactive =
       node?.querySelectorAll<HTMLElement>("[data-reactive]") ?? null;
+    const pushed = node?.querySelectorAll<HTMLElement>("[data-push]") ?? null;
 
     if (import.meta.env.DEV && reactive !== null && reactive.length > 1) {
       console.warn(
@@ -163,6 +171,6 @@ export function usePointerField(ref: RefObject<HTMLElement | null>): void {
       );
     }
 
-    return mountPointerField({ reactive: reactive?.[0] ?? null });
+    return mountPointerField({ reactive: reactive?.[0] ?? null, pushed });
   }, [ref]);
 }

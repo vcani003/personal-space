@@ -138,7 +138,58 @@ export interface HazeMass extends EnvironmentObject {
    * on opposite ones, so nothing ever resynchronises into a visible pulse.
    */
   drift: "slow" | "slowest";
+  /**
+   * WHAT SHAPE THIS MASS IS, which is a different question from how big it is.
+   *
+   * A mass is not a radial falloff. Each form is an authored fractal-noise
+   * field — an irregular silhouette with uneven internal density, so the fog
+   * has blotches, thin patches and a lopsided core instead of a smooth ramp
+   * from a centre. See THE FORMS in Haze.module.css for what each one looks
+   * like and which SVG generates it.
+   *
+   *   bank    broad and horizontal, densest low and left. Weather lying down.
+   *   column  tall and narrow, densest high. Fog standing in a margin.
+   *   low     wide, shallow, torn along the top. Ground mist.
+   *
+   * Defaults to `bank`.
+   */
+  form?: "bank" | "column" | "low";
   /** Why this mass exists, and what it is keeping clear of. */
+  note: string;
+}
+
+/**
+ * A distant light source.
+ *
+ * NOT a star and not a mass of haze, and the distinction is the whole reason
+ * it is its own type. A star is an object that emits a point. A mass of haze is
+ * air with something in it. A glow is what a light looks like when there is a
+ * great deal of air between it and you: a small core you can barely resolve,
+ * and a very long, very shallow scattering tail around it.
+ *
+ * That long tail is the thing. A blob is a gaussian — it has a size and an
+ * edge. A light at a distance has neither: its falloff never quite reaches zero
+ * and there is no radius at which you could say the glow stops. The stop list
+ * in Glow.module.css is authored to fall off roughly as an inverse square
+ * rather than as a smooth ramp, which is what keeps these from reading as
+ * decorative circles.
+ *
+ * They sit BEHIND the haze in the depth model, so the mist veils them.
+ */
+export interface GlowSource extends EnvironmentObject {
+  /** Radius of the scattering tail. The core is a fraction of this. */
+  radius: string;
+  /**
+   * Horizontal stretch, 1 = circular. Real distant light is rarely round —
+   * it is smeared by whatever is in front of it. Keep it near 1; anything
+   * past ~1.3 stops reading as light and starts reading as a shape.
+   */
+  aspect?: number;
+  /** 0–1. Applied as element opacity, so it stays compositor-cheap. */
+  intensity: number;
+  /** Defaults to mist. */
+  tone?: ToneName;
+  /** Why this light exists, and what it is lighting. */
   note: string;
 }
 
@@ -146,4 +197,5 @@ export interface HazeMass extends EnvironmentObject {
 export interface Composition {
   stars: readonly StarObject[];
   haze: readonly HazeMass[];
+  glows: readonly GlowSource[];
 }

@@ -24,6 +24,14 @@ import styles from "./Stars.module.css";
  * settle rate, resolved from its `id` by `variance.ts`. Four numbers per star,
  * written once at render, consumed entirely in CSS. Nothing per-star runs in a
  * frame and there is still exactly one rAF loop on the page.
+ *
+ * The one thing a star does NOT get from CSS alone is LOCAL REPULSION — being
+ * nudged aside as the pointer passes near it. That needs each star's distance
+ * from the cursor, which is per-object geometry CSS cannot compute, so the loop
+ * writes `--star-push-x/y` on the handful of stars actually within range. This
+ * component's only part in it is emitting the amplitude as `data-push`; see
+ * pointer.ts for the field, and DEPTH_PUSH in variance.ts for why near objects
+ * react harder than far ones.
  */
 
 /* Painted far to near. Foreground is part of the model and unused: layer 5 is
@@ -93,6 +101,16 @@ function Star({ star }: { star: StarObject }) {
          only when true, so `[data-reactive]` matches exactly the stars that
          opted in — `data-reactive="false"` would still match. */
       data-reactive={star.behavior?.pointerReactive === true ? "" : undefined}
+      /* The LOCAL REPULSION amplitude in px, resolved here and read once by the
+         pointer loop when it measures the field — never during a frame. It is
+         an attribute rather than a custom property because the consumer is JS:
+         a custom property would have to come back out through
+         `getComputedStyle`, which is a style flush, to say the same thing.
+
+         This is also the seam that keeps `pointer.ts` from knowing what a star
+         is. The loop sees a list of elements, each with a number and a measured
+         centre; depth, variance and composition stay on this side. */
+      data-push={round(variance.push, 2)}
       style={style}
     />
   );

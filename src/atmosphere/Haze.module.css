@@ -2,21 +2,53 @@
    LAYER 2 — HAZE
    =============================================================================
 
-   The page's only motion. Everything about this file is calibrated so that the
-   drift is below the threshold of noticing:
+   A MASS IS NOT A RADIAL GRADIENT. That was the first version of this file and
+   it was the thing the site owner rejected: "not like a gradient but something
+   to give more character and life to the page." A radial falloff has exactly
+   one piece of information in it — a centre — and everything else about it is
+   arithmetic. It cannot have a thin patch, it cannot be denser on one side than
+   the other, and it has no edge you could describe. It is weather-shaped only
+   in the sense that a bell curve is mountain-shaped.
+
+   So each mass is now built from three things that are all irregular:
+
+     1. THE SILHOUETTE — three offset, unequal lobes on `.mass` itself, rather
+        than one centred ellipse. The outline is already lopsided before
+        anything else happens.
+
+     2. THE DENSITY — `.mass::before` carries a fractal-noise MASK (see THE
+        FORMS). Its alpha runs from nearly nothing to fully opaque on a scale
+        of roughly 150–250px, so the fog is genuinely blotchy: there are places
+        inside it that are almost clear and places that are twice the mean.
+        This is the part that answers "not like a gradient".
+
+     3. THE BLUR — the parent's `filter: blur()` runs over all of it, which is
+        what keeps the noise from reading as texture. Mask cells are authored
+        larger than the blur radius on purpose: at 72px, structure finer than
+        ~150px is erased and only the large uneven density survives.
+
+   Everything about the DRIFT is unchanged and still calibrated below the
+   threshold of noticing:
 
      travel   ~1.6% of the mass's own width, so ~12px on a 740px cloud
      rate     that 12px spread across half of a 26–44s cycle — about a third
               of a pixel per second
-     breath   opacity varying by ~28% of a value that is already 0.3–0.44
+     breath   opacity varying by ~18% of a value that is already 0.22–0.44
 
-   Position and opacity run on DIFFERENT tokens (26s against 44s), and each
-   mass runs them the opposite way round from the other. 26 and 44 share no
-   common factor, so nothing ever resynchronises into a pulse — the token file
-   makes the same point about why those numbers are not 30 and 45.
+   The breath used to be 28% and was reduced when the masses acquired internal
+   structure. That is the trade the site owner's request implies and it is worth
+   stating: a smooth mass can breathe hard without anything appearing to happen,
+   because there is no detail in it to watch. A lumpy one cannot — the blotches
+   give the eye something to track, and at 28% you could see the cloud thinking.
+   Structure was bought with amplitude.
 
-   Only `transform` and `opacity` animate. Both are compositor properties, so
-   a drifting cloud costs no layout and no paint after its first frame.
+   Position and opacity run on DIFFERENT tokens (26s against 44s), and each mass
+   runs them the opposite way round from the other. 26 and 44 share no common
+   factor, so nothing ever resynchronises into a pulse.
+
+   Only `transform` and `opacity` animate. Both are compositor properties, so a
+   drifting cloud costs no layout and no paint after its first frame — the mask
+   and the blur are resolved once into a texture and then only composited.
    ========================================================================== */
 
 .layer {
@@ -40,36 +72,51 @@
 
   opacity: var(--haze-intensity);
 
-  /* --haze-color is built on --tone-plum rather than a grey, so this reads as
+  /* -- THE SILHOUETTE -------------------------------------------------------
+     Three lobes, none of them centred, none of them the same size, each with
+     its own falloff. Together they make an outline with a long side and a
+     short one and a density peak that is not in the middle of the box.
+
+     --haze-color is built on --tone-plum rather than a grey, so this reads as
      the dark field LIFTING rather than as a veil laid over it.
 
-     Eight stops approximating a gaussian, not three. A three-stop ramp has
-     kinks in it, and on a near-black field every kink renders as its own
-     contour ring on top of the ordinary 8-bit banding — the haze stops being
-     weather and starts looking like a lens flare.
+     The stop lists are still smooth — eight-ish stops approximating a gaussian
+     rather than three. On a near-black field every kink in a ramp renders as
+     its own contour ring on top of the ordinary 8-bit banding, and a mass that
+     peaks about 5 values out of 255 above the field crosses four or five
+     integer boundaries on its way down. Smoothness here is what keeps the
+     IRREGULARITY above from turning into visible rings; the character comes
+     from the mask, not from making the ramps crude.
+     ---------------------------------------------------------------------- */
+  background-image:
+    radial-gradient(
+      62% 58% at 36% 44%,
+      rgb(from var(--tone-plum) r g b / 0.26) 0%,
+      rgb(from var(--tone-plum) r g b / 0.19) 26%,
+      rgb(from var(--tone-plum) r g b / 0.1) 48%,
+      rgb(from var(--tone-plum) r g b / 0.04) 70%,
+      rgb(from var(--tone-plum) r g b / 0.01) 86%,
+      rgb(from var(--tone-plum) r g b / 0) 100%
+    ),
+    radial-gradient(
+      46% 42% at 71% 63%,
+      rgb(from var(--tone-plum) r g b / 0.2) 0%,
+      rgb(from var(--tone-plum) r g b / 0.13) 30%,
+      rgb(from var(--tone-plum) r g b / 0.06) 54%,
+      rgb(from var(--tone-plum) r g b / 0.015) 78%,
+      rgb(from var(--tone-plum) r g b / 0) 100%
+    ),
+    radial-gradient(
+      74% 34% at 58% 26%,
+      rgb(from var(--tone-plum) r g b / 0.13) 0%,
+      rgb(from var(--tone-plum) r g b / 0.07) 34%,
+      rgb(from var(--tone-plum) r g b / 0.02) 64%,
+      rgb(from var(--tone-plum) r g b / 0) 100%
+    );
 
-     Measured, by amplifying a real screenshot: the mass peaks about 5 values
-     out of 255 above the field, so its falloff crosses four or five integer
-     boundaries and there is no way to render that in 8-bit without contours.
-     Smoothing the ramp removes the kink rings; the residual quantisation
-     rings are visible at 5× gain and effectively not at 1×, and the grain
-     layer above breaks up what is left. If this ever needs to be perfect the
-     answer is a wider, weaker mass, not a sharper gradient. */
-  background-image: radial-gradient(
-    ellipse at center,
-    var(--haze-color) 0%,
-    rgb(from var(--tone-plum) r g b / 0.5) 14%,
-    rgb(from var(--tone-plum) r g b / 0.41) 27%,
-    rgb(from var(--tone-plum) r g b / 0.3) 40%,
-    rgb(from var(--tone-plum) r g b / 0.19) 53%,
-    rgb(from var(--tone-plum) r g b / 0.1) 66%,
-    rgb(from var(--tone-plum) r g b / 0.04) 79%,
-    rgb(from var(--tone-plum) r g b / 0.01) 90%,
-    rgb(from var(--tone-plum) r g b / 0) 100%
-  );
   filter: blur(var(--haze-blur));
 
-  /* Parallax, identical to the stars'. Haze sits at `far`, so it travels 2px —
+  /* Parallax, identical to the stars'. Haze sits at `far`, so it travels 10px —
      which on a mass 740px wide behind a 72px blur is not visible as movement
      at all, and is not meant to be. It is here so the haze is not the one
      stationary thing the moving stars are measured against; a layer that
@@ -86,11 +133,108 @@
   animation-name: drift, breathe;
   animation-timing-function: var(--ease-drift);
   animation-iteration-count: infinite;
-  /* Negative delays start each mass part-way through its cycle so the two are
-     never in phase at load. Derived from the tokens rather than authored. */
+  /* Negative delays start each mass part-way through its cycle so no two are
+     ever in phase at load. Derived from the tokens rather than authored. */
   animation-delay:
     calc(var(--duration-atmosphere) * -0.63),
     calc(var(--duration-atmosphere) * -1.4);
+}
+
+/* -- THE DENSITY ------------------------------------------------------------
+   Two more unequal lobes, then a fractal-noise mask over the top of them.
+
+   The mask is what makes this fog rather than a gradient. Its alpha is
+   1.95 × turbulence − 0.52 (2.0 and −0.56 for `low`), so it clips to zero
+   wherever the noise falls below about a quarter and reaches full opacity above
+   about three quarters. Most of a mass sits somewhere in between. That is a
+   density range of several to one inside a single cloud, on a scale of
+   150–250px. Real weather is unevenly thick. This is the only cheap way to say
+   that without a texture asset.
+
+   THE FIRST VERSION USED 1.45 AND −0.28 AND WAS TOO POLITE. Rendered at 5×
+   gain against a version with the mask removed, the difference was real but
+   under a value out of 255 — a 72px blur eats a great deal, and the smooth
+   lobes on `.mass` underneath were still supplying most of the mass. Those
+   lobes were then halved and this layer roughly doubled, so that the structure
+   carries the cloud and the smooth part only keeps its edges from having a
+   shape. If a future mass looks like a gradient again, that ratio is the first
+   thing to check.
+
+   IT IS A SEPARATE ELEMENT AND NOT A SECOND BACKGROUND LAYER, because a mask
+   on `.mass` would be applied AFTER `filter: blur()` — CSS resolves filter,
+   then clip, then mask — and cutting a 72px-soft cloud with a hard-edged noise
+   field produces crunch, not fog. As a child it is masked first and the
+   parent's blur then softens the result, which is the correct physical order:
+   the fog is lumpy, and then it is out of focus.
+
+   `inset: -7%` pushes the mask's own boundary outside the visible mass so that
+   whatever residual alpha the noise leaves at the edge of its box lands
+   somewhere the eye is not.
+   ------------------------------------------------------------------------ */
+
+.mass::before {
+  content: "";
+  position: absolute;
+  inset: -7%;
+
+  background-image:
+    radial-gradient(
+      58% 64% at 33% 47%,
+      rgb(from var(--tone-plum) r g b / 0.98) 0%,
+      rgb(from var(--tone-plum) r g b / 0.66) 30%,
+      rgb(from var(--tone-plum) r g b / 0.27) 60%,
+      rgb(from var(--tone-plum) r g b / 0) 100%
+    ),
+    radial-gradient(
+      46% 40% at 69% 57%,
+      rgb(from var(--tone-plum) r g b / 0.74) 0%,
+      rgb(from var(--tone-plum) r g b / 0.4) 36%,
+      rgb(from var(--tone-plum) r g b / 0) 100%
+    );
+
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+/* ---------------------------------------------------------------------------
+   THE FORMS
+   -----------------------------------------------------------------------------
+   Three authored noise fields, selected from the composition data by `form`.
+   Each is an inline SVG — no image request, no canvas, no dependency — and each
+   is built the same way:
+
+     feTurbulence      fractalNoise, 3 octaves, anisotropic base frequency
+     feColorMatrix     RGB pinned to white, ALPHA driven from the red channel
+                       at 1.45× − 0.28, which is the density range
+     <mask>            an off-centre radial that takes the alpha to zero before
+                       the edge of the box, so the mass has no rectangle in it
+
+   The output is white with irregular alpha. It is used as a CSS mask, so no
+   colour is authored here — the colour is `--tone-plum` on the element beneath,
+   and the token stays the single source of truth for what haze is made of.
+
+   The base frequency is deliberately different on the two axes in every form.
+   Isotropic noise reads as a texture; noise stretched along one axis reads as
+   something that has been blown in a direction, which is what weather is.
+
+   THE SEEDS ARE PART OF THE COMPOSITION. Two masses using the same form and the
+   same seed would be recognisably the same cloud in two places; they are 6, 12
+   and 21 and they were chosen by looking, like everything else in this layer.
+   ------------------------------------------------------------------------ */
+
+/* bank — broad, horizontal, densest low and left. Weather lying down. */
+.mass[data-form="bank"]::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='420'%3E%3Cdefs%3E%3Cfilter id='f' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0048 0.0092' numOctaves='3' seed='6'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.95 0 0 0 -0.52'/%3E%3C/filter%3E%3CradialGradient id='g' cx='.43' cy='.55' r='.48'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.4' stop-color='%23fff' stop-opacity='.8'/%3E%3Cstop offset='.74' stop-color='%23fff' stop-opacity='.3'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cmask id='m'%3E%3Crect width='700' height='420' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='700' height='420' filter='url(%23f)' mask='url(%23m)'/%3E%3C/svg%3E");
+}
+
+/* column — tall, narrow, densest high. Fog standing in a margin. */
+.mass[data-form="column"]::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='640'%3E%3Cdefs%3E%3Cfilter id='f' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0094 0.0046' numOctaves='3' seed='12'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.95 0 0 0 -0.52'/%3E%3C/filter%3E%3CradialGradient id='g' cx='.52' cy='.42' r='.48'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.4' stop-color='%23fff' stop-opacity='.8'/%3E%3Cstop offset='.74' stop-color='%23fff' stop-opacity='.3'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cmask id='m'%3E%3Crect width='420' height='640' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='420' height='640' filter='url(%23f)' mask='url(%23m)'/%3E%3C/svg%3E");
+}
+
+/* low — wide, shallow, torn along the top. Ground mist. */
+.mass[data-form="low"]::before {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='400'%3E%3Cdefs%3E%3Cfilter id='f' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0042 0.0105' numOctaves='3' seed='21'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 2.0 0 0 0 -0.56'/%3E%3C/filter%3E%3CradialGradient id='g' cx='.47' cy='.6' r='.48'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='.42' stop-color='%23fff' stop-opacity='.78'/%3E%3Cstop offset='.76' stop-color='%23fff' stop-opacity='.28'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cmask id='m'%3E%3Crect width='760' height='400' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='760' height='400' filter='url(%23f)' mask='url(%23m)'/%3E%3C/svg%3E");
 }
 
 .mass[data-drift="slowest"] {
@@ -127,22 +271,23 @@
     opacity: var(--haze-intensity);
   }
   50% {
-    opacity: calc(var(--haze-intensity) * 1.28);
+    opacity: calc(var(--haze-intensity) * 1.18);
   }
 }
 
 /* ---------------------------------------------------------------------------
-   NARROW — one mass, damped, and a cheaper blur
+   NARROW — fewer masses, damped, and a cheaper blur
    -----------------------------------------------------------------------------
    A 72px blur across a large element is the single most expensive thing the
    atmosphere does, and mobile GPUs pay the most for it. The narrow page keeps
-   one mass at a shorter radius and a lower ceiling; it still has weather, it
-   just has less of it.
+   two masses at a shorter radius and a lower ceiling; it still has weather, it
+   just has less of it. The masks cost nothing extra — an SVG image rasterised
+   once at a smaller size.
    ------------------------------------------------------------------------ */
 
 @media (max-width: 47.9375rem) {
   .layer {
-    opacity: 0.78;
+    opacity: 0.8;
   }
 
   .mass {
@@ -166,8 +311,8 @@
    base.css already collapses ambient animation globally; this is explicit
    rather than incidental. The keyframes' 0% and 100% are identical to the
    element's own resting state, so stopping the drift removes the movement and
-   changes nothing about how the page looks. The haze stays. Nothing is
-   removed — it simply stops breathing.
+   changes nothing about how the page looks. The haze stays, mask and all.
+   Nothing is removed — it simply stops breathing.
    ------------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {

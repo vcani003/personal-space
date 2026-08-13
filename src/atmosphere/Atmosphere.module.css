@@ -101,15 +101,27 @@
 
      0–12%      a whisper of lift, the sky above and behind the name
      12–38%     plain ink, where the about prose and the journal sit
-     46–54%     the DEEPEST point on the page — THE QUOTE (48–50.5%) and the
+     46–54%     the DEEPEST point on the page — THE QUOTE (52–54.5%) and the
                 inner half of its 224px of silence. That silence is the
                 composition's most expensive gesture; the field is darkest
                 there so it reads as depth rather than as absence.
-     64–84%     back to plain ink, and no lift of any kind. THE PLAYER
-                (68.6–75.3%) and the drawing slot (70.4–80.3%) live here. The
-                player is a lit object and it needs unlit space around it;
-                anything raising the local luminance eats its silhouette.
+     64–84%     back to plain ink, and no lift of any kind. The drawing slot
+                (65–74.9%) is holding 465px of reserved space here for art that
+                has not arrived, and it should arrive into darkness.
      100%       deeper again, so the page ends further away than it began.
+
+   THE STOPS HAVE NOT MOVED SINCE THE PAGE WAS RE-MEASURED, and that is a
+   decision rather than an oversight. The quote slid from 48–50.5% to
+   52–54.5%, so the 46–54% trough is now centred slightly above it instead of
+   on it; but the trough is 8% of a 4700px page — 376px — and its edges are
+   soft, so the quote and both halves of its silence are still inside it. A
+   band this wide is a region, not a landmark, and chasing it 4% down the page
+   every time a paragraph grows would be false precision.
+
+   The 64–84% band is now named for the drawing slot rather than the player,
+   which has been undocked from the page and is a fixed object in the viewport's
+   bottom-left corner. Its claim is no longer a document band at all — see THE
+   HORIZONTAL LENS on the mottle below, which is where that constraint moved.
 
    The horizontal gradient is a vignette. It is a lens, not a decoration: it
    keeps the far edges of the page from competing with the centre, and it eats
@@ -130,9 +142,15 @@
       rgb(from var(--color-background-deep) r g b / 0) 85%,
       rgb(from var(--color-background-deep) r g b / 0.55) 100%
     ),
+    /* 0.38 → 0.30. THE MOTTLE BELOW PAID FOR THIS. The top of the page used to
+       get its lift from a smooth charcoal ramp; it now gets most of it from an
+       irregular one, and running both at their old strengths would simply have
+       made the opening brighter rather than more interesting. A ramp and a
+       blotch competing for the same 8 values of luminance is the ramp winning,
+       because a ramp is everywhere and a blotch is somewhere. */
     linear-gradient(
       to bottom,
-      rgb(from var(--tone-charcoal) r g b / 0.38) 0%,
+      rgb(from var(--tone-charcoal) r g b / 0.3) 0%,
       rgb(from var(--tone-charcoal) r g b / 0) 12%,
       rgb(from var(--color-background-deep) r g b / 0) 38%,
       rgb(from var(--color-background-deep) r g b / 0.9) 46%,
@@ -155,7 +173,7 @@
   .field {
     background-image: linear-gradient(
       to bottom,
-      rgb(from var(--tone-charcoal) r g b / 0.34) 0%,
+      rgb(from var(--tone-charcoal) r g b / 0.26) 0%,
       rgb(from var(--tone-charcoal) r g b / 0) 12%,
       rgb(from var(--color-background-deep) r g b / 0) 38%,
       rgb(from var(--color-background-deep) r g b / 0.85) 45%,
@@ -164,6 +182,184 @@
       rgb(from var(--color-background-deep) r g b / 0) 84%,
       rgb(from var(--color-background-deep) r g b / 0.7) 100%
     );
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   THE MOTTLE — uneven darkness, just above the field
+   -----------------------------------------------------------------------------
+   THIS LAYER EXISTS BECAUSE THE SITE OWNER ASKED FOR IT, AND IT BREAKS A RULE
+   SHE LIFTED HERSELF:
+
+     "it would be nice to have a hazier affect or a glow in some spots? not like
+      a gradient but something to give more character and life to the page (this
+      may be setting into some background/wallpapery noise which is ok)"
+
+   The brief's line is "negative space is a material — do not fill empty areas",
+   and every previous pass enforced it hard. She is the one relaxing it, and the
+   parenthesis is explicit about how far. So: wallpapery noise, deliberately.
+
+   WHAT IT IS. Two seamless fractal-noise fields at different scales — pockets
+   of roughly 130px and roughly 240px — used as a MASK over a plum fill, blended
+   `screen`. The result is that the darkness is no longer evenly dark. There are
+   places across the page where it lifts by several values out of 255 and places
+   where it lifts by none, and the boundary between them is a soft irregular
+   curve rather than a ramp from a centre. "In some spots", which is what was
+   asked for, and the exact opposite of a gradient, which is what was rejected.
+
+   WHY IT IS A MASK AND NOT A COLOURED TEXTURE. The colour has to stay
+   `--tone-plum`, because that is the one place this codebase is allowed to say
+   what atmosphere is made of. A noise field baked with a colour in it would be
+   a second, invisible copy of a token inside a data URI. White in a mask is not
+   a colour; it is an alpha channel.
+
+   TWO SCALES, MASK-COMPOSITED BY UNION. `mask-composite` defaults to `add`,
+   which is exactly what two overlaid cloud scales want, so this needs no
+   compositing keyword and has no compatibility floor. The tiles are 640px and
+   940px with different seeds and a non-zero offset between them, so the
+   combined pattern does not repeat until 145,000px — the page is 4,700.
+
+   WHY IT IS SHAPED VERTICALLY. Wallpaper is uniform; this is not allowed to be.
+   The linear gradient supplying the fill runs the layer's own alpha down to
+   almost nothing across two bands, and those bands are the composition's:
+
+     44–62%   THE QUOTE AND ITS SILENCE. The field is at its deepest here on
+              purpose and the mottle is nearly absent. 224px of nothing is the
+              page's most expensive gesture and this layer does not get to
+              spend it.
+     92–100%  THE ENDING. The closing line arrives after a long emptiness and
+              is meant to be missable. Texture behind it announces it.
+
+   Everywhere else it is on, including the whole lower third that previously
+   held nothing at all. That band is where this layer earns its place: there was
+   no way to give 75–90% of the page any character without either putting an
+   object in it or making the darkness itself uneven, and an object there would
+   have been decoration.
+
+   WHY IT DOES NOT MOVE. It could drift, and it would be one line. It must not:
+   a page-wide texture in motion is a screen effect, and the moment the
+   background itself moves the haze stops being the thing that is moving. The
+   fog drifts THROUGH a static field. That is also why it sits at the bottom of
+   the stack, one step above the tonal field it belongs to, rather than up with
+   the weather.
+
+   COST. Two rasters, painted once, never animated, no filter. It is the
+   cheapest possible way to buy this.
+   ------------------------------------------------------------------------ */
+
+.mottle {
+  position: absolute;
+  inset: 0;
+  /* Part of the deep field, not part of the weather. Blending is resolved
+     against the field alone — the stars, the lights and the haze all paint
+     over it normally. */
+  z-index: calc(var(--layer-0-field) + 1);
+
+  mix-blend-mode: screen;
+  opacity: var(--atmosphere-mottle-opacity, 0.29);
+
+  background-image: linear-gradient(
+    to bottom,
+    rgb(from var(--tone-plum) r g b / 1) 0%,
+    rgb(from var(--tone-plum) r g b / 1) 40%,
+    rgb(from var(--tone-plum) r g b / 0.12) 47%,
+    rgb(from var(--tone-plum) r g b / 0.12) 58%,
+    rgb(from var(--tone-plum) r g b / 1) 66%,
+    rgb(from var(--tone-plum) r g b / 1) 88%,
+    rgb(from var(--tone-plum) r g b / 0.08) 96%,
+    rgb(from var(--tone-plum) r g b / 0.08) 100%
+  );
+
+  /* `filterUnits='userSpaceOnUse'` WITH THE REGION SET TO THE TILE EXACTLY is
+     what makes `stitchTiles` work, and leaving it off is a bug with a very
+     recognisable symptom. The default filter region is the bounding box
+     inflated by 10% on every side, and feTurbulence stitches its period to the
+     REGION, not to the rect — so the pattern is seamless across a 768px
+     boundary while the image is being tiled every 640px, and the page fills
+     with hard rectangular seams. The film grain above gets away without this
+     because its features are a pixel wide; at 130px they are unmissable. */
+  /* -- THE HORIZONTAL LENS, and the three reasons for it --------------------
+     The topmost mask layer is a left-to-right ramp, INTERSECTED with the union
+     of the two noise fields. Read the stack bottom-up: broad ∪ fine, then
+     ∩ ramp. Layer order is topmost-first in `mask-image`, and `mask-composite`
+     describes how each layer combines with everything below it — hence
+     `intersect, add, add` against `ramp, fine, broad`.
+
+     It costs no new browser support. This rule already relies on unprefixed
+     `mask-image`, which is the same Chrome 120 / Safari 15.4 feature drop that
+     brought `mask-composite`, and the file already uses `rgb(from …)` relative
+     colour, which is a HIGHER floor than either.
+
+     What it does: the texture is damped to about 58% at the left edge and 82%
+     at the right, recovering to full across the middle two-thirds. Three
+     separate reasons, all real:
+
+     1. THE DOCKED PLAYER. It is a fixed 322px object at viewport x 2.5–27.6%,
+        which means it passes over almost every document band as you scroll —
+        "keep this document band clear" is not a rule that can be written any
+        more. But the page has no horizontal scroll, so an X COORDINATE IS THE
+        SAME IN BOTH SPACES, and the player's COLUMN can be protected even
+        though its band cannot. Measured beside the dock: the mottle at full
+        strength took the field from 10.5 to 14.5 out of 255 against a chassis
+        that means 21.6 and peaks at 54.7 — the player still read as an object,
+        but a third of its surround contrast had gone. This gives most of that
+        back where it is needed and costs the composition nothing, because
+     2. THE FIELD ALREADY VIGNETTES THERE. `.field` darkens the outer 15% on
+        both sides for exactly the reason below, and a texture running at full
+        strength through a vignette is the two of them arguing.
+     3. TEXTURE AT THE EXTREME EDGES OF A PAGE IS WHERE IT MOST LOOKS LIKE
+        WALLPAPER. The middle is where it reads as atmosphere.
+
+     Not symmetric, because the reasons are not: the left carries the player.
+
+     `filterUnits='userSpaceOnUse'` WITH THE REGION SET TO THE TILE EXACTLY is
+     what makes `stitchTiles` work, and leaving it off is a bug with a very
+     recognisable symptom. The default filter region is the bounding box
+     inflated by 10% on every side, and feTurbulence stitches its period to the
+     REGION, not to the rect — so the pattern is seamless across a 768px
+     boundary while the image is being tiled every 640px, and the page fills
+     with hard rectangular seams. The film grain above gets away without this
+     because its features are a pixel wide; at 130px they are unmissable. */
+  mask-image:
+    linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.48) 0%,
+      rgb(0 0 0 / 0.56) 10%,
+      rgb(0 0 0 / 0.76) 20%,
+      rgb(0 0 0 / 1) 33%,
+      rgb(0 0 0 / 1) 90%,
+      rgb(0 0 0 / 0.8) 100%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='p' color-interpolation-filters='sRGB' filterUnits='userSpaceOnUse' x='0' y='0' width='640' height='640'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0075' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='gamma' exponent='3.6' amplitude='1.62'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='640' height='640' filter='url(%23p)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='940' height='940'%3E%3Cfilter id='p' color-interpolation-filters='sRGB' filterUnits='userSpaceOnUse' x='0' y='0' width='940' height='940'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0042' numOctaves='2' seed='17' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='gamma' exponent='3.1' amplitude='1.7'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='940' height='940' filter='url(%23p)'/%3E%3C/svg%3E");
+  mask-composite: intersect, add, add;
+  mask-size: 100% 100%, 640px 640px, 940px 940px;
+  mask-position: 0 0, 0 0, 137px 211px;
+  mask-repeat: no-repeat, repeat, repeat;
+}
+
+/* Narrow keeps ONE scale and NO lens, and every mask longhand has to be reset
+   with it — this is the trap in overriding a multi-layer mask. `mask-composite`
+   still says `intersect, add, add` if you only replace `mask-image`, and a
+   single layer composited `intersect` against the transparent backdrop below it
+   resolves to nothing at all: the whole layer silently disappears. Same for
+   `mask-repeat`, whose first value here is `no-repeat`.
+
+   Why one scale: the broad tile is 940px on a 390px screen — barely more than a
+   slow vertical wash at that width, which is the gradient this was supposed to
+   replace — and dropping it halves the texture memory on the devices least able
+   to spare it. Why no lens: the dock is full-width on narrow, so there is no
+   column to protect, and a horizontal ramp across 390px is most of the screen.
+   The fine field alone still reads as uneven darkness, which is the whole
+   requirement. */
+@media (max-width: 47.9375rem) {
+  .mottle {
+    opacity: calc(var(--atmosphere-mottle-opacity, 0.29) * 0.82);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='p' color-interpolation-filters='sRGB' filterUnits='userSpaceOnUse' x='0' y='0' width='640' height='640'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0075' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 0 0 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='gamma' exponent='3.6' amplitude='1.62'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='640' height='640' filter='url(%23p)'/%3E%3C/svg%3E");
+    mask-composite: add;
+    mask-size: 640px 640px;
+    mask-position: 0 0;
+    mask-repeat: repeat;
   }
 }
 

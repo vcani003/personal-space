@@ -42,6 +42,32 @@ import { clamp, lerp } from "../lib/math";
    move as it scrolls (the composition is authored against the document — see
    composition.ts), so scrolling changes nothing about these two numbers.
 
+   WHAT IT ALSO WRITES, AND WHY THAT IS A DIFFERENT KIND OF THING
+
+     --star-push-x      px, per object
+     --star-push-y      px, per object
+
+   The four properties above are ONE global signal that every object reads at
+   its own depth: the whole field responds together because the VIEWER moved.
+   That is parallax, and it is the reason this module can be a single pair of
+   numbers on the document element.
+
+   The push pair is not that. It is per-object LOCAL REPULSION — each star
+   reacts to its own distance and direction from the cursor and is displaced
+   away from it. A star forty pixels from the pointer moves; its neighbour four
+   hundred pixels away does not know anything happened. There is no global
+   quantity that can express it, so it cannot be published once and read by CSS;
+   the loop has to compute a vector per object and write it on that object.
+
+   The two are additive — see `translate` in Stars.module.css. The world seen
+   from a slightly different angle, plus the world disturbed in one place.
+
+   That per-object work is bounded on purpose. Positions are measured on resize
+   and cached; the frame does arithmetic only. Of the 38 stars, the frame's real
+   work is confined to the ones inside a 140px radius, which is typically zero
+   and rarely more than two — an axis-aligned reject discards the rest before
+   any square root. See THE PUSH FIELD below.
+
    WHY REFS AND CUSTOM PROPERTIES AND NOT STATE
 
    A pointer at 120Hz is 120 renders per second, each reconciling a tree whose
@@ -72,6 +98,10 @@ export const POINTER_VARS = {
 
 /** The proximity property published on the one pointer-reactive object. */
 const PROXIMITY_VAR = "--star-proximity";
+
+/** The per-object local-repulsion offset, in px. Written on stars in range. */
+const PUSH_VAR_X = "--star-push-x";
+const PUSH_VAR_Y = "--star-push-y";
 
 /* -----------------------------------------------------------------------------
    CALIBRATION
@@ -107,8 +137,8 @@ const PARALLAX_LAMBDA_SLOW = 3.5;
 const PROXIMITY_LAMBDA = 9;
 
 /* Below this the value is snapped to target and the loop is allowed to stop.
-   0.0015 against the largest travel token (--parallax-foreground, 10px) is
-   0.015px — a hundredth of a pixel, well under a device pixel on any display
+   0.0015 against the largest travel token (--parallax-foreground, 34px) is
+   0.05px — a twentieth of a pixel, well under a device pixel on any display
    this will ever run on. */
 const PARALLAX_EPSILON = 0.0015;
 const PROXIMITY_EPSILON = 0.002;
@@ -122,6 +152,63 @@ const MAX_FRAME_SECONDS = 0.05;
    happens, in px. Large enough to be crossed by accident while reading, small
    enough that it is not "the page reacts to my mouse". */
 const PROXIMITY_RADIUS = 200;
+
+/* -----------------------------------------------------------------------------
+   THE PUSH FIELD — local repulsion, and how it is kept from being a toy
+   -----------------------------------------------------------------------------
+   For each object, per frame:
+
+     d       = |object − cursor|                    (viewport px)
+     t       = 1 − d / PUSH_RADIUS                  (0 at the edge, 1 at centre)
+     falloff = t²(3 − 2t)                           smoothstep
+     push    = amplitude · falloff · (object − cursor) / (d + PUSH_CORE)
+
+   THE RADIUS IS 140px, and it is a scarcity decision more than a physical one.
+   A 140px disc is 5% of a 1280×900 viewport, and the field averages six or
+   seven stars in view — so on any given frame the expected number of reacting
+   objects is under one. Most of the time nothing is happening, and then one
+   thing does. Widen this and several stars react at once, which is the moment
+   it stops being "did that move?" and becomes a mouse effect.
+
+   THE FALLOFF IS SMOOTHSTEPPED, not linear. Its derivative is zero at the
+   boundary, so the reaction cannot be caught starting; a linear ramp has a
+   discontinuity in slope at the edge and the eye reads that as a hit-box being
+   entered. Same reason as the proximity curve above, and it matters more here,
+   because this one MOVES something rather than dimming it.
+
+   `/(d + PUSH_CORE)` IS DOING TWO JOBS. It normalises the direction vector, and
+   the `+ PUSH_CORE` makes the displacement fall back to zero as the cursor
+   arrives ON the object rather than peaking there. That kills a division by
+   zero and a direction that would otherwise flip wildly under the cursor — but
+   it is also the honest behaviour: the effect is a star being brushed past, not
+   a star being shoved out from under the pointer. The product peaks at 0.697 of
+   the amplitude, around 28px away, and decays to nothing in both directions.
+
+   THE AMPLITUDES LIVE IN variance.ts (DEPTH_PUSH, times each object's own
+   travel multiplier) and arrive here as `data-push` in px. This module does not
+   know what a star is; it moves elements it was handed.
+
+   ASYMMETRIC EASING. λ = 9 (~111ms) going out, λ = 5 (~200ms) coming back. A
+   nudge should be prompt and the recovery should be reluctant — matched rates
+   read as tracking, and a fast return reads as a snap. Both are inside the
+   brief's motion budget: 111ms at the quick end of RESPONSE, 200ms in the
+   middle of it, with the tail of the return landing around 460ms, inside
+   TRANSITION.
+   -------------------------------------------------------------------------- */
+
+const PUSH_RADIUS = 140;
+const PUSH_CORE = 8;
+const PUSH_LAMBDA_ENGAGE = 9;
+const PUSH_LAMBDA_RELEASE = 5;
+
+/* A hundredth of a pixel. Below this the object is snapped to its target and
+   stops being a reason for the loop to keep running. */
+const PUSH_EPSILON = 0.01;
+
+/* Two decimals, against a largest displacement of ~4.6px. The quantum is
+   0.01px — far under a device pixel — and the coarser rounding means the last
+   third of a settle mostly does not touch the CSSOM at all. */
+const PUSH_PRECISION = 2;
 
 /* Values are published to four decimals. Against a 10px token that is a
    0.001px quantum — invisible — and it means an idling-but-awake loop stops
@@ -159,6 +246,42 @@ let currentYSlow = 0;
 
 let clientX: number | null = null;
 let clientY: number | null = null;
+/* False once the pointer has left the document. `clientX` is deliberately kept
+   — resize still needs the last known position to re-derive the signal — so
+   "where the pointer was" and "the pointer is here" have to be two facts. */
+let pointerInside = false;
+
+/* -----------------------------------------------------------------------------
+   THE PUSH TARGETS
+   -----------------------------------------------------------------------------
+   One entry per object that opted into local repulsion. Everything mutable
+   lives on the entry rather than in parallel arrays: 38 objects is not a number
+   where cache layout matters, and one object per element is what makes the
+   frame loop readable.
+
+   `docX` / `docY` are DOCUMENT coordinates, measured on resize and whenever the
+   page's box changes, and converted to viewport coordinates in the frame using
+   the cached `scrollTop`. The composition is document-anchored (see
+   composition.ts) and the pointer is viewport-relative, so one of the two has
+   to be converted, and it must not be done with a DOM read inside a frame.
+   -------------------------------------------------------------------------- */
+
+interface PushTarget {
+  element: HTMLElement;
+  /** Displacement amplitude in px, before the falloff. From `data-push`. */
+  amplitude: number;
+  docX: number;
+  docY: number;
+  /** False when the element has no box — the composition for the other
+      breakpoint is `display: none`, and a hidden object must not be pushed. */
+  present: boolean;
+  currentX: number;
+  currentY: number;
+  publishedX: string;
+  publishedY: string;
+}
+
+let pushTargets: PushTarget[] = [];
 
 /* The single pointer-reactive object. */
 let reactiveElement: HTMLElement | null = null;
@@ -303,6 +426,19 @@ export interface PointerFieldOptions {
    * change somebody has to argue for.
    */
   reactive?: HTMLElement | null;
+  /**
+   * Objects that are displaced by LOCAL REPULSION as the pointer passes near
+   * them. Each must carry its amplitude in px as `data-push`; anything without
+   * a positive one is ignored.
+   *
+   * Plural, where `reactive` is singular, and the difference is not an
+   * inconsistency. `reactive` singles one object out and gives it a behaviour
+   * nothing else on the page has. This is a property of the FIELD — every star
+   * already moves with the pointer, and being brushed aside by it is the same
+   * continuous signal read locally instead of globally. Nothing is being made
+   * special, so nothing needs to be scarce.
+   */
+  pushed?: ArrayLike<HTMLElement> | null;
 }
 
 /**
@@ -326,12 +462,13 @@ export function mountPointerField(options: PointerFieldOptions = {}): () => void
 
   mounted = true;
   reactiveElement = options.reactive ?? null;
+  pushTargets = collectPushTargets(options.pushed);
 
   measureViewport();
   scrollTop = window.scrollY;
 
   /* Capability, not screen width and not user-agent.
-     `pointer: fine` — the PRIMARY pointer resolves finely enough for a 6px
+     `pointer: fine` — the PRIMARY pointer resolves finely enough for a 10px
      effect to mean anything. `hover: hover` — it can rest somewhere without
      committing to a tap. A phone fails both; a laptop with a touchscreen
      passes both while the trackpad is in use, which is correct. */
@@ -345,8 +482,12 @@ export function mountPointerField(options: PointerFieldOptions = {}): () => void
 
   window.addEventListener("resize", handleResize, { passive: true });
 
-  if (reactiveElement !== null) {
-    observeReactive(reactiveElement);
+  /* Both the proximity value and every push vector are computed from a
+     DOCUMENT-anchored position against a VIEWPORT-relative pointer, so both
+     need the scroll offset — read here, in the event, and cached. Neither
+     listener is attached if the composition asked for neither behaviour. */
+  if (reactiveElement !== null || pushTargets.length > 0) {
+    observeGeometry();
     window.addEventListener("scroll", handleScroll, { passive: true });
   }
 
@@ -377,6 +518,7 @@ function teardown(): void {
 
   reactiveElement = null;
   reactiveVisible = false;
+  pushTargets = [];
 
   /* Holds and subscriptions belong to their owners, not to this mount, and
      their own cleanups remove them. Cancelling the frame here is safe: the
@@ -435,6 +577,7 @@ function deactivate(): void {
   currentProximity = 0;
   clientX = null;
   clientY = null;
+  pointerInside = false;
 
   const root = document.documentElement;
   root.style.removeProperty(POINTER_VARS.x);
@@ -447,6 +590,19 @@ function deactivate(): void {
   publishedXSlow = "";
   publishedYSlow = "";
   publishedProximity = "";
+
+  /* Same reasoning for the push offsets, and one addition: this is the path
+     taken when reduced motion is switched ON while a star is mid-displacement.
+     It returns instantly rather than easing, which is correct — the setting
+     says do not animate, and easing back would be one last animation. */
+  for (const target of pushTargets) {
+    target.currentX = 0;
+    target.currentY = 0;
+    target.publishedX = "";
+    target.publishedY = "";
+    target.element.style.removeProperty(PUSH_VAR_X);
+    target.element.style.removeProperty(PUSH_VAR_Y);
+  }
 }
 
 /* =============================================================================
@@ -460,6 +616,7 @@ function handlePointerMove(event: PointerEvent): void {
 
   clientX = event.clientX;
   clientY = event.clientY;
+  pointerInside = true;
 
   targetX = clamp((event.clientX / viewportWidth) * 2 - 1, -1, 1);
   targetY = clamp((event.clientY / viewportHeight) * 2 - 1, -1, 1);
@@ -471,10 +628,16 @@ function handlePointerMove(event: PointerEvent): void {
 /**
  * The pointer left the document entirely. The world settles back to centre
  * rather than freezing wherever the cursor happened to exit, which would leave
- * the composition permanently 6px off its authored position.
+ * the composition permanently 10px off its authored position.
+ *
+ * `pointerInside` rather than clearing `clientX`, because the last known
+ * position is still needed if the window is resized while the pointer is
+ * outside it. Everything distance-based reads the flag; every displaced star
+ * eases back to zero on the release rate.
  */
 function handlePointerLeave(event: PointerEvent): void {
   if (event.pointerType === "touch") return;
+  pointerInside = false;
   targetX = 0;
   targetY = 0;
   targetProximity = 0;
@@ -482,19 +645,24 @@ function handlePointerLeave(event: PointerEvent): void {
 }
 
 /**
- * Scroll moves the reactive object under a stationary pointer, so proximity
- * has to be recomputed — but the pointer SIGNAL is viewport-relative and does
- * not change, so nothing here touches parallax. The page does not move as it
- * scrolls, by design.
+ * Scroll moves document-anchored objects under a stationary pointer, so both
+ * the proximity value and every push vector have to be recomputed — but the
+ * pointer SIGNAL is viewport-relative and does not change, so nothing here
+ * touches parallax. The page does not move as it scrolls, by design.
  *
- * The listener is only attached when the composition actually declares a
- * reactive object, and `scrollY` is read here in the event rather than in the
- * frame so that the loop stays free of DOM reads.
+ * `scrollY` is read HERE, in the event, and cached. The frame loop then works
+ * entirely from cached numbers; it never reads layout. That is the only reason
+ * a document-anchored composition can be reconciled with a viewport-relative
+ * pointer at 120Hz without touching the DOM.
+ *
+ * The push targets are not recomputed here — the frame recomputes them from
+ * `scrollTop` anyway, and doing it twice during a momentum scroll would be
+ * pure waste. Waking is enough.
  */
 function handleScroll(): void {
   scrollTop = window.scrollY;
-  if (!reactiveVisible) return;
-  updateProximityTarget();
+  if (pushTargets.length === 0 && !reactiveVisible) return;
+  if (reactiveVisible) updateProximityTarget();
   wakeIfTracking();
 }
 
@@ -511,6 +679,7 @@ function handleResize(): void {
   measureViewport();
   scrollTop = window.scrollY;
   measureReactive();
+  measurePushTargets();
 
   /* The pointer has not moved but the viewport it is measured against has, so
      the same pixel is now a different signal. Recompute from the last known
@@ -526,9 +695,8 @@ function handleResize(): void {
 /**
  * Cache the reactive object's position in DOCUMENT coordinates.
  *
- * This is the only element measurement in the pointer system. It happens on
- * mount, on resize and whenever the body's box changes — fonts arriving, an
- * image loading, the page reflowing — and never during a frame.
+ * It happens on mount, on resize and whenever the body's box changes — fonts
+ * arriving, an image loading, the page reflowing — and never during a frame.
  */
 function measureReactive(): void {
   if (reactiveElement === null) return;
@@ -537,20 +705,85 @@ function measureReactive(): void {
   reactiveCentreY = rect.top + window.scrollY + rect.height / 2;
 }
 
-function observeReactive(element: HTMLElement): void {
+/**
+ * Read each pushed object's amplitude once, at mount.
+ *
+ * Anything without a positive `data-push` is dropped rather than defaulted:
+ * a missing amplitude means the element was never meant to be in this list,
+ * and silently giving it one would be inventing motion.
+ */
+function collectPushTargets(source: ArrayLike<HTMLElement> | null | undefined): PushTarget[] {
+  if (source == null) return [];
+
+  const targets: PushTarget[] = [];
+  for (let index = 0; index < source.length; index += 1) {
+    const element = source[index];
+    if (element === undefined) continue;
+
+    const amplitude = Number.parseFloat(element.dataset.push ?? "");
+    if (!Number.isFinite(amplitude) || amplitude <= 0) continue;
+
+    targets.push({
+      element,
+      amplitude,
+      docX: 0,
+      docY: 0,
+      present: false,
+      currentX: 0,
+      currentY: 0,
+      publishedX: "",
+      publishedY: "",
+    });
+  }
+  return targets;
+}
+
+/**
+ * Cache every pushed object's centre in DOCUMENT coordinates.
+ *
+ * THIS IS THE WHOLE REASON THE FRAME LOOP CAN BE CHEAP. Thirty-eight
+ * `getBoundingClientRect` calls are around a fifth of a millisecond in one
+ * batch, which would be catastrophic at 120Hz and is nothing at all on the
+ * handful of occasions the page's box actually changes. Reads only — no writes
+ * follow in the same callback, so this cannot start a layout thrash.
+ *
+ * Objects belonging to the other breakpoint's composition are `display: none`
+ * and report a zero box; they are marked absent rather than dropped, because
+ * the breakpoint can change under a resize and the list must survive it.
+ */
+function measurePushTargets(): void {
+  if (pushTargets.length === 0) return;
+
+  const offsetX = window.scrollX;
+  const offsetY = window.scrollY;
+
+  for (const target of pushTargets) {
+    const rect = target.element.getBoundingClientRect();
+    target.present = rect.width > 0 && rect.height > 0;
+    target.docX = rect.left + offsetX + rect.width / 2;
+    target.docY = rect.top + offsetY + rect.height / 2;
+  }
+}
+
+function observeGeometry(): void {
   measureReactive();
+  measurePushTargets();
 
   if (typeof ResizeObserver !== "undefined") {
-    /* The star is positioned as a percentage of a document-tall layer, so it
-       moves whenever the document's height changes — which happens after the
-       fonts load, not on any event `resize` fires for. */
+    /* Stars are positioned as a percentage of a document-tall layer, so they
+       move whenever the document's height changes — which happens after the
+       fonts load, not on any event `resize` fires for. One observer for the
+       whole field; there is nothing per-object about the reason it fires. */
     bodyObserver = new ResizeObserver(() => {
       measureReactive();
+      measurePushTargets();
       updateProximityTarget();
       wakeIfTracking();
     });
     bodyObserver.observe(document.body);
   }
+
+  if (reactiveElement === null) return;
 
   if (typeof IntersectionObserver === "undefined") {
     reactiveVisible = true;
@@ -560,7 +793,14 @@ function observeReactive(element: HTMLElement): void {
   /* Off-screen, the proximity maths is skipped entirely and the value is
      pinned to 0. This also covers the case where the reactive star belongs to
      the wide composition and is `display: none` on a narrow page: a hidden
-     element never intersects. */
+     element never intersects.
+
+     THE PUSH TARGETS GET NO SUCH OBSERVER, deliberately. Their off-screen cull
+     is the axis-aligned reject in `stepPush` — four comparisons against a
+     cached number, which is cheaper per object than an IntersectionObserver
+     entry is to maintain, exact rather than margin-based, and correct on the
+     frame the page scrolls rather than on the next observer flush. An observer
+     here would be more machinery for a worse answer. */
   reactiveObserver = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
@@ -572,7 +812,7 @@ function observeReactive(element: HTMLElement): void {
     },
     { rootMargin: `${PROXIMITY_RADIUS}px` },
   );
-  reactiveObserver.observe(element);
+  reactiveObserver.observe(reactiveElement);
 }
 
 /**
@@ -583,7 +823,13 @@ function observeReactive(element: HTMLElement): void {
  * caught starting. A linear ramp reads as a hit-box.
  */
 function updateProximityTarget(): void {
-  if (reactiveElement === null || !reactiveVisible || clientX === null || clientY === null) {
+  if (
+    reactiveElement === null ||
+    !reactiveVisible ||
+    !pointerInside ||
+    clientX === null ||
+    clientY === null
+  ) {
     targetProximity = 0;
     return;
   }
@@ -671,6 +917,11 @@ function step(now: number): void {
     publish();
   }
 
+  /* Outside the `active` gate on purpose: a star still easing back has to be
+     allowed to finish even on the frames where the shared signal has nothing
+     to say. The function is inert — and cheap — when nothing is displaced. */
+  if (pushTargets.length > 0 && !stepPush(dt)) settled = false;
+
   if (frameListeners.size > 0) {
     const reading = readPointer();
     for (const listener of frameListeners) listener(reading);
@@ -718,6 +969,124 @@ function publish(): void {
     publishedProximity = nextProximity;
     reactiveElement.style.setProperty(PROXIMITY_VAR, nextProximity);
   }
+}
+
+/* =============================================================================
+   LOCAL REPULSION — the per-object half of the frame
+   =============================================================================
+   Returns true when every object is at rest, which is what lets the loop stop.
+
+   The shape of this function is the performance story, and it is all about not
+   doing things:
+
+     1. A target that is at rest AND out of range is `continue`d before anything
+        is interpolated, published or allocated. On a normal frame that is every
+        object in the composition.
+     2. Range is tested with four comparisons on each axis before any square
+        root. Every star outside the viewport fails on `dy` immediately, so the
+        length of the page costs nothing.
+     3. A displaced object writes two properties, and only when the ROUNDED
+        value has actually changed — so the tail of a settle stops touching the
+        CSSOM before it stops moving.
+
+   MEASURED on the real page, 38 targets, headless Chrome, 400-iteration blocks,
+   each including a forced style recalculation:
+
+     forced style flush, nothing dirty            0.001ms   (the noise floor)
+     the whole 38-target scan, none in range      0.00026ms (260 nanoseconds)
+     write + recalc, 1 object displaced           0.045ms
+     write + recalc, 3 objects displaced          0.126ms
+     write + recalc, all 31 visible displaced     1.31ms
+
+   The last row cannot happen. The densest neighbourhood anywhere in this
+   composition holds THREE stars within 140px, so 0.13ms — under one percent of
+   a 60fps frame — is the worst case the page can actually produce, and the
+   ordinary case is the scan alone at a quarter of a microsecond.
+
+   Read those rows together and the conclusion is that the arithmetic is free
+   and the CSSOM write is not. That is why the effort here goes into not writing
+   — the `continue`, the rounding, the radius — and none of it goes into making
+   the maths faster.
+   ========================================================================== */
+
+function stepPush(dt: number): boolean {
+  const engageT = 1 - Math.exp(-PUSH_LAMBDA_ENGAGE * dt);
+  const releaseT = 1 - Math.exp(-PUSH_LAMBDA_RELEASE * dt);
+
+  /* One capability gate for the whole field. Under reduced motion or on a
+     coarse pointer this is false, every target resolves to zero, and — since
+     `deactivate` has already cleared them — every one of them takes the
+     `continue` on the next line and nothing is ever written. */
+  const engaged = active && pointerInside && clientX !== null && clientY !== null;
+  const pointerX = clientX ?? 0;
+  const pointerY = clientY ?? 0;
+
+  let settled = true;
+
+  for (const target of pushTargets) {
+    let toX = 0;
+    let toY = 0;
+
+    if (engaged && target.present) {
+      /* Document → viewport. Only the vertical axis needs converting: the page
+         has no horizontal scroll, by construction (the atmosphere root is
+         `overflow: clip` so that nothing can create one). */
+      const dx = target.docX - pointerX;
+      const dy = target.docY - scrollTop - pointerY;
+
+      if (
+        dx > -PUSH_RADIUS &&
+        dx < PUSH_RADIUS &&
+        dy > -PUSH_RADIUS &&
+        dy < PUSH_RADIUS
+      ) {
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < PUSH_RADIUS) {
+          const t = 1 - distance / PUSH_RADIUS;
+          const falloff = t * t * (3 - 2 * t);
+          /* Direction and magnitude in one division. See THE PUSH FIELD. */
+          const scale = (target.amplitude * falloff) / (distance + PUSH_CORE);
+          toX = dx * scale;
+          toY = dy * scale;
+        }
+      }
+    }
+
+    if (toX === 0 && toY === 0 && target.currentX === 0 && target.currentY === 0) {
+      continue;
+    }
+
+    /* Prompt going out, reluctant coming back. Compared as a Manhattan
+       magnitude rather than a Euclidean one — this only decides which of two
+       rates to use, and a square root to choose a constant would be silly. */
+    const leaving =
+      Math.abs(toX) + Math.abs(toY) >
+      Math.abs(target.currentX) + Math.abs(target.currentY);
+    const rate = leaving ? engageT : releaseT;
+
+    target.currentX = lerp(target.currentX, toX, rate);
+    target.currentY = lerp(target.currentY, toY, rate);
+
+    if (Math.abs(toX - target.currentX) < PUSH_EPSILON) target.currentX = toX;
+    else settled = false;
+
+    if (Math.abs(toY - target.currentY) < PUSH_EPSILON) target.currentY = toY;
+    else settled = false;
+
+    const nextX = target.currentX.toFixed(PUSH_PRECISION);
+    if (nextX !== target.publishedX) {
+      target.publishedX = nextX;
+      target.element.style.setProperty(PUSH_VAR_X, `${nextX}px`);
+    }
+
+    const nextY = target.currentY.toFixed(PUSH_PRECISION);
+    if (nextY !== target.publishedY) {
+      target.publishedY = nextY;
+      target.element.style.setProperty(PUSH_VAR_Y, `${nextY}px`);
+    }
+  }
+
+  return settled;
 }
 
 /* -----------------------------------------------------------------------------

@@ -27,6 +27,15 @@ import type { Depth } from "./types";
               target, so the authored composition is untouched once the pointer
               stops.
 
+   …and one derived amplitude:
+
+     push     how far this object is displaced by the LOCAL repulsion in
+              pointer.ts — a different thing from parallax, described under
+              DEPTH_PUSH below. It is not an independent random channel: it is
+              the depth's push amplitude times the SAME travel multiplier, so an
+              object that sits a little nearer within its band both travels
+              further and reacts a little harder. One distance, two consequences.
+
    -----------------------------------------------------------------------------
    WHY THE VALUES ARE DERIVED FROM THE `id` AND NOT TYPED INTO composition.ts
 
@@ -51,6 +60,9 @@ import type { Depth } from "./types";
 
      --star-parallax  --star-skew-cos  --star-skew-sin  --star-lag
 
+   and each carries its resolved push amplitude as `data-push`, which is what
+   the pointer loop reads when it measures the field.
+
    And when an object DOES have a compositional reason to sit at a specific
    distance, `behavior.parallax` in composition.ts overrides the derived
    multiplier and is defended by its `note` like everything else. Derivation is
@@ -60,56 +72,63 @@ import type { Depth } from "./types";
    THE RESOLVED FIELD, at the constants below. Regenerate by calling
    `starVarianceTable(composition.stars)` and printing it.
 
-     FAR — base 6px, band 4.44 … 7.56px
-       north-east-high       ×0.760   4.56px   +14.3°   lag 0.52
-       project-void-east     ×0.779   4.67px    -7.9°   lag 0.35
-       about-gap-far         ×0.781   4.68px    -7.6°   lag 0.37
-       north-companion       ×0.798   4.79px   -12.3°   lag 0.38
-       quote-witness         ×0.800   4.80px    +6.9°   lag 0.13
-       post-player-west      ×0.809   4.85px    +7.5°   lag 0.53
-       photo-pin             ×0.903   5.42px    -3.8°   lag 0.04
-       north-lintel          ×0.912   5.47px    -7.1°   lag 0.07
-       photo-far-west        ×0.919   5.51px    +1.6°   lag 0.18
-       about-void-low        ×0.922   5.53px    +4.1°   lag 0.54
-       north-mid             ×0.929   5.57px    -7.1°   lag 0.04
-       journal-gap-east      ×0.940   5.64px    +9.5°   lag 0.48
-       journal-gap-west      ×0.946   5.67px   +13.8°   lag 0.49
-       north-east            ×1.034   6.20px    +3.9°   lag 0.50
-       project-margin-far    ×1.073   6.44px    +6.2°   lag 0.15
-       quote-approach        ×1.085   6.51px   +14.0°   lag 0.23
-       about-void            ×1.206   7.24px   +13.7°   lag 0.22
-       journal-margin-far    ×1.206   7.24px   +13.9°   lag 0.18
-       closing-pin           ×1.227   7.36px    +5.5°   lag 0.25
-       pre-player-west       ×1.240   7.44px   -12.9°   lag 0.05
-       photo-void-low        ×1.241   7.44px    -4.7°   lag 0.17
-       post-player-east      ×1.248   7.49px    +9.7°   lag 0.23
+   `push` is the amplitude constant; `peak` is what it actually reaches on
+   screen, since the falloff tops out at 0.697 (see DEPTH_PUSH).
 
-     MID — base 12px, band 9.84 … 14.16px
-       closing-approach      ×0.884  10.60px    +3.1°   lag 0.44
-       project-margin        ×0.914  10.97px    -3.6°   lag 0.23
-       pre-player-east       ×0.951  11.42px    +9.1°   lag 0.11
-       north-west            ×0.964  11.57px   -15.6°   lag 0.48
-       journal-margin        ×0.972  11.67px    -8.1°   lag 0.29
-       north-bloom           ×1.015  12.18px    -4.1°   lag 0.10
-       about-gap-east        ×1.129  13.55px    -4.8°   lag 0.39
-       elsewhere-east        ×1.144  13.73px   -12.8°   lag 0.39
+     FAR — base 10px, band 7.40 … 12.60px
+       north-east-high       ×0.760   7.60px   +14.3°   lag 0.52   push 2.74 → 1.90
+       project-void-east     ×0.779   7.79px    -7.9°   lag 0.35   push 2.80 → 1.95
+       about-gap-far         ×0.781   7.81px    -7.6°   lag 0.37   push 2.81 → 1.96
+       north-companion       ×0.798   7.98px   -12.3°   lag 0.38   push 2.87 → 2.00
+       quote-witness         ×0.800   8.00px    +6.9°   lag 0.13   push 2.88 → 2.00
+       post-player-west      ×0.809   8.09px    +7.5°   lag 0.53   push 2.91 → 2.03
+       photo-pin             ×0.903   9.03px    -3.8°   lag 0.04   push 3.25 → 2.26
+       north-lintel          ×0.912   9.12px    -7.1°   lag 0.07   push 3.28 → 2.28
+       photo-far-west        ×0.919   9.19px    +1.6°   lag 0.18   push 3.31 → 2.30
+       about-void-low        ×0.922   9.22px    +4.1°   lag 0.54   push 3.32 → 2.31
+       north-mid             ×0.929   9.29px    -7.1°   lag 0.04   push 3.34 → 2.33
+       journal-gap-east      ×0.940   9.40px    +9.5°   lag 0.48   push 3.39 → 2.36
+       journal-gap-west      ×0.946   9.46px   +13.8°   lag 0.49   push 3.40 → 2.37
+       north-east            ×1.034  10.34px    +3.9°   lag 0.50   push 3.72 → 2.59
+       project-margin-far    ×1.073  10.73px    +6.2°   lag 0.15   push 3.86 → 2.69
+       quote-approach        ×1.085  10.85px   +14.0°   lag 0.23   push 3.90 → 2.72
+       about-void            ×1.206  12.06px   +13.7°   lag 0.22   push 4.34 → 3.02
+       journal-margin-far    ×1.206  12.06px   +13.9°   lag 0.18   push 4.34 → 3.02
+       closing-pin           ×1.227  12.27px    +5.5°   lag 0.25   push 4.42 → 3.07
+       pre-player-west       ×1.240  12.40px   -12.9°   lag 0.05   push 4.46 → 3.11
+       photo-void-low        ×1.241  12.41px    -4.7°   lag 0.17   push 4.47 → 3.11
+       post-player-east      ×1.248  12.48px    +9.7°   lag 0.23   push 4.49 → 3.12
 
-     NEAR — base 18px, band 16.20 … 19.80px
-       photo-defocus         ×0.927  16.69px   -10.9°   lag 0.33
+     MID — base 18px, band 14.76 … 21.24px
+       closing-approach      ×0.884  15.91px    +3.1°   lag 0.44   push 4.77 → 3.32
+       project-margin        ×0.914  16.45px    -3.6°   lag 0.23   push 4.94 → 3.43
+       pre-player-east       ×0.951  17.12px    +9.1°   lag 0.11   push 5.14 → 3.57
+       north-west            ×0.964  17.36px   -15.6°   lag 0.48   push 5.21 → 3.62
+       journal-margin        ×0.972  17.50px    -8.1°   lag 0.29   push 5.25 → 3.65
+       north-bloom           ×1.015  18.27px    -4.1°   lag 0.10   push 5.48 → 3.81
+       about-gap-east        ×1.129  20.32px    -4.8°   lag 0.39   push 6.10 → 4.24
+       elsewhere-east        ×1.144  20.60px   -12.8°   lag 0.39   push 6.18 → 4.30
+
+     NEAR — base 26px, band 23.40 … 28.60px
+       photo-defocus         ×0.927  24.11px   -10.9°   lag 0.33   push 6.68 → 4.64
 
      NARROW
-       n-after-player   far  ×0.827   4.96px    -9.9°   lag 0.05
-       n-project        far  ×1.000   6.00px   +10.9°   lag 0.03
-       n-closing        far  ×1.174   7.04px   +14.2°   lag 0.26
-       n-quote-approach far  ×1.245   7.47px    -4.4°   lag 0.31
-       n-north-low      far  ×1.249   7.49px    -1.4°   lag 0.06
-       n-north          mid  ×0.926  11.12px    +9.3°   lag 0.23
-       n-about-gap      mid  ×0.942  11.30px    +9.9°   lag 0.46
+       n-after-player   far  ×0.827   8.27px    -9.9°   lag 0.05   push 2.98 → 2.07
+       n-project        far  ×1.000  10.00px   +10.9°   lag 0.03   push 3.60 → 2.50
+       n-closing        far  ×1.174  11.74px   +14.2°   lag 0.26   push 4.22 → 2.94
+       n-quote-approach far  ×1.245  12.45px    -4.4°   lag 0.31   push 4.48 → 3.12
+       n-north-low      far  ×1.249  12.49px    -1.4°   lag 0.06   push 4.49 → 3.13
+       n-north          mid  ×0.926  16.68px    +9.3°   lag 0.23   push 5.00 → 3.48
+       n-about-gap      mid  ×0.942  16.95px    +9.9°   lag 0.46   push 5.08 → 3.54
 
-   Read down the FAR column: travel runs 4.56 → 7.49px, a 1.64× range, and the
+   (The narrow set never runs the push maths on a phone — the field is off on a
+   coarse pointer entirely. These amplitudes only apply to a narrow window on a
+   desktop, which is a real case and not worth a second table.)
+
+   Read down the FAR column: travel runs 7.60 → 12.49px, a 1.64× range, and the
    direction fans across 27°. That is what stops it reading as a sheet. The
-   realised far band tops out at 7.49px and the realised mid band starts at
-   10.60px, so the two never come within 3.1px of each other in practice.
+   realised far band tops out at 12.49px and the realised mid band starts at
+   15.91px, so the two never come within 3.4px of each other in practice.
    ========================================================================== */
 
 /* -----------------------------------------------------------------------------
@@ -124,24 +143,40 @@ import type { Depth } from "./types";
    Which means the spread a band can afford is set by its RATIO to its
    neighbour, and the tokens do not space the bands evenly:
 
-     --parallax-far  6px  →  --parallax-middle 12px   ratio 2.00
-     --parallax-middle   →  --parallax-near     18px  ratio 1.50
-     --parallax-near     →  --parallax-foreground 26  ratio 1.44
+     --parallax-far  10px →  --parallax-middle 18px   ratio 1.80
+     --parallax-middle   →  --parallax-near     26px  ratio 1.44
+     --parallax-near     →  --parallax-foreground 34  ratio 1.31
 
    For a shared spread `s` across a pair, non-overlap requires s < (r−1)/(r+1):
-   0.333 for far→mid, 0.200 for mid→near, 0.182 for near→foreground.
+   0.286 for far→mid, 0.182 for mid→near, 0.133 for near→foreground. Stated the
+   other way, for the ASYMMETRIC spreads below the requirement is
+   r > (1 + s_lower) / (1 − s_upper): 1.537, 1.311 and 1.222 respectively, all
+   of which the ladder above clears.
 
    Hence the asymmetry below. FAR gets the widest spread because it has the most
    room AND needs it most — it holds 22 of the 31 wide stars, so it is the band
    whose rigidity was visible. NEAR and FOREGROUND hold at most one object each
    and the tokens leave them the least headroom, so they take the least.
 
+   THE LADDER WAS RAISED, 6/12/18/26 → 10/18/26/34, because `far` at 6px still
+   read as nearly static. Raising `far` ALONE would have shrunk its allowable
+   spread — the whole point of the inequality above — and the spread is not the
+   thing to spend: it is what makes 22 stars stop looking like one sheet. So the
+   entire ladder moved and the spreads below are unchanged. The ratios tightened
+   (2.00/1.50/1.44 → 1.80/1.44/1.31) and every one of them is still clear of its
+   minimum by a margin, which `assertDepthBands` re-checks against the live
+   tokens at runtime.
+
    THE RESULTING BANDS, in px of travel at full pointer extent:
 
-     far          4.44 … 7.56        gap to mid   2.28px
-     mid          9.84 … 14.16       gap to near  2.04px
-     near        16.20 … 19.80       gap to fg    3.60px
-     foreground  23.40 … 28.60
+     far          7.40 … 12.60       gap to mid   2.16px
+     mid         14.76 … 21.24       gap to near  2.16px
+     near        23.40 … 28.60       gap to fg    2.00px
+     foreground  30.60 … 37.40
+
+   Those are the ALLOWED bands. What is actually authored is narrower — the
+   realised far band tops out at 12.49px against a realised mid floor of
+   15.91px, a 3.4px gap.
 
    THESE NUMBERS ARE COUPLED TO tokens.css. The tokens belong to the design
    lead; if they move, re-check the inequality above. `assertDepthBands` does
@@ -177,6 +212,53 @@ export const SKEW_MAX_RADIANS = 0.28;
  * enough to look like it is catching up.
  */
 export const LAG_MAX = 0.55;
+
+/* -----------------------------------------------------------------------------
+   LOCAL REPULSION — WHICH IS NOT PARALLAX, AND THE DIFFERENCE IS THE DESIGN
+   -----------------------------------------------------------------------------
+   Everything above describes PARALLAX: one global viewpoint shift, applied to
+   every object at once, scaled by depth. Every star moves the same way at the
+   same time because the viewer is what moved.
+
+   This is the other thing. Each star reacts to ITS OWN distance and direction
+   from the cursor and is displaced AWAY from it. Nothing global happens; a star
+   forty pixels from the pointer moves and its neighbour four hundred pixels
+   away does not know anything occurred. Parallax is the world seen from a new
+   angle. This is the world being disturbed in one small place.
+
+   The two are ADDITIVE. A star's offset is its parallax offset plus its push
+   offset, composed in `translate` in Stars.module.css. See `pointer.ts` for the
+   radius, the falloff and the per-frame cost.
+
+   THE AMPLITUDES, in px, before the star's own travel multiplier:
+
+     far 3.6   mid 5.4   near 7.2   foreground 9.0
+
+   NEAR REACTS MORE THAN FAR, for the same reason it travels further: a
+   disturbance close to the viewer subtends a larger angle. Getting this
+   backwards would have the effect fighting the depth model instead of
+   reinforcing it, which is the main way a repulsion field turns into a particle
+   toy.
+
+   THE AMPLITUDE IS NOT THE DISPLACEMENT. The falloff peaks at 0.697 (it is a
+   smoothstep in distance times a soft core that goes to zero AT the cursor —
+   see pointer.ts), so `far` at 3.6 actually reaches about 2.5px, and 1.9–3.1px
+   once the per-object multiplier is applied. A `far` pinprick is 2–2.25px
+   across: it moves a little more than its own width, once, as the cursor
+   passes, and drifts back. That is the "wait, did that move?" the brief asks
+   for. At twice this it would be a toy, and it would be describable.
+
+   These are DELIBERATELY far smaller than the parallax travel of the same
+   depth — roughly a quarter of it. Push must never be the loudest thing the
+   field does, or the depth ladder stops being what the eye reads.
+   -------------------------------------------------------------------------- */
+
+export const DEPTH_PUSH: Readonly<Record<Depth, number>> = {
+  far: 3.6,
+  mid: 5.4,
+  near: 7.2,
+  foreground: 9,
+};
 
 /* -----------------------------------------------------------------------------
    THE DERIVATION
@@ -220,6 +302,12 @@ export interface StarVariance {
   skew: number;
   /** 0…1 share of the slower pointer channel. 0 is the standard settle. */
   lag: number;
+  /**
+   * Local-repulsion amplitude in px, before the falloff. Its realised peak is
+   * about 0.697 of this. Not a separate random channel — `DEPTH_PUSH` for the
+   * object's depth, times the same `travel` multiplier.
+   */
+  push: number;
 }
 
 /**
@@ -255,6 +343,11 @@ export function starVariance(
     travel,
     skew: SKEW_MAX_RADIANS * signedFor(id, "skew"),
     lag: LAG_MAX * unitFor(id, "lag"),
+    /* Reuses `travel` rather than hashing a fourth channel. The multiplier is
+       this object's position WITHIN its depth band, and a thing that is a
+       little nearer should both travel and react a little more; two
+       independent numbers would be two unrelated claims about one distance. */
+    push: DEPTH_PUSH[depth] * travel,
   };
 }
 

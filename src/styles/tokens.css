@@ -150,6 +150,13 @@
      of this page. If the grain is invisible at 0.05, raise toward 0.07 before
      reaching for `soft-light` or `screen` — and stop the moment it reads as
      an effect rather than as material. Hard ceiling 0.10. */
+  /* The MOTTLE's one intensity dial — the irregular lift that makes the
+     darkness unevenly dark. Distinct from grain: grain is fine, fixed-scale
+     film texture, the mottle is large soft pockets of density. Grain is the
+     material the page is printed on; the mottle is weather.
+     This is the token to turn down first if the page ever feels grubby. */
+  --atmosphere-mottle-opacity: 0.29;
+
   --grain-opacity: 0.05;
   /* `screen`, not `overlay`. Overlay is mathematically inert over a near-black
      field: below 0.5 backdrop it computes 2 × backdrop × source, so on #08080c

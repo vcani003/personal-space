@@ -94,6 +94,25 @@
   initial-value: 0px;
 }
 
+/* The local-repulsion offset, in px, written by the pointer loop on the few
+   stars currently within its radius — and on nothing else. Registered for the
+   same reason as the rest, plus one more: `initial-value: 0px` is what makes
+   "this star has never been near the cursor" and "this star is at rest" the
+   same state, so the loop can stop writing to a star entirely instead of
+   holding it at zero. */
+
+@property --star-push-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --star-push-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 .layer {
   position: absolute;
   inset: 0;
@@ -140,8 +159,8 @@
    `translate` carries the parallax. `--parallax-x` / `--parallax-y` are the
    unitless −1…1 viewing offset derived on the atmosphere root from the pointer
    signal (see Atmosphere.module.css); `--parallax-travel` is the depth's own
-   distance from the tokens. Multiply the two and a far star travels 6px while
-   the near defocused disc travels 18px, which is the entire depth cue.
+   distance from the tokens. Multiply the two and a far star travels 10px while
+   the near defocused disc travels 26px, which is the entire depth cue.
 
    Three things keep this from ever reading as an effect. The travel is small.
    The rAF loop interpolates toward it over ~140ms rather than snapping, so
@@ -174,6 +193,20 @@
    The order of operations is: blend the two channels → rotate → scale. Scaling
    last is what keeps the multiplier meaning "a fraction of this depth's travel"
    no matter what the skew is doing.
+
+   -----------------------------------------------------------------------------
+   AND THEN THERE IS THE SECOND TERM, WHICH IS NOT PARALLAX
+
+   `--star-push-x` / `--star-push-y` are added, in px, after all of that. They
+   are LOCAL REPULSION: this one star's displacement away from a cursor that
+   happens to be near it, written by the pointer loop only while it is within
+   140px. Parallax is one global viewpoint shift resolved by depth; this is
+   per-object and resolved by distance, so it cannot be expressed as a multiple
+   of the shared signal and does not try to be. They simply add — the world seen
+   from a slightly different angle, plus the world disturbed in one small place.
+
+   Zero by default and zero at rest, so a star nobody has gone near renders
+   exactly as it did before this existed.
    ------------------------------------------------------------------------ */
 
 .star {
@@ -216,13 +249,13 @@
       (
           var(--star-view-x) * var(--star-skew-cos) - var(--star-view-y) *
             var(--star-skew-sin)
-        ) * var(--star-travel)
+        ) * var(--star-travel) + var(--star-push-x, 0px)
     )
     calc(
       (
           var(--star-view-x) * var(--star-skew-sin) + var(--star-view-y) *
             var(--star-skew-cos)
-        ) * var(--star-travel)
+        ) * var(--star-travel) + var(--star-push-y, 0px)
     );
 }
 
