@@ -63,7 +63,7 @@ import type { WallItem } from "../wall";
  *  to a crowded composition; artifacts growing to fill emptiness is not. Every
  *  `y` below is a percentage of this number, so the whole composition rescales
  *  when it changes. */
-export const wallSpan = 2;
+export const wallSpan = 1.5;
 
 /* =============================================================================
    THE PROTOTYPE COMPOSITION — one of each of four types
@@ -121,8 +121,15 @@ export const wallItems: readonly WallItem[] = [
     caption: "a flower projection room somewhere in tokyo",
     aspectRatio: 0.75,
     placement: {
-      wide: { x: 62, y: 12, size: 16.5, rotation: -1.8 },
-      narrow: { x: 46, size: 62, rotation: -1.8 },
+      /* Right edge at 65%, not 74%. The dock moved to the bottom-RIGHT when the
+         wall's writing went left, and 74% put the photograph's right edge
+         behind it — at 1024 the dock's left edge is 670px and the photo's right
+         edge was 733. Behind frosted glass a photograph is just a blur, which
+         is the worst thing that can happen to the one item carrying colour.
+         65 clears at 1024 and at 1440. Same fixed-pixel-versus-percentage trap
+         as the blurb: the dock is 322px wide at every width, the wall is not. */
+      wide: { x: 65, y: 11, size: 16.5, rotation: -1.8, align: "right" },
+      narrow: { x: 78, size: 62, rotation: -1.8, align: "right" },
     },
   },
 
@@ -166,8 +173,8 @@ export const wallItems: readonly WallItem[] = [
          text-bearing wants to stay right of ~48. The alternatives are docking
          the player bottom-right, or reserving the column — both are the lead's
          call, not an authoring workaround. */
-      wide: { x: 48, y: 52, size: 26 },
-      narrow: { x: 50, size: 92, lead: "loose" },
+      wide: { x: 12, y: 35, size: 26, align: "left" },
+      narrow: { x: 2, size: 92, align: "left", lead: "normal" },
     },
   },
 
@@ -191,8 +198,8 @@ export const wallItems: readonly WallItem[] = [
     note: "Placeholder note — one line about why this is worth going to.",
     domain: "example.com",
     placement: {
-      wide: { x: 70, y: 80, size: 24 },
-      narrow: { x: 52, size: 84, lead: "loose" },
+      wide: { x: 19, y: 60, size: 24, align: "left" },
+      narrow: { x: 10, size: 84, align: "left", lead: "normal" },
     },
   },
 
@@ -215,8 +222,14 @@ export const wallItems: readonly WallItem[] = [
     src: "wall/charm-placeholder.svg",
     aspectRatio: 1,
     placement: {
-      wide: { x: 50.5, y: 22.5, size: 3.2, rotation: -9 },
-      narrow: { x: 30, size: 13, rotation: -9, lead: "loose" },
+      /* Left of the photograph, level with its upper half — NOT below it.
+         At y 20.5 it landed on top of the caption's first line, which is the
+         one collision a mark this small can cause and the hardest to see in
+         source: the charm is 3.2% wide and the caption is the only thing near
+         it. Beside the picture it still reads as "arranged near that", which is
+         the whole reason it is not out in open space. */
+      wide: { x: 40, y: 8, size: 3.2, rotation: -9, align: "left" },
+      narrow: { x: 62, size: 13, rotation: -9, align: "left", lead: "tight" },
     },
   },
 ];

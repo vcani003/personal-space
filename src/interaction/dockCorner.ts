@@ -46,7 +46,19 @@ export type DockCorner = "top-start" | "top-end" | "bottom-start" | "bottom-end"
  * storage is unavailable, full, or holding something that fails validation.
  * Chosen by measurement — see the header of PlayerDock.module.css.
  */
-export const DEFAULT_DOCK_CORNER: DockCorner = "bottom-start";
+/**
+ * Bottom RIGHT, changed from bottom-left when the wall gained an alignment.
+ *
+ * The original choice was measured against the MVP 1 composition, which put
+ * its big moments on the right — so a left dock covered the least. The wall
+ * inverted that: its writing is left-anchored, so the left column is now where
+ * the content lives and a left dock sits permanently on top of it. The blurb
+ * had 35px of every line behind the player before this moved.
+ *
+ * Still a default rather than a rule — it can be dragged to any corner and the
+ * choice is remembered.
+ */
+export const DEFAULT_DOCK_CORNER: DockCorner = "bottom-end";
 
 const CORNERS: readonly string[] = [
   "top-start",

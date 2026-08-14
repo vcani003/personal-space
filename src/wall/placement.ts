@@ -1,6 +1,7 @@
 import type { StyleVars } from "../lib/vars";
 import type { Offset } from "./overrides";
 import type {
+  WallAlign,
   WallDepth,
   WallPlacement,
   WallPlacementNarrow,
@@ -60,6 +61,23 @@ const inlineSize = (size: number | undefined): string =>
 
 const percent = (value: number): string => `${value}%`;
 
+/**
+ * The horizontal half of the anchor, as a translate.
+ *
+ * `x` positions the item's box; this pulls it back so that `x` names the edge
+ * the author meant. Left anchoring pulls back nothing, which is why a column of
+ * left-anchored items shares one edge no matter how wide each one is.
+ */
+const ANCHOR_X: Record<WallAlign, string> = {
+  left: "0%",
+  center: "-50%",
+  right: "-100%",
+};
+
+const anchorX = (align: WallAlign | undefined): string =>
+  ANCHOR_X[align ?? "left"];
+
+
 const degrees = (value: number | undefined): string => `${value ?? 0}deg`;
 
 const depth = (value: WallDepth | undefined): string =>
@@ -68,6 +86,7 @@ const depth = (value: WallDepth | undefined): string =>
 function wideVars(placement: WallPlacement): StyleVars {
   return {
     "--wall-x": percent(placement.x),
+    "--wall-anchor-x": anchorX(placement.align),
     "--wall-y": percent(placement.y),
     "--wall-inline-size": inlineSize(placement.size),
     "--wall-rotation": degrees(placement.rotation),
@@ -79,6 +98,7 @@ function wideVars(placement: WallPlacement): StyleVars {
 function narrowVars(placement: WallPlacementNarrow): StyleVars {
   return {
     "--wall-nx": percent(placement.x),
+    "--wall-nanchor-x": anchorX(placement.align),
     "--wall-ninline-size": inlineSize(placement.size),
     "--wall-nrotation": degrees(placement.rotation),
     "--wall-ndepth": depth(placement.depth),

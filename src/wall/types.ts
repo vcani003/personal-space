@@ -57,11 +57,29 @@ export type WallDepth = "back" | "base" | "front";
  * about the centre anyway, and a centre anchor means an item does not drift
  * sideways when its size changes or its caption grows a line.
  */
+/**
+ * Which edge of the item `x` refers to.
+ *
+ * The wall was centre-anchored throughout, which is right for objects that are
+ * scattered and wrong for anything meant to line up: two centred items of
+ * different widths at the same `x` do NOT share an edge, so a rail is
+ * impossible to author. With an anchor, `x` means the item's left edge, its
+ * right edge, or its centre — and a column of left-anchored items agrees down
+ * one side however wide each one is.
+ *
+ * `left` is the working default because most of this wall is writing, and
+ * writing reads down a left edge.
+ */
+export type WallAlign = "left" | "center" | "right";
+
 export interface WallPlacement {
-  /** 0–100. The item's centre, as a percentage of the wall's inline size. */
+  /** 0–100. The item's ANCHORED EDGE, as a percentage of the wall's inline
+   *  size — which edge that is depends on `align`. */
   readonly x: number;
   /** 0–100. The item's centre, as a percentage of the wall's block size. */
   readonly y: number;
+  /** Which edge `x` names. Default `left`. */
+  readonly align?: WallAlign;
   /**
    * 0–100. Inline size as a percentage of the wall's inline size.
    * Omitted means intrinsic — the item is as wide as its own content wants to
@@ -96,8 +114,11 @@ export interface WallPlacement {
  * a phone should mostly not have anyway.
  */
 export interface WallPlacementNarrow {
-  /** 0–100. The item's centre, as a percentage of the wall's inline size. */
+  /** 0–100. The item's ANCHORED EDGE, as a percentage of the wall's inline
+   *  size. See `align`. */
   readonly x: number;
+  /** Which edge `x` names. Default `left`. */
+  readonly align?: WallAlign;
   /** 0–100. Percentage of the wall's inline size. Omitted means intrinsic. */
   readonly size?: number;
   readonly rotation?: number;

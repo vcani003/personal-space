@@ -23,6 +23,7 @@
   --rotation: var(--wall-rotation);
   --depth: var(--wall-depth);
   --z: var(--wall-z);
+  --anchor-x: var(--wall-anchor-x, 0%);
 
   /* The visitor's remembered displacement. Zero is the normal state. */
   --offset-x: var(--wall-offset-x, 0px);
@@ -33,14 +34,20 @@
   inset-block-start: var(--y);
   inline-size: var(--inline-size);
 
-  /* THE ANCHOR IS THE ITEM'S CENTRE. `translate: -50% -50%` is what makes
-     `x: 62, y: 28` mean "this artifact's middle is there" rather than "its top
-     left corner is there" — so an item does not crawl sideways when its caption
-     grows a line, and so rotation happens about the point that was authored.
+  /* THE ANCHOR. Vertically it is always the item's centre, so an artifact does
+     not crawl upward when its caption grows a line and so rotation happens
+     about the authored point.
+
+     HORIZONTALLY it is the authored edge — `--anchor-x` is 0%, -50% or -100%
+     for left, centre and right. The wall was centre-anchored throughout, which
+     is right for things that are scattered and wrong for anything meant to line
+     up: two centred items of different widths at the same `x` do not share an
+     edge, so a rail could not be authored at all. Left-anchored, a column of
+     items agrees down one side however wide each one is.
 
      The visitor's offset is folded into the same property rather than given its
      own transform, so an authored anchor and a nudge can never fight. */
-  translate: calc(-50% + var(--offset-x)) calc(-50% + var(--offset-y));
+  translate: calc(var(--anchor-x) + var(--offset-x)) calc(-50% + var(--offset-y));
   rotate: var(--rotation);
 
   /* Depth band + ordering within it. Both are data; the bands are token
@@ -65,6 +72,7 @@
     --rotation: var(--wall-nrotation);
     --depth: var(--wall-ndepth);
     --z: var(--wall-nz);
+    --anchor-x: var(--wall-nanchor-x, 0%);
 
     /* Remembered positions are a wide-composition affordance. A vertical offset
        inside a flow column pushes an artifact into its neighbour, and a
@@ -76,13 +84,13 @@
     position: relative;
     inset: auto;
 
-    /* Same meaning as the wide composition — x is the CENTRE — reached a
-       different way. The margin puts the item's leading edge at x% of the wall;
-       the translate pulls it back by half its own width. Works whether the
-       width was authored or is intrinsic, which the absolute version's
-       percentage arithmetic would not have. */
+    /* Same meaning as the wide composition, reached a different way. The
+       margin puts the item's leading edge at x% of the wall; the translate
+       pulls it back to whichever edge `align` named. Works whether the width
+       was authored or is intrinsic, which the absolute version's percentage
+       arithmetic would not have. */
     margin-inline-start: var(--x);
-    translate: -50% 0;
+    translate: var(--anchor-x) 0;
 
     margin-block-start: var(--lead, var(--space-xl));
 
