@@ -27,7 +27,10 @@
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--space-md);
-  row-gap: var(--space-2xl);
+  /* 84px between rows, down from 136. With the duplicate margin on
+     `.composition` gone this is the ONLY thing separating the name from the
+     wall, so it is now a composition decision rather than a default. */
+  row-gap: var(--space-xl);
 
   max-inline-size: var(--page-max-width);
   margin-inline: auto;

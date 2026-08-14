@@ -90,7 +90,7 @@ import type { WallItem } from "../wall";
  *  growing is the correct answer to a crowded composition; artifacts growing to
  *  fill emptiness is not. Every `y` below is a percentage of this number, so the
  *  whole composition rescales when it changes. */
-export const wallSpan = 1.6;
+export const wallSpan = 1.25;
 
 /* =============================================================================
    THE COMPOSITION — four artifacts, three loose zones, one crescendo
@@ -232,7 +232,7 @@ export const wallItems: readonly WallItem[] = [
     caption: "a flower projection room somewhere in tokyo",
     aspectRatio: 0.75,
     placement: {
-      wide: { x: 14, y: 30, size: 23, rotation: -1.8, align: "left" },
+      wide: { x: 14, y: 16, size: 23, rotation: -1.8, align: "left" },
       /* THE PHONE IS WHERE THIS PHOTOGRAPH IS MOST LEGIBLE, and that is on
          purpose rather than by accident. 70% of a 326px wall is 228px on a 390px
          screen — 58% of the display, against 23% of the wall on a desktop. There
@@ -282,7 +282,7 @@ export const wallItems: readonly WallItem[] = [
     src: "wall/charm-placeholder.svg",
     aspectRatio: 1,
     placement: {
-      wide: { x: 68, y: 8, size: 5.2, rotation: -9, align: "left" },
+      wide: { x: 68, y: 5, size: 5.2, rotation: -9, align: "left" },
       /* THE PHONE PUTS IT BACK BESIDE THE PHOTOGRAPH, and that is not an
          inconsistency with the wide composition, it is what "mobile is a
          different composition" means. A column has no lateral emptiness, so a
@@ -331,7 +331,7 @@ export const wallItems: readonly WallItem[] = [
     source: "Placeholder",
     emphasis: "normal",
     placement: {
-      wide: { x: 3, y: 85, size: 58, align: "left" },
+      wide: { x: 3, y: 72, size: 58, align: "left" },
       narrow: { x: 3, size: 94, align: "left", lead: "loose" },
     },
   },
@@ -373,7 +373,7 @@ export const wallItems: readonly WallItem[] = [
     note: "Placeholder note — one line about why this is worth going to.",
     domain: "example.com",
     placement: {
-      wide: { x: 46, y: 62, size: 48, align: "left" },
+      wide: { x: 46, y: 46, size: 48, align: "left" },
       narrow: { x: 12, size: 84, align: "left", lead: "tight" },
     },
   },

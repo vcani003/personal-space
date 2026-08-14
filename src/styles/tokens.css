@@ -454,7 +454,11 @@
   /* Page frame. The composition is asymmetric by intent, so the gutters are
      separate tokens rather than one symmetric value. */
   --page-gutter-inline: var(--space-lg);
-  --page-gutter-block: var(--space-2xl);
+  /* 84px, down from 136. The masthead does not need a third of a screen above
+     it: this is a wall, and the first artifact competing with the name for the
+     opening view is the point of the composition rather than a crowding
+     problem. */
+  --page-gutter-block: var(--space-xl);
   --page-max-width: 1440px;
   --measure: 56ch;   /* Eiko Thin at 19px — narrower than a sans would want */
 
