@@ -150,14 +150,17 @@ const RIPPLE_LIFETIME_MS = 800;
  * dock's own `CONTROL_SELECTOR` carries, so a scrubber added to the player later
  * is covered before it exists.
  *
- * `section[aria-label]` is the PLAYER, and it is the one entry here that is a
- * guess about somebody else's markup. The dock is a plain `<div>` with no
- * attributes at all on a narrow viewport, so there is nothing else stable to
- * match on, and a tap on the player's chassis must not ripple: the player is an
- * object resting on the surface, not part of it. The intended long-term hook is
- * `[data-no-ripple]`, which is listed first and matches nothing today — see the
- * report; adding that one attribute to the dock is a change in `src/player/`,
- * which this agent does not own.
+ * `[data-no-ripple]` USED TO MATCH NOTHING and was listed first as a proposal.
+ * It is now the real hook and the only thing keeping the player out: `PlayerDock`
+ * declares it on its chassis, and the wall's `Embed` shell declares it too, so
+ * moving the player into the wall changes nothing here. Underneath it there was
+ * a guess — `section[aria-label]`, which is what the player's inner region
+ * happens to be — and that guess has been DELETED. It was the one entry in this
+ * list that reached into somebody else's markup, `PlayerDock`'s own comment
+ * calls it "deletable", and left in place it would eventually have silenced a
+ * labelled section on the wall for no reason anyone could find. Checked before
+ * removing it: the only `section[aria-label]` in the document at either
+ * breakpoint is the player's, and it is inside `[data-no-ripple]`.
  */
 const NOT_THE_SURFACE = [
   "[data-no-ripple]",
@@ -174,7 +177,6 @@ const NOT_THE_SURFACE = [
   '[role="slider"]',
   '[role="group"]',
   '[tabindex]:not([tabindex="-1"])',
-  "section[aria-label]",
 ].join(",");
 
 interface Ripple {

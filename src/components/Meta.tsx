@@ -30,6 +30,20 @@ type MetaProps = {
   className?: string;
   /** For `aria-labelledby` wiring when this label names a section. */
   id?: string;
+  /**
+   * The click-ripple's stable hook — see `interaction/textSplit.ts`.
+   *
+   * Wall renderers mark their text leaves with the typographic REGISTER, which
+   * is what the ripple's displacement amplitude is a function of. Without this
+   * passthrough every date, location, source and domain on the wall sits
+   * perfectly still while the copy beside it moves, which reads as a bug
+   * rather than as restraint.
+   *
+   * Opt-in rather than automatic: this component is also used outside the
+   * wall, where the surrounding text is not split and a lone moving label
+   * would be worse than a still one.
+   */
+  dataText?: "display" | "body" | "meta";
 };
 
 export function Meta({
@@ -40,10 +54,12 @@ export function Meta({
   as: Tag = "p",
   className,
   id,
+  dataText,
 }: MetaProps) {
   return (
     <Tag
       id={id}
+      data-text={dataText}
       className={[
         styles.meta,
         size === "sm" && styles.sm,

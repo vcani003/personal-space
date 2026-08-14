@@ -11,9 +11,11 @@ import styles from "./TextField.module.css";
 
    ── Why this is done here rather than in the components ─────────────────────
 
-   Every line of text on this page lives in `src/components` and `Home.tsx`,
-   which this layer does not own. It could have been solved by exporting a
-   `<SplitText>` component and threading it through nine files. It should not
+   Every line of text on this page lives in `src/components`, `src/wall` and
+   `Home.tsx`, none of which this layer owns. It could have been solved by
+   exporting a `<SplitText>` component and threading it through nine files —
+   which would now be eleven, and would have to be threaded again for every new
+   wall renderer, which is its own argument. It should not
    be, for three reasons that would still hold if the ownership boundary went
    away tomorrow:
 
@@ -31,15 +33,49 @@ import styles from "./TextField.module.css";
      3. THE SERVER-RENDERED / NO-JS PAGE STAYS CLEAN. Nothing about the document
         the browser first parses knows this feature exists.
 
-   The cost of that choice is honest and is named here: this file reaches into
-   markup it does not own using STRUCTURAL SELECTORS (`main article > h3 ~ p`),
-   which are a contract with components that are free to change. Two mitigations
-   — the table below is the single place that contract lives, and every row is
-   allowed to match nothing, so a component reshuffle degrades to "that
-   paragraph stopped rippling" rather than to an exception. The long-term hook
-   is a `data-` attribute authored on the elements themselves, exactly as
-   `Ripple.tsx` already proposes `[data-no-ripple]` for the player; adding it is
-   a change in files this agent does not own.
+   The cost of that choice used to be paid in STRUCTURAL SELECTORS. This file
+   reached into markup it does not own with things like `main article > h3 ~ p`,
+   which are a contract with components that are free to change — and MVP 2
+   changed them. The homepage became `Identity / Navigation / <Wall> / closing
+   line`; seven of the nine rows in the table below stopped matching anything,
+   nothing threw, and the page's words simply stopped moving. That silence is
+   the failure mode structural selectors have, and the mitigation that every row
+   may match nothing is what turned a crash into a feature quietly switching
+   itself off.
+
+   ── The hook that replaced them ─────────────────────────────────────────────
+
+   The wall authors one, deliberately, for this file — `docs/wall-architecture.md`
+   §8. Every text leaf inside a wall renderer carries
+
+       data-text="display" | "body" | "meta"
+
+   which is the typographic REGISTER, and the register is precisely what the
+   amplitude column below is already a function of: "everything moves by about
+   the same fraction of itself". So three rows of REGISTER replace seven rows of
+   STRUCTURE, and the wall can be reordered, recomposed, refilled and restyled
+   without this file being told. Adding a sixth item type does not touch it
+   either — a new renderer marks its own leaves and is already covered.
+
+   Two rules the renderers guarantee, and which this file is therefore allowed
+   to rely on:
+
+     1. `data-text` is always on the LEAF that owns the text, never on a
+        container holding another one — so nothing can be split twice. Trusted,
+        but not on trust alone: `splitPageText` refuses any element that
+        contains or is contained by one it has already taken, because the two
+        rows that are NOT part of that contract (`main h1`, `main > p`) live
+        outside the wall and could one day be given an ancestor that is.
+     2. `data-text` is never inside an `<a>`. This is why a `Link`'s title is
+        marked on its wrapping `<h3>`: the row matches, the walker refuses to
+        enter the anchor, and the title yields no pieces. That is the intended
+        outcome and not an oversight — see rule 3 below.
+
+   Two rows are still structural, and both name things that are OUTSIDE the wall
+   and are not artifacts: the page's only `h1`, and its only direct child
+   paragraph. They are the smallest structural surface the file can have while
+   the identity block and the closing line remain outside the composition, and
+   they are still allowed to match nothing.
 
    ── Mutating React's DOM, and why it is safe HERE ───────────────────────────
 
@@ -47,9 +83,26 @@ import styles from "./TextField.module.css";
    its back is normally a bug: if React later updates that text, it writes to a
    node that is no longer in the document and the change silently does not
    appear. It is safe here because every string this file touches is STATIC —
-   authored in `content/posts.ts`, rendered once, never re-rendered. The only
-   stateful thing anywhere near it is `ImageEntry`'s missing-file fallback,
-   which removes an `<img>` inside a `<div>` this file never enters.
+   authored in `content/posts.ts` and `content/wall.ts`, both frozen literals in
+   a module.
+
+   The wall made that claim worth re-checking rather than inheriting, because it
+   introduced a component that DOES re-render around split text: `WallImage`
+   swaps its `<img>` for an empty `<div>` when the file is missing, which
+   re-renders the whole `Memory` — including the `<p data-text="body">` whose
+   text node this file has replaced. It is still safe, and the reason is exact:
+   React writes to a text node only when the STRING changes, and `item.caption`
+   is a literal in a frozen module, so reconciliation finds the child unchanged
+   and touches nothing.
+
+   Tested rather than reasoned about, because that is how the last two mistakes
+   in this file were found. Every `<img>` on the wall was pointed at a URL that
+   does not exist; the fallback `<div>` replaced it and the caption came through
+   the re-render as the same `<p>` node, the same seven `<span>`s, the same 43
+   characters, and still displaced 2.6px under a click and returned to zero.
+
+   What WOULD break it is a wall renderer that interpolates state into marked
+   text. There is none, and there should not be one.
 
    The restore path is what keeps that from rotting. `restore()` puts back the
    ORIGINAL `Text` node objects — not equivalent copies — so after a round trip
@@ -67,8 +120,11 @@ import styles from "./TextField.module.css";
    2. NOTHING GAINS AN ATTRIBUTE. No `aria-hidden`, no `aria-label`, no `role`,
       no `tabindex`, no `data-`, no inline style until a wave actually moves the
       piece. The accessible name of every element is the concatenation of its
-      text, that string is unchanged, and it was checked: 22 named nodes and
-      1230 characters of reading order, identical before and after. The
+      text, that string is unchanged, and it was checked: on the MVP 1 page, 22
+      named nodes and 1230 characters of reading order, identical before and
+      after. Re-checked on the wall page by toggling the preference around the
+      split — `main.textContent` is 586 characters split and unsplit, and every
+      block box on the page is at the same y to four decimal places. The
       alternative — `aria-label` on the parent and `aria-hidden` on the pieces,
       as most splitting libraries do — is only valid on elements that support
       naming, which `<p>` does not, and it replaces real text content with an
@@ -90,7 +146,8 @@ import styles from "./TextField.module.css";
 const WORD_CLASS = styles.word ?? "";
 
 interface SplitRow {
-  /** A structural selector, resolved against the document once, at mount. */
+  /** Resolved against the document once, at mount. Prefer `[data-text]`; a
+   *  structural selector is a last resort and must be able to match nothing. */
   readonly selector: string;
   /**
    * Peak displacement in px, before the wave's own falloff — which takes about
@@ -174,50 +231,33 @@ interface SplitRow {
    ========================================================================== */
 
 const SPLIT_TABLE: readonly SplitRow[] = [
+  /* --- OUTSIDE THE WALL. Structural, and knowingly so. ---------------------- */
   {
     selector: "main h1",
     amplitude: 8,
-    note: "The name. 80px, and the first thing anyone looks at.",
-  },
-  {
-    selector: "main article > h3",
-    amplitude: 5.5,
-    note: "A journal title. The link titles are also h3 and hold nothing but an anchor, so they match this row and yield no pieces.",
-  },
-  {
-    selector: "main blockquote p",
-    amplitude: 7,
-    note: "The quote. 56px and surrounded by emptiness — the page's one event.",
-  },
-  {
-    selector: "main h2",
-    amplitude: 3.5,
-    note: "Section labels. 11px tracked metadata; small type, small travel.",
+    note: "The name. 80px, the page's only h1, and the first thing anyone looks at. Not an artifact and never on the wall, so it has no register to be marked with.",
   },
   {
     selector: "main > p",
     amplitude: 4,
-    note: "The closing line. The last thing on the page, and the only italic on the site.",
+    note: "The closing line. Still the only direct paragraph child of <main> — the wall's own paragraphs are four levels deeper. If it ever becomes a blurb it will match nothing here and be picked up by the body row below at the same amplitude, which is why that is a safe thing for the lead to decide later.",
+  },
+
+  /* --- THE WALL. Register, not structure. See the header. ------------------- */
+  {
+    selector: 'main [data-text="display"]',
+    amplitude: 7,
+    note: "The display register: a featured blurb, a link's title. Large type surrounded by emptiness — this is where the disturbance is actually seen. A link title holds nothing but an anchor, so it matches and yields no pieces.",
   },
   {
-    selector: "main section > div > p",
+    selector: 'main [data-text="body"]',
     amplitude: 4,
-    note: "The about copy.",
+    note: "Reading copy: a blurb's paragraphs, a memory's caption and annotation, a link's note.",
   },
   {
-    selector: "main article > div > p",
-    amplitude: 4,
-    note: "Journal prose.",
-  },
-  {
-    selector: "main article > h3 ~ p",
-    amplitude: 4,
-    note: "A link's description. The sibling combinator is what excludes the metadata line, which sits BEFORE the title.",
-  },
-  {
-    selector: "main figcaption > p",
-    amplitude: 4,
-    note: "A photograph's caption. Filtered below, because a quote's attribution is also a figcaption paragraph and belongs to the metadata register.",
+    selector: 'main [data-text="meta"]',
+    amplitude: 3.5,
+    note: "Metadata. 10–11px tracked Instrument Sans; small type, small travel. MATCHES NOTHING TODAY — <Meta> cannot carry the attribute yet (wall-architecture §9.4), and the row is here so that the day it can, this file needs no edit.",
   },
 ];
 
@@ -272,13 +312,12 @@ export interface TextField {
 export function splitPageText(): TextField {
   const particles: Particle[] = [];
   const seams: Seam[] = [];
-  const claimed = new Set<Element>();
+  const claimed: HTMLElement[] = [];
 
   for (const row of SPLIT_TABLE) {
     for (const element of document.querySelectorAll<HTMLElement>(row.selector)) {
-      if (claimed.has(element)) continue;
-      if (!eligible(element)) continue;
-      claimed.add(element);
+      if (overlaps(claimed, element)) continue;
+      claimed.push(element);
 
       for (const text of textNodesOf(element)) {
         splitTextNode(text, row.amplitude, particles, seams);
@@ -298,17 +337,30 @@ export function splitPageText(): TextField {
 }
 
 /**
- * The one exception the table cannot express as a selector.
+ * Has this element already been taken, or does it sit on either side of
+ * something that has?
  *
- * `figcaption > p` is a photograph's caption in one place and a quote's
- * attribution in another, and the second is metadata — 10px, dim, deliberately
- * almost gone. Nothing about the two elements differs except what they are
- * inside, so the test is what they are inside. (`figure:not(:has(blockquote))`
- * would say the same thing in the selector; this says it in a sentence.)
+ * Splitting the same text twice is the one way this file can produce genuinely
+ * wrong output rather than merely less output: the second pass would find the
+ * first pass's `<span>`s, wrap each of them again, and register a second
+ * particle for the same word at a different amplitude — so the word would be
+ * pushed by two waves that disagree, and the restore path would put back a text
+ * node whose pieces are no longer siblings.
+ *
+ * The wall's contract already forbids nesting `data-text` (see the header) and
+ * the register rows cannot collide with each other. This guards the case the
+ * contract does not cover: `main h1` and `main > p` are outside the wall, and
+ * neither the identity block nor the closing line is bound by it. Three lines
+ * and one pass over a list that never exceeds a few dozen entries, once, at
+ * mount.
+ *
+ * `contains` returns true for the element itself, so the exact-duplicate case —
+ * two rows matching the same element — falls out of the same test.
  */
-function eligible(element: HTMLElement): boolean {
-  if (element.closest("figcaption") === null) return true;
-  return element.closest("figure")?.querySelector("blockquote") == null;
+function overlaps(claimed: readonly HTMLElement[], element: HTMLElement): boolean {
+  return claimed.some(
+    (other) => other.contains(element) || element.contains(other),
+  );
 }
 
 /**

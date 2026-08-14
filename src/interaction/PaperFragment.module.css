@@ -456,9 +456,14 @@
    foreground object cannot share a column, and the writing wins that argument
    every time.
 
-   It has moved into the page's own gutter — the gap between the end of the
-   about section and the `01 / Journal` label — and the anchor lives in
-   `placement.ts`, where the measurement that chose it is written down.
+   IT HAPPENED A SECOND TIME when the homepage became a wall: the gutter the
+   anchor named stopped existing, the measurement stopped resolving, and the
+   fallback percentage put the sheet across the first memory's caption — `a
+   flower projection`, at y 699.5 under a box running to y 718.4.
+
+   So it lives in whatever the page's LAST structural gutter is — 220px between
+   the bottom of the wall and the closing line — and the anchor lives in
+   `placement.ts`, where both measurements and the reasoning are written down.
 
    It is also SMALLER here, and the reason is not the screen: it is the gap. The
    object now has to fit inside 220px of vertical emptiness with room left over
