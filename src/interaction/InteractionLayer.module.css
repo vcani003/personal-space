@@ -57,73 +57,9 @@
   }
 }
 
-/* ---------------------------------------------------------------------------
-   DISCOVERY ONE — the mark that was always there
-   -----------------------------------------------------------------------------
-   A faint ring on the background, under the paper, at the same anchor. Move the
-   paper and it is simply there.
-
-   THE RULE THIS ELEMENT EXISTS TO OBEY: it must not animate, ever. No
-   transition, no fade, no delay, no keyframes, no `data-` state, and nothing in
-   JavaScript that can reach it — it is not even rendered by the paper's
-   component, so there is no seam where someone could later attach a reveal to
-   it. Anything that arrives *because* the paper left reads as a trick. A thing
-   that was under the paper the whole time reads as the page having a history,
-   which is the only reason to build it.
-
-   It is a ring, not a symbol: the trace of something round that stood here once
-   and has been moved. Elliptical, uneven, and masked so one side of it is
-   nearly gone, because a perfect circle reads as drawn and a stain reads as
-   left. `--color-foreground-ghost` is the token's decoration-only step — 2:1,
-   below text contrast on purpose, because this is a mark and not a message.
-
-   It is given `--parallax-far`, the travel of the most distant depth, so it
-   belongs to the background it is drawn on rather than to the object that was
-   covering it.
-   ------------------------------------------------------------------------ */
-
-.mark {
-  position: absolute;
-  inset-block-start: var(--object-y);
-  inset-inline-start: var(--object-x);
-
-  inline-size: 54px;
-  block-size: 54px;
-  margin-block-start: -27px;
-  margin-inline-start: -27px;
-
-  /* NO BORDER. A 1px ring is a drawn circle and reads as a control — the first
-     version of this looked like a button someone had left in the margin. The
-     ring is a soft radial band with no hard edge anywhere in it, which is what
-     a dried tide line actually is, and it is dim enough to be uncertain.
-     `--color-foreground-ghost` is the token set's decoration-only step: 2:1,
-     below text contrast on purpose, because this is a mark and not a message. */
-  background-image: radial-gradient(
-    circle closest-side,
-    rgb(from var(--color-foreground-ghost) r g b / 0) 0%,
-    rgb(from var(--color-foreground-ghost) r g b / 0) 58%,
-    rgb(from var(--color-foreground-ghost) r g b / 0.28) 76%,
-    rgb(from var(--color-foreground-ghost) r g b / 0.16) 88%,
-    rgb(from var(--color-foreground-ghost) r g b / 0) 100%
-  );
-
-  /* Uneven, as a ring left by an object is: slightly elliptical, slightly off
-     axis, and thinning toward the lower right where it dried. */
-  rotate: -14deg;
-  scale: 1.08 0.9;
-  mask-image: linear-gradient(
-    118deg,
-    #000 26%,
-    rgb(0 0 0 / 0.4) 66%,
-    rgb(0 0 0 / 0.06) 100%
-  );
-
-  translate:
-    calc(var(--pointer-x, 0) * -1 * var(--parallax-far))
-    calc(var(--pointer-y, 0) * -1 * var(--parallax-far));
-
-  pointer-events: none;
-}
+/* The mark that used to sit under the paper fragment lived here. Both were
+   removed when the wall replaced the MVP 1 homepage — see the note in
+   InteractionLayer.tsx. */
 
 @media (max-width: 47.9375rem) {
   .mark {

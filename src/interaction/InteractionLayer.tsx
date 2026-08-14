@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { useMeasuredAnchor, usePageExtent } from "./hooks";
-import { PaperFragment } from "./PaperFragment";
 import { narrowGap, paperAnchor, starSecrets } from "./placement";
 import { RippleField } from "./Ripple";
 import { StarSecret } from "./StarSecret";
@@ -91,12 +90,21 @@ export function InteractionLayer() {
           It renders nothing at all when no ripple is on screen. */}
       <RippleField />
 
-      {/* DISCOVERY ONE. Rendered BEFORE the paper so the paper covers it,
-          and given no transition, no animation and no reveal of any kind —
-          it is not shown, it is uncovered. See the stylesheet. */}
-      <span className={styles.mark} aria-hidden="true" />
+      {/* REMOVED: the paper fragment and the mark it uncovered.
+          Both were composed against the MVP 1 homepage — a scrap of paper
+          dropped in the empty left margin of a twelve-column editorial page,
+          with a ring beneath it that a visitor found by moving it. The wall
+          replaced that page. The paper ended up floating in the wall's own
+          territory with no relationship to anything in it, reading as a fifth
+          artifact that happened to be blank, and it was the only skeuomorphic
+          surface left on a site whose stylesheets forbid panels four separate
+          times. The ring beneath it had nothing left to be under.
 
-      <PaperFragment />
+          Deleting them costs one of the two discoveries; the star secret
+          survives and is now the only one, which is closer to the brief's
+          scarcity rule than two were. `PaperFragment.tsx`, its stylesheet and
+          `useDraggableObject` all remain in the repo — the drag engine is what
+          a future draggable charm will use. */}
 
       {starSecrets.map((secret) => (
         <StarSecret key={secret.id} secret={secret} />
