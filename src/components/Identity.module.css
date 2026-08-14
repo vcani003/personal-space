@@ -21,6 +21,40 @@
    the large one. */
 .line {
   margin-block-start: calc(var(--space-2xs) * -1);
+
+  /* The charm and the handle are one line, and the charm sits on the type's
+     baseline rather than on the box — `baseline` alignment, not `center`,
+     because a drawing centred against an 11px line of uppercase looks like it
+     is floating slightly high. */
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+}
+
+/* THE PAOPU. Sized against the type it sits beside — `em` rather than pixels,
+   so it stays in proportion to the handle at every breakpoint without a second
+   rule anywhere.
+
+   NOTHING FILTERS IT. No tint, no grayscale, no opacity, no blend mode. It is
+   her drawing, not a piece of the interface, and the same prohibition the
+   wall's Charm renderer carries applies here: a charm dimmed to match the
+   palette is a charm with the reason it was kept removed. */
+.charm {
+  /* SIZED AGAINST THE LABEL IT SITS BESIDE, and stated in the label's own token
+     rather than in `em`. `em` here resolved against the WRAPPER's inherited
+     19px rather than the 11px metadata line, which made the drawing 46px — four
+     times the height of the type next to it, chosen by nobody. Three times the
+     label is a charm beside a handle; four times is a logo above a tagline.
+
+     THE ONE VALUE TO CHANGE if it wants to be bigger or smaller. */
+  inline-size: calc(var(--text-meta) * 3);
+  block-size: auto;
+  flex: none;
+
+  /* Nudged down so its visual mass sits with the baseline rather than its box —
+     a drawing whose subject floats in the middle of a transparent square reads
+     as high when its box is aligned. */
+  translate: 0 30%;
 }
 
 @media (max-width: 47.9375rem) {

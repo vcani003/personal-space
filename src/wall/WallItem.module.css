@@ -29,6 +29,88 @@
   --offset-x: var(--wall-offset-x, 0px);
   --offset-y: var(--wall-offset-y, 0px);
 
+  /* ==========================================================================
+     THE WALL'S MOTION CONTRACT — three values, declared once, INHERITED
+     --------------------------------------------------------------------------
+     A renderer may not set `position`, `inset`, `z-index`, `rotate` or
+     `translate`. It may, and must, read these — because the memory's expansion
+     happens on the PICTURE, which only its own module can select, while the
+     magnitude and the curve of that expansion are properties of the wall and
+     have to agree with the charm's.
+
+     They are declared here rather than in each renderer so that there is one
+     copy of each number. `.memory` and `.image` are descendants of `.item`, so
+     they inherit for free and nothing has to be passed.
+     ====================================================================== */
+
+  /* HOW FAR A VISUAL ARTIFACT COMES FORWARD. One dial for the whole wall, read
+     by the charm's shell here and by the photograph's picture in
+     `Memory.module.css`.
+
+     THE VALUE IS `--scale-lift` IN tokens.css AND IT IS 1.35, AND IT SHOULD BE
+     RAISED. The number that matters is not the multiplier, it is the pixel size
+     of the photograph at 1024 — the ONE width where the wall is at its
+     narrowest, 546px, because the rail is a fixed 322px that has not yet
+     relocated. Measured, all four widths, picture only:
+
+                      1440     1280     1024      390
+       at rest        221px    192px    131px    238px
+       × 1.35         298px    259px    177px      —      ← too small to look at
+       × 1.60         354px    307px    210px      —
+       × 1.75         387px    336px    229px      —      ← 1024 reaches the
+                                                            size the composition
+                                                            was judged at
+
+     1.75 IS AVAILABLE. It was measured rather than assumed, at every width,
+     against the wall's own clip and against every other artifact:
+
+       wall's left edge   the picture grows about its centre and the wall clips
+                          horizontally; the ceiling is s ≤ 2.10 and it is the
+                          same at all three widths, by coincidence of the
+                          composition.
+       the charm          horizontally disjoint by 289px at 1440 and 167px at
+                          1024, at any scale under 2.
+       the link           vertically disjoint by 160px at 1440 and 218px at 1024
+                          with the picture at 1.75 AND its caption displaced.
+       the blurb          490px clear at 1440, 390px at 1024.
+
+     So nothing on this wall has to move out of the way, at 1.35 or at 1.75.
+     THE OWNER'S PERMISSION TO DISPLACE — "for photo growing if it means all
+     other elements below need to shift, lets do that" — is therefore spent on
+     ONE element, the photograph's own caption, and on making the expansion
+     bigger. No item displaces another, because no item is in the way.
+
+     LEAD: raising this is a one-value change in `tokens.css`, which is yours.
+     It also applies to the charm — 57px → 100px at 1440, 33px → 57px at 1024,
+     which is the difference between a 28px line drawing being a smudge and
+     being a drawing. If the two want different magnitudes, this is the line to
+     split, not the token. */
+  --wall-lift: var(--scale-lift);
+
+  /* THE SWELL — see THE ARRIVAL below for the whole argument.
+     Written as a var() with a fallback so that the day `--ease-swell` is added
+     to tokens.css it takes over here with no edit. It is deliberately NOT a
+     second declaration of a value that belongs in the token layer.
+
+     LEAD: this wants to be `--ease-swell: cubic-bezier(0.34, 0.28, 0.36, 1.32)`
+     in tokens.css. It is a POLICY CHANGE in that file, not just a new value —
+     the easing block there currently reads "Nothing overshoots — the brief
+     forbids spring physics", and this curve overshoots by 6.1% of its travel,
+     once, monotonically. The distinction the brief is drawing is between a
+     SPRING (which oscillates: over, under, over) and a MEDIUM (which swells
+     past its rest state exactly once and settles). A cubic bézier cannot
+     oscillate — it crosses any horizontal line at most twice — so this shape is
+     structurally incapable of being the thing that is forbidden. That sentence
+     in tokens.css should be amended rather than deleted. */
+  --wall-ease-swell: var(--ease-swell, cubic-bezier(0.34, 0.28, 0.36, 1.32));
+
+  /* HOW FAR BEHIND THE PICTURE ITS CAPTION FOLLOWS. 60ms.
+     Derived from a duration token rather than authored, for the same reason the
+     haze derives its delays: it is a FRACTION of a response, not a duration in
+     its own right. It also means reduced motion collapses it to 0ms for free,
+     since --duration-response-fast already resolves to 0ms there. */
+  --wall-swell-lag: calc(var(--duration-response-fast) * 0.5);
+
   position: absolute;
   inset-inline-start: var(--x);
   inset-block-start: var(--y);
@@ -57,6 +139,250 @@
 }
 
 /* =============================================================================
+   AMBIENT DRIFT — the wall is a space, so the things on it float
+   =============================================================================
+
+   "gravity defying animation since the wall space is literaly a SPACE :)"
+                                                                    — the owner
+
+   THE RULE, and it is the composition's own rule extended one step:
+
+       OBJECTS ARE ASKEW. TEXT IS LEVEL.
+       OBJECTS FLOAT.     TEXT IS STILL.
+
+   `src/content/wall.ts` already turns the photograph and the charm a degree or
+   two and leaves the blurb and the link square, because the first two are
+   THINGS somebody hung and the last two are WRITING. Drift takes the same cut.
+   A charm adrift in a dark surface is the idea; a paragraph of hairline Eiko
+   sliding under someone who is reading it is worse than a still one, and no
+   amount of slowness fixes that — it is the wrong kind of thing to move.
+
+   So exactly two of the four artifacts drift, and they are the same two that
+   expand when you point at them. One distinction, two consequences, nothing
+   for a renderer to opt into.
+
+   ── WHY IT IS CSS AND NOT THE POINTER LOOP ──────────────────────────────────
+
+   There is exactly one requestAnimationFrame loop on this page and it lives in
+   `src/atmosphere/pointer.ts`. This is not in it, and must not be: a keyframe
+   animation on `transform` is handed to the compositor, costs the main thread
+   nothing at all after its first frame, cannot leak a handle, cannot be left
+   running by a missed cleanup, and keeps running correctly if the tab is
+   backgrounded and restored. The loop is for signals that depend on the
+   visitor. Nothing here does.
+
+   NO INTERSECTION OBSERVER, deliberately, and this is the one place the
+   atmosphere's own habit is not copied. The haze pauses off-screen because a
+   72px blur across a 740px box is the most expensive thing on the page. This is
+   two elements translating by under three pixels, with no filter, no blur and
+   no repaint — a compositor-only animation whose off-screen cost is already
+   nil. An observer would mean adding JavaScript and a lifecycle to a component
+   this file does not own, in exchange for nothing measurable.
+
+   ── THE MODEL ───────────────────────────────────────────────────────────────
+
+   Each drifting artifact walks a CLOSED, IRREGULAR, EIGHT-POINT LOOP, at
+   constant speed, forever. Three properties of that sentence are doing the
+   work:
+
+   CLOSED — the path returns exactly to (0,0), so the authored coordinate is
+     visited once every cycle and the composition is never permanently off its
+     own placement. Drift wanders around the authored point; it does not replace
+     it.
+
+   IRREGULAR — the eight waypoints are not on a circle and not on an ellipse.
+     A circular path has one period and the eye can learn it. A lopsided eddy
+     that is wide on one side and pinched on the other reads as being carried by
+     something rather than as an orbit. Both paths were authored by hand and
+     both are listed in full below.
+
+   CONSTANT SPEED — `linear`, and this is the load-bearing choice. The visual
+     system detects ACCELERATION far more readily than velocity, which is why
+     the obvious move (`--ease-drift` between waypoints, as the haze uses) is
+     wrong here: it would stop the object dead at every waypoint and swing it
+     between them, and those eight stops per cycle are eight events an eye can
+     catch. The haze can afford it because it is a shapeless mass behind a 72px
+     blur with no edge to track. A photograph has four hard edges. It gets to
+     move at one speed and never change it.
+
+   ── THE NUMBERS, AND THE ONE THAT ACTUALLY GOVERNS ──────────────────────────
+
+   The dial is not amplitude. IT IS SPEED. A three-pixel path is invisible at
+   0.3px/s and perfectly catchable at 3px/s, and amplitude only decides how far
+   the thing has got by the time you look back.
+
+   Threshold: a well-defined high-contrast edge becomes detectable as MOVING at
+   roughly 1–2 arcmin/s, which at a normal viewing distance is somewhere around
+   0.4–0.8px/s. Everything here is authored to sit under 0.30px/s, which is
+   below the bottom of that range with room to spare, and in the same country as
+   the haze's ~0.33px/s — a figure that file arrived at independently.
+
+   Path length is 4.34 units for A and 4.29 for B, so speed = 4.3 × amplitude
+   ÷ period:
+
+     charm    2.9px over 44s   →  0.286 px/s   ±5.1% of its own 57px width
+     memory   1.6px over 26s   →  0.267 px/s   ±0.7% of its own 221px width
+
+   THE CHARM DRIFTS MORE FREELY THAN THE PHOTOGRAPH, which is what was asked
+   for, and it is expressed as amplitude rather than as speed — it covers more
+   ground, it does not cover it faster. In its own terms it wanders across a
+   twentieth of itself; the photograph moves less than one percent of itself and
+   would be an approximation of its authored placement if it moved more.
+
+   Excursion from the authored point, worst case on each axis:
+
+     charm    2.5px right · 2.1px left · 2.8px up · 1.0px down
+     memory   1.4px right · 1.2px left · 1.5px up · 0.6px down
+
+   MEASURED CLEARANCES, so that "there is room" is not a claim. The smallest gap
+   between any two items that share any horizontal range, at each width:
+
+     1440   199px      1280   199px      1024   115px      390   45px
+
+   The two drifting artifacts are horizontally disjoint from everything at
+   every desktop width — the charm is 289px clear of the photograph at 1440 and
+   167px at 1024 — so on desktop the drift cannot close a gap at all. The 45px
+   figure is the narrow column, where the photograph and the charm do overlap
+   horizontally; there the two together can close 2.1px of it. See NARROW below.
+
+   ── WHY THEY CANNOT SYNCHRONISE ─────────────────────────────────────────────
+
+   Four independent reasons, which is three more than strictly needed, because
+   this is the failure that ruins the effect and it ruins it silently:
+
+     1. DIFFERENT PERIODS. 26s and 44s. Their least common multiple is 572s —
+        nine and a half minutes — so even the moment of coincidence is outside
+        any plausible visit. (14/26/44 are the tokens, and they are non-harmonic
+        by construction; tokens.css explains why 15/30/45 would be a disaster.)
+     2. DIFFERENT PATHS. A starts up-and-right and turns anticlockwise; B starts
+        down-and-left and turns clockwise. Even at t=0 they disagree.
+     3. DIFFERENT AMPLITUDES. 2.9px against 1.6px.
+     4. NEGATIVE DELAYS. Both start part-way through their own cycle, so nothing
+        begins from rest on first paint — an object that starts moving when a
+        page loads is an object you saw start moving.
+
+   LEAD / FUTURE AUTHOR: a SECOND memory or a SECOND charm would share its
+   type's period, path, amplitude AND phase, and two identical artifacts moving
+   in lockstep is exactly the unison this is built to avoid. There is no
+   selector that solves it generically — `nth-of-type` counts every item on the
+   wall, not every memory — so the honest fix at that point is a third character
+   below and an explicit assignment, or a `data-drift` attribute published from
+   the placement record. Do not skip it; two things breathing together is
+   immediately legible in a way one thing breathing is not.
+   ========================================================================== */
+
+.item[data-wall-item="memory"],
+.item[data-wall-item="charm"] {
+  animation-name: driftB;
+  animation-duration: var(--duration-atmosphere-slow);
+  animation-delay: calc(var(--duration-atmosphere-slow) * -0.73);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+
+  /* THE AMPLITUDE, in px, and the only per-item number.
+     `transform` is the one transform property the shell has not already spent:
+     `translate` carries the anchor plus the visitor's remembered offset,
+     `rotate` carries the authored angle, `scale` carries the charm's expansion.
+     The four compose in a fixed order — transform, then scale, then rotate,
+     then translate — so this can never fight any of them, and none of them has
+     to know it exists. */
+  --drift: 1.6px;
+}
+
+/* The charm takes the other character: further, slower, and the other way
+   round. See THE NUMBERS above for why it is the freer of the two. */
+.item[data-wall-item="charm"] {
+  animation-name: driftA;
+  animation-duration: var(--duration-atmosphere-slowest);
+  animation-delay: calc(var(--duration-atmosphere-slowest) * -0.41);
+  --drift: 2.9px;
+}
+
+/* PATH A — a lopsided eddy, wide to the right, pinched at the bottom.
+   Waypoint times are spaced by ARC LENGTH, not evenly: the eight segments are
+   different lengths, so evenly spaced times would make the long ones nearly
+   twice as fast as the short ones and `linear` would stop being constant speed.
+   Spaced this way the fastest segment is within 7% of the slowest. */
+@keyframes driftA {
+  0% {
+    transform: translate(0, 0);
+  }
+  13% {
+    transform: translate(calc(var(--drift) * 0.48), calc(var(--drift) * -0.26));
+  }
+  25% {
+    transform: translate(calc(var(--drift) * 0.86), calc(var(--drift) * -0.62));
+  }
+  34% {
+    transform: translate(calc(var(--drift) * 0.62), calc(var(--drift) * -0.95));
+  }
+  49% {
+    transform: translate(calc(var(--drift) * -0.04), calc(var(--drift) * -0.86));
+  }
+  64% {
+    transform: translate(calc(var(--drift) * -0.58), calc(var(--drift) * -0.5));
+  }
+  77% {
+    transform: translate(calc(var(--drift) * -0.72), calc(var(--drift) * 0.04));
+  }
+  87% {
+    transform: translate(calc(var(--drift) * -0.44), calc(var(--drift) * 0.36));
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* PATH B — the other way round the loop and a different shape, so that two
+   artifacts drifting at once are never doing the same thing at the same time
+   even if their periods were one day made equal by accident. Same arc-length
+   timing; fastest segment within 12% of the slowest. */
+@keyframes driftB {
+  0% {
+    transform: translate(0, 0);
+  }
+  13% {
+    transform: translate(calc(var(--drift) * -0.34), calc(var(--drift) * -0.42));
+  }
+  22% {
+    transform: translate(calc(var(--drift) * -0.72), calc(var(--drift) * -0.58));
+  }
+  33% {
+    transform: translate(calc(var(--drift) * -0.9), calc(var(--drift) * -0.14));
+  }
+  48% {
+    transform: translate(calc(var(--drift) * -0.62), calc(var(--drift) * 0.45));
+  }
+  63% {
+    transform: translate(calc(var(--drift) * -0.06), calc(var(--drift) * 0.7));
+  }
+  76% {
+    transform: translate(calc(var(--drift) * 0.48), calc(var(--drift) * 0.52));
+  }
+  85% {
+    transform: translate(calc(var(--drift) * 0.62), calc(var(--drift) * 0.16));
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* REDUCED MOTION KILLS THE DRIFT OUTRIGHT.
+   base.css already collapses every ambient animation on the page to 1ms and one
+   iteration, so this is belt and braces rather than the only defence — but this
+   is ambient decoration with no content in it whatsoever, and it should be
+   switched off by a rule somebody can find by searching this file rather than
+   by a global that happens to catch it. Both keyframes begin and end at
+   translate(0, 0), which is the authored placement, so removing the animation
+   removes the movement and changes nothing about where anything is. */
+@media (prefers-reduced-motion: reduce) {
+  .item[data-wall-item="memory"],
+  .item[data-wall-item="charm"] {
+    animation: none;
+  }
+}
+
+/* =============================================================================
    HOVER EXPANSION — the artifact comes forward, the page does not move
    =============================================================================
 
@@ -64,29 +390,40 @@
    a restrained fraction of it is 221px at 1440 and 126px at 1024. That is the
    right SIZE for the composition and the wrong size for LOOKING at a
    photograph. Pointing at one brings it forward far enough to read; letting go
-   puts it back. Nothing around it moves.
+   puts it back.
+
+   WHAT MOVES HAS CHANGED, AND IT IS THE POINT OF THIS REVISION. This rule used
+   to scale the whole SHELL, which meant the photograph's caption grew with it —
+   and a caption is an annotation written beside a picture, not part of the
+   picture. It is now the memory's own module that scales the PICTURE, reading
+   `--wall-lift` and `--wall-ease-swell` from the contract at the top of this
+   file, and displacing the caption downward by exactly the distance the
+   picture's lower edge travelled. See `Memory.module.css`. What is left here is
+   the charm, which is a single mark with nothing under it, and the z-index
+   lift, which no renderer is allowed to set.
 
    ── The five decisions, and why each one is the way it is ───────────────────
 
-   1. `scale`, NEVER width/height. A width change is layout: everything below
-      the photograph would slide down the page while you were reading it, which
-      is the precise opposite of "I want the page to flow". `scale` is a
-      compositor property and the document does not know it happened.
+   1. `scale`, NEVER width/height. A width change is layout, and the whole page
+      below the photograph would reflow while the pointer sat on it. `scale` is
+      a compositor property and the document does not know it happened.
+
+      THAT IS STILL TRUE NOW THAT THINGS DO MOVE OUT OF THE WAY. The owner asked
+      for the caption to shift and it does — but by `translate`, driven from the
+      same state, not by growing a box and letting the layout engine sort it
+      out. The distinction is the difference between an authored displacement of
+      one known element and an unbounded reflow of everything under it.
 
       It is the INDEPENDENT `scale` property rather than `transform`, because
       the shell already spends `translate` on the anchor + the visitor's
-      remembered offset and `rotate` on the authored angle. Those three compose
-      in a fixed order (translate → rotate → scale) without any of them having
-      to know about the others — so a future drag implementation can keep
-      writing `translate` per frame and this rule cannot fight it.
+      remembered offset, `rotate` on the authored angle, and now `transform` on
+      the ambient drift. All four compose in a fixed order (transform → scale →
+      rotate → translate) without any of them having to know about the others —
+      so a future drag implementation can keep writing `translate` per frame and
+      neither this rule nor the drift can fight it.
 
-   2. IT LIFTS IN Z. Without it an artifact expands UNDERNEATH its neighbours
-      and looks broken. `--layer-above` rather than an arithmetic bump past the
-      bands, because "above every band" is exactly what that token means and a
-      hovered artifact is briefly outside the depth model. It cannot escape the
-      wall: `Wall.module.css` sets `isolation: isolate`, so 100 here is local.
-      z-index is deliberately NOT in the transition — the lift must complete
-      before the growth starts, not halfway through it.
+   2. IT LIFTS IN Z, and a renderer may not do that. See the rule itself for the
+      measurement of how much it is currently buying.
 
    3. `transform-origin: 50% 50%` — CENTRE, AND IT IS LOAD-BEARING.
 
@@ -114,18 +451,66 @@
       selector on `data-wall-item` rather than a class, so this stays a decision
       about KINDS of artifact and no renderer has to opt in.
 
-   5. `prefers-reduced-motion` NEEDS NO BRANCH HERE. `--duration-response`
+      THE SAME REASONING IS NOW WHY THE CAPTION DOES NOT GROW. It is type, it
+      belongs to the register that does not scale, and the fact that it happens
+      to sit inside a `memory` rather than inside a `blurb` never made it a
+      picture.
+
+   5. `prefers-reduced-motion` NEEDS NO BRANCH HERE. `--duration-transition`
       already resolves to 0ms under that query in `tokens.css`, so the artifact
       still expands — becoming legible is content, not decoration — and simply
       arrives instantly. Adding a media query would be a second copy of a
-      decision the token layer has already made.
+      decision the token layer has already made. (The drift is different, and it
+      does get an explicit branch: it carries no content at all.)
+
+   ── THE ARRIVAL — a swell, and why it is not a bounce ───────────────────────
+
+   "maybe it should ripple or wave into a larger/smaller state" — the owner.
+
+   The old motion was 200ms of `--ease-out` on `scale`: a correct, characterless
+   resize. Three changes make it a swell, and each one is a separate idea.
+
+   ONE — IT OVERSHOOTS ONCE. `--wall-ease-swell` reaches full size at 58% of the
+   duration, keeps going to 6.1% past it at 78%, and settles back over the
+   remaining 22%. On the photograph at 1440 that is about 4px of extra bleed on
+   every edge at the peak. A SPRING oscillates — over, under, over, under — and
+   that is the thing the brief forbids and the thing that would look cheap here.
+   A MEDIUM swells past its rest state exactly once and comes back, which is the
+   shape `interaction/wave.ts` already draws as (1 − s²)² and the shape of every
+   push in `atmosphere/pointer.ts`. This is that character, expressed as an
+   easing curve. A cubic bézier is structurally incapable of oscillating.
+
+   TWO — IT ARRIVES GENTLY. The curve's initial slope is 0.82, i.e. slower than
+   linear for the first fifth of its life. The classic "back out" easing starts
+   at slope 4.6 and that initial snap is most of what reads as springiness. A
+   wavefront does not begin at full speed.
+
+   THREE — GOING AND COMING BACK ARE NOT THE SAME MOTION. 400ms out on the swell,
+   600ms back on `--ease-out`. This is the same asymmetry `pointer.ts` uses for
+   every displaced star — "prompt going out, reluctant coming back", 111ms
+   against 200ms there — and for the same reason: matched rates read as tracking
+   and a quick return reads as a snap. `--ease-out` is very front-loaded, so the
+   600ms return covers most of its distance in the first 150ms and then has a
+   long quiet tail. It feels prompt and looks reluctant.
+
+   Both durations are TRANSITION-band (250–600ms), which is the right band: this
+   is a state change that makes content legible, not a pointer response.
 
    ── Two things this deliberately does not do ────────────────────────────────
 
    NO OTHER HOVER TREATMENT. No glow, no shadow, no brightness, no cursor, no
    caption reveal. Design-review question 7: the wall already spends a pointer
    response on the link's underline, and two responses across four artifacts is
-   already at the edge of the interaction hierarchy.
+   already at the edge of the interaction hierarchy. The caption's displacement
+   is not a third response — it is the same one, arriving somewhere else.
+
+   NO ANISOTROPIC SWELL. The first draft had the picture's two axes reach their
+   final scale on different beats, so a bulge visibly crossed it — genuinely
+   more wave-like. It needs either an `@property` registration (a global at-rule
+   declared from a scoped module) or a wrapper element inside the figure, and it
+   buys a 2% difference between two axes over 400ms. The propagation delay
+   between the picture and its caption is the wave, it is spatial rather than
+   cosmetic, and it costs one line. Cut.
 
    NOT ON TOUCH, and not on narrow. `(hover: hover) and (pointer: fine)` keeps
    it off touch screens, where `:hover` latches after a tap and would leave a
@@ -138,53 +523,63 @@
    ========================================================================== */
 
 @media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
-  .item[data-wall-item="memory"],
+  /* THE CHARM ONLY. The memory's expansion moved to the picture inside it —
+     `Memory.module.css` — because the caption must not come with it. A charm
+     has no caption, no text and no parts, so scaling its shell IS scaling the
+     mark, and giving it a second element to scale would be structure invented
+     for symmetry. It reads the same two values, so the two artifacts still
+     behave identically. */
   .item[data-wall-item="charm"] {
-    /* THE MAGNITUDE, AND IT IS ONE DIAL.
-       Judge it on the Tokyo photograph, which is the only real image and
-       therefore the only real test.
-
-         1.00  off. The composition is unchanged and nothing else has to be
-               undone — this rule collapses to a no-op.
-         1.30  the restrained starting point.
-         1.35  as shipped.
-         1.50+ a lightbox. At that point the honest change is the BASE size, or
-               a real full-view interaction, not a bigger hover.
-
-       Why 1.35 rather than 1.30: at 1440 the photograph is 221px, so 1.30 buys
-       66px of width and 1.35 buys 77px. The subject's face is ~14% of the frame,
-       which puts it at 31px at rest, 40px at 1.30 and 42px at 1.35 — the step
-       where her glasses and her expression start resolving rather than merely
-       being present. Below 1.30 the change is deniable; above 1.40 a 221px
-       artifact starts spending its neighbours' air rather than its own.
-
-       The photograph does not soften when it grows: the file is 768px wide and
-       is displayed at 221–298px, so the whole expansion is still a downscale
-       and it resolves MORE detail, not less.
-
-       LEAD: this is a raw multiplier in a stylesheet, which the token rules
-       would rather it were not. It wants `--scale-lift` in `tokens.css`
-       alongside the motion tokens — a scale factor is a motion magnitude, not a
-       size. Not added here; that file is yours. Same shape as
-       `--wall-surface-lift` in `Wall.module.css`. */
-    --hover-scale: var(--scale-lift);
-
     transform-origin: 50% 50%;
 
-    /* `scale` ALONE. Never `transform`, never `all`, never `translate` — the
+    /* THE RETURN — declared on the resting state, so it is what plays when the
+       pointer leaves. Slower than the arrival, and it does not overshoot: a
+       thing settling back into place has nothing pushing it.
+
+       `scale` ALONE. Never `transform`, never `all`, never `translate` — the
        visitor's remembered offset and a future drag both write `translate`, and
-       a transition on it would make dragging lag the pointer by 200ms. */
-    transition: scale var(--duration-response) var(--ease-out);
+       a transition on it would make dragging lag the pointer by 600ms; and
+       `transform` now carries the ambient drift, which must never be
+       transitioned or every waypoint would fight the easing. */
+    transition: scale var(--duration-transition-slow) var(--ease-out);
   }
 
   /* `:focus-within` costs nothing today — neither of these two types is
      focusable unless it is authored with an `href` — and it is the difference
      between the affordance existing for a keyboard and not, the moment one is. */
+  .item[data-wall-item="charm"]:hover,
+  .item[data-wall-item="charm"]:focus-within {
+    scale: var(--wall-lift);
+
+    /* THE ARRIVAL. Overrides the return above only while the pointer is on it,
+       which is how one property gets two different motions in two directions. */
+    transition: scale var(--duration-transition) var(--wall-ease-swell);
+  }
+
+  /* THE Z LIFT, for both types, and it is the one part of the expansion that
+     stays on the shell whatever grows — a renderer may not set `z-index`.
+
+     MEASURED, and it is currently INSURANCE RATHER THAN NECESSITY. At every
+     desktop width the photograph's expanded box is horizontally disjoint from
+     the charm (289px clear at 1440, 167px at 1024) and vertically disjoint from
+     the link by 160px and from the blurb by 490px, so at `--scale-lift: 1.35`
+     — and still at 1.75 — there is nothing for it to expand underneath. It is
+     kept because all four artifacts sit in the same depth band, so their order
+     is DOM order, and the day a fifth item is authored near the photograph the
+     absence of this line would be a bug nobody could see coming.
+
+     Keyed to the shell's own `:hover` rather than to the picture's, so that it
+     is a fact about the artifact being pointed at rather than a duplicate of
+     the trigger in another file. Hovering the caption lifts an item that is not
+     growing, which is invisible and costs nothing.
+
+     z-index is deliberately NOT in any transition — the lift must complete
+     before the growth starts, not halfway through it. It cannot escape the
+     wall: `Wall.module.css` sets `isolation: isolate`, so 100 here is local. */
   .item[data-wall-item="memory"]:hover,
   .item[data-wall-item="memory"]:focus-within,
   .item[data-wall-item="charm"]:hover,
   .item[data-wall-item="charm"]:focus-within {
-    scale: var(--hover-scale);
     z-index: var(--layer-above);
   }
 }
@@ -230,6 +625,32 @@
     /* An artifact may hang past an edge on a wide screen. On a phone that is
        content nobody can reach, so it cannot exceed the wall. */
     max-inline-size: 100%;
+  }
+
+  /* THE DRIFT IS DAMPED TO 60%, and mobile getting its own composition is
+     exactly what this is.
+
+     Two reasons, and the first one is geometric. On a wide screen the two
+     drifting artifacts are horizontally disjoint from everything, so drift
+     cannot close a gap at all. In this flow column they are stacked: the
+     photograph and the charm overlap horizontally with 45px between them, the
+     tightest pair anywhere on the wall. At full amplitude those two could close
+     2.1px of it — harmless, but it is the only place the number is not zero, so
+     it is the place to be conservative.
+
+     The second is that a phone is a small, hand-held, already-moving screen. A
+     three-pixel drift is a larger share of a 390px viewport than of a 1440px
+     one, and it competes with the hand holding the device rather than with a
+     still frame. Less of it says the same thing.
+
+     0.96px and 1.74px, which is 0.16 and 0.17 px/s — both about 60% of the
+     desktop speed and comfortably under half the detection threshold. */
+  .item[data-wall-item="memory"] {
+    --drift: 0.96px;
+  }
+
+  .item[data-wall-item="charm"] {
+    --drift: 1.74px;
   }
 
   /* The vertical rhythm of the column. An attribute rather than a custom

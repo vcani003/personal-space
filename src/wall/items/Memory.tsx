@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Meta, META_SEPARATOR } from "../../components/Meta";
 import { formatPostDate } from "../../lib/date";
+import type { StyleVars } from "../../lib/vars";
 import type { MemoryItem } from "../types";
 import { WallImage } from "./WallImage";
 import styles from "./Memory.module.css";
@@ -41,8 +42,23 @@ export function Memory({ item }: { item: MemoryItem }) {
     item.annotation !== undefined ||
     meta.length > 0;
 
+  /* THE SAME RATIO, PUBLISHED A SECOND TIME, and it is not redundant.
+     `WallImage` sets `--aspect` on the picture so it can hold its own box open
+     before the file loads. A custom property set on the picture is invisible to
+     the CAPTION beside it — and the caption's job during the swell is to move
+     down by exactly half the picture's growth, which it cannot compute without
+     knowing the ratio. Publishing it on their shared parent is what puts the
+     number where both children can read it.
+     The fallback is 3:2 in both places, written as `3 / 2` there because
+     `aspect-ratio` takes a ratio and as `1.5` in the swell arithmetic because
+     `calc()` takes a number. */
+  const ratio: StyleVars | undefined =
+    item.aspectRatio === undefined
+      ? undefined
+      : { "--aspect": String(item.aspectRatio) };
+
   const figure = (
-    <figure className={styles.memory}>
+    <figure className={styles.memory} style={ratio}>
       <WallImage
         eager
         className={styles.image}

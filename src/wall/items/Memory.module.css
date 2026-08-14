@@ -11,13 +11,14 @@
      no drop shadow, no radius, no glow, no brightness change, no cursor
      NO FILTER OF ANY KIND — no grayscale, tint, duotone, blur or desaturation
 
-   A MEMORY DOES EXPAND WHEN YOU POINT AT IT, AND NOT FROM HERE. The photograph
-   is small on purpose and small photographs are hard to look at, so the shell
-   scales it ~1.35× on hover. That lives in `WallItem.module.css`, with the rest
-   of placement, because it needs `scale` and a z-index lift and a renderer is
-   not allowed to set either. Nothing else happens on hover — no glow, no
-   shadow, no caption reveal — and nothing else should be added here to
-   accompany it.
+   A MEMORY DOES EXPAND WHEN YOU POINT AT IT, AND ONLY THE PICTURE DOES. That is
+   the one part of the expansion that has to live here, because "the picture and
+   not the caption" is a fact about how a memory is BUILT and nothing outside
+   this file can select either of them. The magnitude, the curve and the z-index
+   lift are all still the shell's — see THE SWELL below, and the motion contract
+   at the top of `WallItem.module.css`. Nothing else happens on hover: no glow,
+   no shadow, no brightness, no caption reveal, and nothing else should be added
+   here to accompany it.
 
    The last one is the load-bearing prohibition. A saturated photograph inside a
    near-monochrome environment is a piece of someone's life entering a restrained
@@ -32,6 +33,25 @@
 
 .memory {
   display: grid;
+
+  /* AN INLINE-SIZE CONTAINER, and it exists for exactly one arithmetic problem.
+     `1cqw` is one percent of this figure's content box, which is the artifact's
+     authored width — so `100cqw / --aspect` is the PICTURE'S RENDERED HEIGHT IN
+     PIXELS, available to a sibling of the picture, at any viewport, with no
+     JavaScript and no measurement.
+
+     THE CAPTION'S DISPLACEMENT IS EXACTLY HALF OF THAT TIMES THE GROWTH, and it
+     has to be exact: a pixel short and the enlarged picture sits on the first
+     line of type; a pixel long and the authored `--space-xs` between them opens
+     up while the pointer is on it. Nothing else in this file needed a container
+     query and nothing else should acquire one.
+
+     It changes no layout. The figure's width already comes from the shell
+     (`inline-size` on `.item`), never from its contents, so containing the
+     inline axis takes away a degree of freedom that was not being used. The
+     caption's overhang survives — layout containment does not clip, that is
+     paint containment. */
+  container-type: inline-size;
 
   /* THE COLUMN IS BOUNDED BY THE ITEM, and this line is load-bearing.
      Without it the implicit column is auto-sized, which means max-content of
@@ -52,7 +72,14 @@
 }
 
 /* `--aspect` is published by WallImage from the authored ratio, and holds the
-   box open before the file arrives. The item shell owns the width. */
+   box open before the file arrives. The item shell owns the width.
+
+   `Memory.tsx` publishes the SAME value a second time on the figure above, so
+   that a sibling of this element can do arithmetic with it — a custom property
+   set on the picture is invisible to the caption beside it. The two fallbacks
+   are written differently on purpose and both are 3:2: `3 / 2` here, because
+   `aspect-ratio` takes a ratio, and `1.5` in the calculations below, because
+   `calc()` takes a number. */
 .image {
   inline-size: 100%;
   aspect-ratio: var(--aspect, 3 / 2);
@@ -113,6 +140,142 @@
 /* Most memories are not links. When one is, the whole artifact is the target. */
 .link {
   display: block;
+}
+
+/* =============================================================================
+   THE SWELL — the picture grows, and the caption is carried out of its way
+   =============================================================================
+
+   "For the photo+text, only the photo should expand… maybe it should ripple or
+    wave into a larger/smaller state."
+   "for photo graowing if it means all other elements below need to shift, lets
+    do that to temporarily make some space."                       — the owner
+
+   Two instructions, and they turn out to be one mechanism.
+
+   ── WHAT MOVED, AND WHY IT MOVED HERE ───────────────────────────────────────
+
+   The expansion used to be a `scale` on the item SHELL, which took the caption
+   with it: 19px of hairline Eiko rendering at 25.7px, at a non-integer scale,
+   for the whole transition. A caption is an annotation written beside a
+   photograph. It is not part of the image, it does not get closer when the
+   image does, and enlarging it is a zoom control — the exact thing
+   `WallItem.module.css` already refuses to do to a blurb.
+
+   It is in this file rather than that one because "the picture, not the
+   caption" is a fact about how a memory is assembled, and only this module can
+   select either half. Everything that is a fact about the WALL — how far things
+   come forward, on what curve, how far behind their consequences follow, and
+   the z-index lift — is still declared on `.item` and inherited down. There is
+   one copy of each number and it is not in here.
+
+   ── THE DISPLACEMENT, WHICH IS THE OTHER HALF OF THE SAME GESTURE ───────────
+
+   The picture grows about its centre, so its lower edge travels down by exactly
+   half its growth: `height × (lift − 1) / 2`. The caption is translated by that
+   distance, so the authored `--space-xs` between them is preserved throughout —
+   the pair holds its shape while the picture swells through it.
+
+   ORIGIN IS THE CENTRE AND IT IS NOT NEGOTIABLE, for the reason
+   `WallItem.module.css` sets out at length: scaling a box about any point
+   inside it produces a superset of the box, so the pointer that was on the
+   picture is still on it and the growth cannot oscillate. Here it matters
+   twice over, because the trigger IS the picture now — a top-anchored origin
+   would have been an accordion opening downward, and a bottom-anchored one
+   would have shrunk out from under the cursor.
+
+   `translate`, NOT `margin` — the caption's box does not move, so nothing under
+   it in the flow can be pushed, nothing reflows, and no other artifact on the
+   wall has to know that any of this happened. That last part was measured
+   rather than hoped for: at every desktop width the enlarged picture is
+   horizontally disjoint from the charm and vertically disjoint from the link
+   and the blurb, at 1.35 and still at 1.75. THE CAPTION IS THE ONLY THING ON
+   THIS PAGE THAT HAS TO GET OUT OF THE WAY. The permission to displace was
+   real; the need for it was one element wide.
+
+   ── THE PROPAGATION DELAY, WHICH IS THE RIPPLE ──────────────────────────────
+
+   The caption does not start when the picture does. It starts 60ms later
+   (`--wall-swell-lag`) and takes longer to get there on a softer curve, so the
+   disturbance READS AS TRAVELLING: something happens to the photograph, and a
+   moment later the thing beneath it is moved by it. That is a wavefront
+   crossing two objects, which is the same idea `interaction/wave.ts` draws
+   across the page and `atmosphere/pointer.ts` pushes the stars with. It is also
+   why the swell did not need to be made more elaborate to earn the word
+   "ripple" — the ripple is spatial, not cosmetic.
+
+   The delay applies in BOTH directions, from one declaration. On the way out
+   the caption follows the picture down; on the way back it waits for the
+   picture to start shrinking before it comes home. Neither order leaves a gap
+   or an overlap, because the caption is always slower than the picture and
+   always behind it.
+
+   ── REDUCED MOTION NEEDS NOTHING HERE ───────────────────────────────────────
+
+   All three timings are duration tokens, and `tokens.css` already resolves the
+   RESPONSE and TRANSITION families to 0ms under `prefers-reduced-motion`. The
+   picture still expands and the caption still moves aside — becoming legible is
+   content — and both simply arrive. The ambient drift is the opposite case and
+   is switched off outright; it is in `WallItem.module.css` and it carries
+   nothing.
+   ========================================================================== */
+
+@media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
+  .image {
+    /* See ORIGIN above. Stated rather than left to the initial value, because
+       it is the reason this cannot flicker. */
+    transform-origin: 50% 50%;
+
+    /* THE RETURN. Longer than the arrival and with no overshoot — a thing
+       settling back has nothing pushing it. Declared on the resting state so it
+       is what plays when the pointer leaves.
+
+       `scale` alone, never `transform`: the shell's ambient drift lives on
+       `transform`, and although that is a different element today, naming the
+       property rather than `all` is what keeps that true. */
+    transition: scale var(--duration-transition-slow) var(--ease-out);
+  }
+
+  .caption {
+    /* HOW FAR IT HAS TO GO. `100cqw` is the artifact's authored width (see
+       `container-type` on `.memory`), so `100cqw / --aspect` is the picture's
+       height in px, and half of its growth is how far its lower edge travels.
+       At 1440 and a 1.35 lift that is 51.7px; at 1.75 it is 83px. */
+    --swell-shift: calc(
+      100cqw / var(--aspect, 1.5) * (var(--wall-lift) - 1) / 2
+    );
+
+    /* One declaration, both directions, and the lag is in it. `translate` and
+       not `transform`, so that this composes with anything the type system ever
+       wants to do to a caption. */
+    transition: translate var(--duration-transition-slow) var(--ease-out)
+      var(--wall-swell-lag);
+  }
+
+  /* THE TRIGGER IS THE PICTURE, not the artifact.
+     Pointing at the caption to read it must not grow the photograph over the
+     top of it — which is precisely what a shell-level `:hover` did. The
+     enlarged picture's hit area grows with it, so the state cannot be lost by
+     following it outward.
+
+     `:focus-visible` on the link covers the keyboard, for the memories that are
+     authored with an `href`. It is scoped to the anchor rather than written as
+     `:focus-within` on the figure, because a figure is not focusable and the
+     anchor is the only thing in here that ever will be. */
+  .image:hover,
+  .link:focus-visible .image {
+    scale: var(--wall-lift);
+
+    /* THE ARRIVAL — see THE SWELL in `WallItem.module.css` for the curve.
+       Overrides the return above only while the pointer is on it, which is how
+       one property gets two motions in two directions. */
+    transition: scale var(--duration-transition) var(--wall-ease-swell);
+  }
+
+  .image:hover ~ .caption,
+  .link:focus-visible .caption {
+    translate: 0 var(--swell-shift);
+  }
 }
 
 /* ---------------------------------------------------------------------------

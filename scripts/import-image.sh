@@ -46,8 +46,22 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_DIR="$REPO_ROOT/public/assets/wall"
-OUT="$OUT_DIR/$NAME.jpg"
 mkdir -p "$OUT_DIR"
+
+# TRANSPARENCY DECIDES THE FORMAT, and getting this wrong is silent and total.
+# JPEG has no alpha channel: a transparent drawing flattened to JPEG comes back
+# as the same drawing on an opaque black rectangle, which on this site looks
+# like a deliberate framed panel rather than a mistake. Charms are typically
+# transparent PNGs, so the format cannot be a fixed choice.
+#
+# `alphaextract` fails on an image with no alpha, which is the test.
+if ffmpeg -loglevel quiet -i "$SRC" -vf alphaextract -frames:v 1 -f null - 2>/dev/null; then
+  HAS_ALPHA=1
+  OUT="$OUT_DIR/$NAME.png"
+else
+  HAS_ALPHA=0
+  OUT="$OUT_DIR/$NAME.jpg"
+fi
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -88,12 +102,22 @@ esac
 #    Images already narrower than the target are not upscaled.
 # ---------------------------------------------------------------------------
 
-ffmpeg -loglevel error -y \
-  -i "$INPUT" \
-  -vf "scale='min($MAX_WIDTH,iw)':-2" \
-  -map_metadata -1 \
-  -q:v 4 \
-  "$OUT"
+if [[ "$HAS_ALPHA" == "1" ]]; then
+  # PNG keeps the alpha channel. No quality flag — PNG is lossless, and the
+  # size saving that matters for a drawing is the resize, not the encoder.
+  ffmpeg -loglevel error -y \
+    -i "$INPUT" \
+    -vf "scale='min($MAX_WIDTH,iw)':-2" \
+    -map_metadata -1 \
+    "$OUT"
+else
+  ffmpeg -loglevel error -y \
+    -i "$INPUT" \
+    -vf "scale='min($MAX_WIDTH,iw)':-2" \
+    -map_metadata -1 \
+    -q:v 4 \
+    "$OUT"
+fi
 
 # ---------------------------------------------------------------------------
 # 4. Verify, and fail loudly if anything survived. Spotlight can lag on a file
@@ -115,7 +139,7 @@ OUT_SIZE="$(du -h "$OUT" | cut -f1 | tr -d ' ')"
 DIMS="$(sips -g pixelWidth -g pixelHeight "$OUT" | awk '/pixel/ {printf "%s ", $2}')"
 
 echo "  ✓ clean — no location, no camera, no timestamp"
-echo "output:  public/assets/wall/$NAME.jpg"
+echo "output:  public/assets/wall/$(basename "$OUT")"
 echo "  ${DIMS}px · $SRC_SIZE → $OUT_SIZE"
 echo
-echo "reference it in src/content/wall.ts as: assets/wall/$NAME.jpg"
+echo "reference it in src/content/wall.ts as: wall/$(basename "$OUT")"

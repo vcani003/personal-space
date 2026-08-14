@@ -97,7 +97,13 @@
 
 .composition {
   grid-column: 1 / -1;
-  margin-block-start: var(--space-2xl);
+
+  /* NO `margin-block-start` HERE. The page grid already puts `--space-2xl`
+     between its rows, and this rule used to add a second one — 272px of gap
+     between the identity's metadata line and the top of the composition, from
+     two separate declarations that each believed they were the one doing it.
+     Nobody chose 272; it was 136 twice. The row gap is the one that should
+     own this, because it is the same air that separates every other row. */
 
   /* THE RAIL'S WIDTH. The same 322px `PlayerDock.module.css` declares, and for
      the same reason: it keeps the player inside its own
