@@ -2,6 +2,13 @@
    THE DOCK — positioning only
    =============================================================================
 
+   RETIRED, NOT DELETED. Nothing on the page carries these classes today: the
+   player moved into the sticky rail beside the wall. See the header of
+   `PlayerDock.tsx` for what replaced it and how to bring it back. The file is
+   kept intact and correct because a dockable player is a later nice-to-have,
+   not a rejected idea.
+   -----------------------------------------------------------------------------
+
    This file decides WHERE the player lives and HOW BIG it is. Everything about
    what it looks like stays in Player.module.css, untouched, so the object is
    the same object whether it is docked or (one day) placed in a page again.

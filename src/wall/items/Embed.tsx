@@ -18,16 +18,17 @@ import styles from "./Embed.module.css";
  *
  * ── The one thing the wall must guarantee ───────────────────────────────────
  *
- * THERE CAN ONLY BE ONE PLAYER. `PlayerDock` mounts the same component pinned to
- * the viewport, so a `bunny-hop` embed on the wall and the dock both being
- * present would put two of them on the page. `App.tsx` therefore mounts one or
- * the other, decided by `wallHostsEmbed()` reading the authored content. With no
- * embed on the wall, today's docked player is untouched.
+ * THERE CAN ONLY BE ONE PLAYER. The sticky rail beside the wall mounts the same
+ * component, so a `bunny-hop` embed on the wall and the rail both being present
+ * would put two of them on the page. `Home.tsx` therefore mounts one or the
+ * other, decided by `wallHostsEmbed()` reading the authored content. With no
+ * embed on the wall, the player is in the rail.
  *
  * Placing the embed is consequently a real editorial decision, not just another
- * artifact: it moves the player out of the corner of the screen and back into
- * the world, and it gives up being reachable while attention is elsewhere. That
- * trade is written up in `PlayerDock.tsx` and should be read before making it.
+ * artifact: it moves the player out of the rail and onto the wall, where it
+ * scrolls away like everything else and stops being reachable while attention is
+ * elsewhere. (The retired `PlayerDock` was a third answer to the same question —
+ * see its header.)
  *
  * ── `data-no-ripple` ────────────────────────────────────────────────────────
  *

@@ -2,16 +2,25 @@
    THE PAGE
    =============================================================================
 
-   What is left of the composition after the wall took over.
+   Three zones and the frame around them.
 
-   This file used to place nine things on a twelve-column grid, and reading the
-   column numbers down it told you the page's rhythm. That job now belongs to
-   `src/content/wall.ts`, where placement is data — so what survives here is the
-   PAGE FRAME and the opening row, which is the one pair the wall does not own.
+     IDENTITY       the name, with `@starcharm` opposite it.
+     COMPOSITION    the WALL on the left, the RAIL floating beside it.
+     CLOSING        one line, a long way down.
 
-   The grid stays for exactly that reason: the name and the navigation opposite
-   it are still a composed pair, and two elements on a shared row is still the
-   cheapest way to say so.
+   This file decides PROPORTION and nothing else. It does not know what is on
+   the wall — that is data, in `src/content/wall.ts` — and it does not know what
+   is in the rail beyond "navigation, then the player".
+
+   Two grids, and they do different jobs:
+
+     `.page`         a twelve-column frame. It exists for the opening row, where
+                     the name and the handle opposite it are a composed pair,
+                     and for the closing line's off-centre column.
+     `.composition`  two columns: everything left of the rail, and the rail. It
+                     is NOT twelve columns, because the rail is a fixed object
+                     width rather than a fraction of a grid, and pretending
+                     otherwise would make it drift with the viewport.
    ========================================================================== */
 
 .page {
@@ -24,20 +33,28 @@
   margin-inline: auto;
   padding-inline: var(--page-gutter-inline);
 
-  /* The end padding clears the docked player.
-     The dock is `position: fixed`, so the page can otherwise scroll its last
-     element permanently underneath it — and the last element is the closing
-     line, which would become literally unreachable. This buys enough room that
-     the page can always be scrolled past the dock.
+  /* 260px of tail. IT NO LONGER BUYS WHAT IT WAS BOUGHT FOR, AND IT MUST NOT BE
+     REMOVED ON ITS OWN. Both halves of that matter.
 
-     A fixed figure rather than a measured one: the dock's height is content
-     driven (~219px) and measuring it in JS to publish a variable would put a
-     layout read on every resize to solve a problem a generous constant already
-     solves. If the player ever grows a fourth band, raise this.
+     It was bought so the page could always be scrolled out from under the
+     player, which was `position: fixed` in a corner of the viewport and would
+     otherwise have parked permanently on top of the closing line. Nothing is
+     fixed to the viewport any more — the player is in the rail, in the page, and
+     it scrolls with everything else — so that reason is spent.
 
-     LEAD: this deserves a `--player-dock-clearance` token rather than a literal
-     in a module. Carried forward verbatim from the MVP 1 composition rather
-     than changed, since the number and its reasoning are both still correct. */
+     What it now does instead is hold the DOCUMENT'S HEIGHT where it was, and
+     `interaction/placement.ts` anchors the paper fragment's WIDE position at
+     13.5% OF THE DOCUMENT. Deleting these 260px was tried and measured: the
+     document loses 260px, 13.5% of it moves the paper 35px up, and the paper
+     lands on the identity block's metadata line — 3px of overlap at 1440 and
+     1280, and at 1024×800 it covers `@STARCHARM · PERSONAL SPACE` outright.
+     With the padding in place the clearance is 32px at 1440 and 13px at 1024.
+
+     THE PAIRED CHANGE, for whoever removes it: `placement.ts` already proposes
+     the fix in its own header — measure the wide gap the way the narrow anchor
+     is measured, instead of taking a percentage of a document whose height is
+     now a function of how many artifacts are on the wall. That is ~15 lines in
+     a file this composition does not own. Do that first, then delete this. */
   padding-block: var(--page-gutter-block) calc(var(--space-2xl) + 260px);
 }
 
@@ -47,14 +64,14 @@
 }
 
 /* ---------------------------------------------------------------------------
-   OPENING — name left, navigation opposite it
+   OPENING — name left, the one outbound link opposite it
    ------------------------------------------------------------------------ */
 
 .identity {
   grid-column: 1 / 9;
 }
 
-.nav {
+.elsewhere {
   grid-column: 9 / 13;
   /* Aligned to the top of the name block, not centred against it. */
   align-self: start;
@@ -64,21 +81,145 @@
   margin-block-start: var(--space-2xs);
 }
 
-/* ---------------------------------------------------------------------------
-   THE WALL
-   -----------------------------------------------------------------------------
-   Full width of the page's content box, and that is the only decision this
-   file makes about it — everything inside is placed by data.
+/* =============================================================================
+   THE COMPOSITION — a bounded wall, and a rail floating beside it
+   =============================================================================
 
-   OPEN QUESTION for the lead, recorded here because this rule is where it would
-   be answered: the wall currently sits inside the page's gutters. A wall that
-   bleeds to the viewport edges is a different and defensible composition, and it
-   is a one-rule change. See docs/wall-architecture.md §9.
+   THE RAIL IS A FIXED WIDTH AND THE WALL TAKES THE REST. That asymmetry is the
+   whole layout, and it is the right way round: the rail holds one object whose
+   size is a fact about the object, while the wall is a coordinate space whose
+   contents are all percentages of it and can therefore take whatever is left.
+
+   The alternative — both columns as fractions — was rejected because it makes
+   the player a different size on every screen, and the player is a physical
+   object with a silhouette, not a responsive box.
+   ========================================================================== */
+
+.composition {
+  grid-column: 1 / -1;
+  margin-block-start: var(--space-2xl);
+
+  /* THE RAIL'S WIDTH. The same 322px `PlayerDock.module.css` declares, and for
+     the same reason: it keeps the player inside its own
+     `@container player (max-width: 340px)` branch, which is the compact
+     treatment this site has always shipped. Wider and the object silently
+     becomes generous; narrower and its three-band rhythm starts to crush.
+
+     LEAD: this is the one raw dimension in this file, and it is the SECOND copy
+     of it — `PlayerDock.module.css` has the first. Both want a
+     `--player-inline-size` token in tokens.css. Not added here, since that file
+     is yours. */
+  --rail-inline-size: 322px;
+
+  /* How far below the top of the viewport the rail comes to rest once it
+     sticks. Enough that it reads as floating rather than as pinned to an edge —
+     the same distance the dock kept from the screen's corner. */
+  --rail-sticky-inset: var(--space-md);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-inline-size);
+  column-gap: var(--space-lg);
+
+  /* Neither column stretches to the other's height. The wall declares its own
+     extent in viewport heights; the rail must be exactly as tall as its
+     contents or `position: sticky` has nothing to travel inside. */
+  align-items: start;
+}
+
+/* ---------------------------------------------------------------------------
+   THE WALL — most of the left width, and nothing else decided here
+   -----------------------------------------------------------------------------
+   Its coordinate space, its extent, its clipping and its boundary treatment all
+   live in `src/wall/Wall.module.css`. This rule only says which column it
+   occupies.
+
+   Item coordinates are percentages of the wall, so narrowing the wall from the
+   full content box to this column rescales the whole composition rather than
+   breaking it. What DOES change is absolute size: at 1440 the wall went from
+   ~1336px to ~962px, so every artifact is about 72% of the width it was. That
+   is a composition question for `src/content/wall.ts`, not a layout bug.
    ------------------------------------------------------------------------ */
 
 .wall {
-  grid-column: 1 / -1;
-  margin-block-start: var(--space-2xl);
+  grid-column: 1;
+  /* EXPLICIT ROW, and it is load-bearing. The rail is FIRST in the DOM and sits
+     in column 2; the wall is second and sits in column 1. Grid's sparse
+     auto-placement never moves its cursor backwards, so with only the columns
+     pinned the wall was placed on row TWO — 566px below the rail, in its own
+     band, with the whole composition twice as tall as it should be. Pinning
+     both items to row 1 is the fix, and it must survive any reordering of the
+     markup. */
+  grid-row: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   THE RAIL — it floats, and it follows
+   -----------------------------------------------------------------------------
+   NOT A SIDEBAR. No background, no border, no divider, no full-height chrome,
+   no panel. It is two things sitting in the empty space to the right of the
+   wall: a list of words at the top, and one object below it.
+
+   `position: sticky` is what replaced the docked player's fixed corner. The
+   requirement it inherits is real — the player must stay reachable while you
+   are reading something else — and sticky satisfies it without the cost the
+   dock paid: the rail is placed IN the page, so it is composed against the
+   wall, it can never cover the wall's content, and it stops travelling at the
+   end of the composition instead of following you into the closing line.
+
+   `align-self: start` is load-bearing, not decoration. A stretched grid item is
+   already as tall as its row, so it has no room to move and sticky silently
+   does nothing. It is stated here as well as on the container so that the
+   behaviour cannot be lost by someone retuning `align-items`.
+   ------------------------------------------------------------------------ */
+
+.rail {
+  grid-column: 2;
+  /* See the note on `.wall`. Both items are pinned to the same row so that
+     document order and visual order can disagree without grid inventing a
+     second row to resolve it. */
+  grid-row: 1;
+  align-self: start;
+
+  position: sticky;
+  inset-block-start: var(--rail-sticky-inset);
+
+  display: grid;
+  justify-items: start;
+
+  /* The wireframe's proportion: navigation at the top of the rail, the player
+     well below it, real emptiness between. This is the gap, and it is the one
+     number that decides how tall the rail is — which is in turn what decides
+     whether it fits in a short viewport. See the sticky guard below. */
+  gap: var(--space-2xl);
+}
+
+.railPlayer {
+  /* The object's own width, never the column's. `min()` so a narrow page
+     column can shrink it but nothing can inflate it past the size at which it
+     stops being the compact object. */
+  inline-size: min(100%, var(--rail-inline-size));
+}
+
+/* ---------------------------------------------------------------------------
+   SHORT VIEWPORTS — the rail stops sticking
+   -----------------------------------------------------------------------------
+   A sticky element taller than the space it is stuck in has its lower half
+   permanently off screen and unreachable, which for this rail means the player.
+
+   The arithmetic: the rail is roughly 200px of navigation + 136px of gap +
+   ~206px of player ≈ 542px, plus the 32px inset above it. Below about 640px of
+   viewport height that no longer fits, so the rail goes back to being an
+   ordinary block and scrolls away with the page. An honestly absent player
+   beats one whose controls cannot be reached.
+
+   Same reasoning, and the same resolution, as the block the dock used to carry
+   at `max-height: 26rem`.
+   ------------------------------------------------------------------------ */
+
+@media (max-height: 40rem) {
+  .rail {
+    position: static;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -90,6 +231,9 @@
 
    The whole point is that it can be missed. Do not brighten it, do not
    enlarge it, do not centre it.
+
+   It is also the only direct paragraph child of `<main>`, which two files in
+   `src/interaction/` depend on. Do not wrap it.
    ------------------------------------------------------------------------ */
 
 .closing {
@@ -104,9 +248,42 @@
   color: var(--color-foreground-dim);
 }
 
-/* ---------------------------------------------------------------------------
-   TABLET
-   ------------------------------------------------------------------------ */
+/* =============================================================================
+   BELOW 64rem — THE RAIL'S CONTENTS RELOCATE
+   =============================================================================
+
+   The two-column composition holds until BOTH columns stop working, not until
+   one of them gets tight. The threshold is arithmetic rather than taste: the
+   rail is a fixed 322px, the gap is 52px and the page gutters are 104px, so a
+   wall of 520px — about the least a composition of percentages can be authored
+   against — needs 998px of viewport. The site's existing tablet breakpoint at
+   63.9375rem is within a pixel of that, so it is reused rather than joined by a
+   fourth one.
+
+   Below it the rail does not shrink and does not become a strip along the top.
+   IT STOPS BEING A RAIL and its two contents take up deliberate positions of
+   their own:
+
+     NAVIGATION   above the wall and still on the right, under `@starcharm`. It
+                  is a table of contents, and a table of contents belongs before
+                  the thing it describes. Staying on the right also keeps it out
+                  of the paper fragment — see the rule itself.
+     THE PLAYER   below the wall, at its own width. An object you arrive at, at
+                  the end, in the page — which is what it was before it was
+                  ever docked.
+
+   `display: contents` on the rail is what allows those two to be placed
+   independently without a second copy of them in the markup. The rail is a
+   plain `<div>` with no semantics of its own, so dissolving its box costs
+   nothing in the accessibility tree.
+
+   ONE THING TO KNOW BEFORE TOUCHING THIS: `.composition` must keep a real box.
+   `interaction/placement.ts` anchors the paper fragment in the gap that ENDS at
+   `main > p`, measuring from the previous element's bounding rect — and an
+   element with `display: contents` reports a zero rect. Dissolving `.composition`
+   as well as `.rail` would put the paper somewhere in the middle of the wall on
+   every phone, silently.
+   ========================================================================== */
 
 @media (max-width: 63.9375rem) {
   .page {
@@ -117,14 +294,54 @@
     grid-column: 1 / 10;
   }
 
-  .nav {
-    grid-column: 1 / 13;
-    justify-self: start;
-    margin-block-start: var(--space-sm);
+  .elsewhere {
+    grid-column: 10 / 13;
   }
 
-  .wall {
+  .composition {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-xl);
     margin-block-start: var(--space-xl);
+  }
+
+  .rail {
+    display: contents;
+  }
+
+  /* Order-modified document order. The DOM is rail-then-wall so that the
+     navigation is read first; here the wall has to come back between the two
+     halves of the rail, which is exactly what `order` is for. */
+  .railNav {
+    order: 1;
+
+    /* STILL ON THE RIGHT. It hugs its own words rather than stretching across
+       the column — in the rail it was already shrink-to-fit, and here the grid
+       would otherwise hand it the whole page width for seven short labels — and
+       it stays at the right-hand edge, under `@starcharm`, which is where the
+       two-column composition puts it. Relocating a thing does not have to mean
+       moving it to the left margin.
+
+       IT ALSO HAS TO BE HERE. The paper fragment's wide anchor is x 22% of the
+       viewport, so a left-flush list at this breakpoint lands underneath it:
+       measured at 768×900 the sheet occupies x 77–270 and y 325–485, and a
+       left-aligned nav sat at x 52–139, y 400–624 — the paper covered `HOME`
+       and `ARCHIVE`. On the right it clears by ~360px at 768 and more above it.
+       See `interaction/placement.ts`, whose header explains why that anchor is
+       a percentage and why it is fragile. */
+    justify-self: end;
+  }
+
+  /* The explicit row/column the two-column composition needs must be given
+     back, or the wall stays pinned to row 1 and everything else piles up
+     around it. */
+  .wall {
+    grid-column: auto;
+    grid-row: auto;
+    order: 2;
+  }
+
+  .railPlayer {
+    order: 3;
   }
 
   .closing {
@@ -133,9 +350,9 @@
   }
 }
 
-/* ---------------------------------------------------------------------------
+/* =============================================================================
    NARROW — one column, and the wall becomes one too
-   ------------------------------------------------------------------------ */
+   ============================================================================= */
 
 @media (max-width: 47.9375rem) {
   .page {
@@ -151,22 +368,39 @@
      `grid-column: 5 / 10` spans would generate implicit columns on a
      single-column grid and the page would fall apart. */
   .identity,
-  .nav,
-  .wall,
+  .elsewhere,
+  .composition,
   .closing {
     grid-column: 1 / -1;
     justify-self: stretch;
     margin-block-start: 0;
   }
 
-  .nav {
+  .elsewhere {
+    justify-self: start;
     margin-block-start: var(--space-sm);
   }
 
-  .wall {
-    margin-block-start: var(--space-lg);
+  /* Back to the left margin with everything else. There is no right-hand side
+     on a phone to keep it on, and the paper fragment is anchored to the gap at
+     the BOTTOM of this page rather than to 22% of the viewport, so the reason
+     the tablet breakpoint pushes it right does not apply here. */
+  .railNav {
+    justify-self: start;
   }
 
+  .composition {
+    margin-block-start: var(--space-lg);
+    row-gap: var(--space-lg);
+  }
+
+  /* THE GAP THE PAPER FRAGMENT LIVES IN. `row-gap` (84px) plus this margin
+     (136px) is 220px of empty darkness between the last thing in the
+     composition — the player — and the closing line, and
+     `interaction/placement.ts` measures it at runtime to anchor the paper.
+     It was 220px before the restructure and it is 220px after, which is why
+     that measurement survived the rail. Both numbers are load-bearing; see
+     `narrowGap.minimum`. */
   .closing {
     margin-block-start: var(--space-2xl);
   }

@@ -20,7 +20,7 @@
  */
 
 export { Identity } from "./Identity";
-export { Navigation } from "./Navigation";
+export { Navigation, Elsewhere } from "./Navigation";
 export { About } from "./About";
 export { JournalEntry } from "./Journal";
 export { Meta, META_SEPARATOR } from "./Meta";

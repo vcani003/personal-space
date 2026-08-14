@@ -1,9 +1,6 @@
 import { Atmosphere } from "./atmosphere";
-import { wallItems } from "./content/wall";
 import { Home } from "./Home";
 import { InteractionLayer } from "./interaction";
-import { PlayerDock } from "./player";
-import { wallHostsEmbed } from "./wall";
 
 /**
  * Mount point. The composition lives in Home.tsx; atmosphere will eventually
@@ -16,26 +13,25 @@ import { wallHostsEmbed } from "./wall";
  *
  * Keeping this file empty of layout is what makes that wrapping possible
  * without a rewrite.
+ *
+ * ── THE DOCK IS GONE FROM HERE ──────────────────────────────────────────────
+ *
+ * `<PlayerDock />` used to be the fourth thing on this page, pinned to a corner
+ * of the viewport. It is superseded by the RAIL: the player is now mounted in
+ * `Home.tsx`, inside a `position: sticky` column beside the wall, which keeps it
+ * reachable while the page scrolls without it being an object that travels with
+ * the window.
+ *
+ * `src/player/PlayerDock.tsx`, `interaction/useDockDrag.ts` and
+ * `interaction/dockCorner.ts` are UNTOUCHED and still exported. A dockable
+ * player is a later nice-to-have, and nothing about it was deleted.
+ *
+ * The "there can only be one player" guard moved with the player rather than
+ * being dropped — `Home.tsx` asks `wallHostsEmbed()` before mounting it, so a
+ * `bunny-hop` embed authored onto the wall still takes precedence and there is
+ * still no way to get two.
  */
 export function App() {
-  /**
-   * THE PLAYER CANNOT BE IN TWO PLACES AT ONCE.
-   *
-   * `PlayerDock` pins one copy to the viewport; a `bunny-hop` embed hangs
-   * another on the wall. Rendering both would put two players on the page, with
-   * two sets of transport controls and two tab stops for the same object.
-   *
-   * So the authored content decides, and there is no flag to keep in sync: if
-   * the wall hosts the player, the dock does not mount. With no embed on the
-   * wall — which is the state today — this is exactly the MVP 1 behaviour.
-   *
-   * Placing the embed is a real editorial decision rather than just another
-   * artifact. It puts the player back into the world it belongs to, and gives
-   * up its being reachable while attention is elsewhere. The trade is written
-   * up in `PlayerDock.tsx`.
-   */
-  const playerIsOnTheWall = wallHostsEmbed(wallItems, "bunny-hop");
-
   return (
     <>
       {/* The world, and then the page inside it. Atmosphere sits at negative
@@ -48,10 +44,6 @@ export function App() {
           one layer that captures pointer events — layer 5 of the depth model,
           which the atmosphere root deliberately left for it. */}
       <InteractionLayer />
-      {/* Pinned to the viewport rather than placed in the page, so it is
-          reachable while attention is somewhere else — which is the whole
-          premise of this particular object. */}
-      {!playerIsOnTheWall && <PlayerDock />}
     </>
   );
 }

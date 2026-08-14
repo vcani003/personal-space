@@ -1,59 +1,111 @@
+import { Elsewhere, Navigation } from "./components/Navigation";
 import { Identity } from "./components/Identity";
-import { Navigation } from "./components/Navigation";
 import { closingLine } from "./content/posts";
 import { wallItems, wallSpan } from "./content/wall";
-import { Wall } from "./wall";
+import { Player } from "./player";
+import { Wall, wallHostsEmbed } from "./wall";
 import styles from "./Home.module.css";
 
 /**
  * THE HOMEPAGE.
  *
- * It used to be `hero / about / journal / footer` on a twelve-column grid, and
- * that file decided where nine specific things sat. It is now four lines,
- * because the composition moved into data:
+ * Three zones, and that is the whole file:
  *
- *   IDENTITY      the name and the handle. Outside the wall.
- *   NAVIGATION    outside the wall.
- *   THE WALL      everything else, authored in `src/content/wall.ts`.
- *   THE CLOSING   one quiet line, a long way down.
+ *   IDENTITY        the name, the metadata line, and `@starcharm` opposite it.
+ *   COMPOSITION     the WALL on the left, a floating RAIL beside it holding the
+ *                   navigation and the Bunny Hop player.
+ *   THE CLOSING     one quiet line, a long way down.
  *
- * THIS FILE MUST NOT GROW. Adding a memory or a charm to the wall means editing
- * `src/content/wall.ts` and nothing else — no import here, no placement class,
- * no conditional. If you find yourself opening this file to put something on
- * the wall, the architecture has been bypassed.
+ * THIS FILE MUST NOT GROW, and the rail did not make it grow much: it holds
+ * three named regions and one guard. Adding a memory or a charm to the wall
+ * still means editing `src/content/wall.ts` and nothing else — no import here,
+ * no placement class, no conditional. If you find yourself opening this file to
+ * put something on the wall, the architecture has been bypassed.
  *
- * ── What left, and where it went ────────────────────────────────────────────
+ * ── The rail, and what it replaced ──────────────────────────────────────────
  *
- * `About`, `01 / Journal`, `02 / Elsewhere` and the five journal entries are
- * gone from the composition. NOTHING WAS DELETED: `src/components/About.tsx`,
+ * The player used to be `PlayerDock` — fixed to a corner of the viewport and
+ * draggable between the four. It now lives in the rail instead. The rail is
+ * `position: sticky`, so the player is still reachable while the wall scrolls,
+ * which was the whole reason the dock existed; what it gives up is travelling
+ * with the viewport, and what it gains is being COMPOSED against the page again
+ * rather than floating over it.
+ *
+ * NOTHING WAS DELETED. `PlayerDock`, `useDockDrag` and `dockCorner` are intact
+ * and unmounted — see the header of `src/player/PlayerDock.tsx`. A dockable
+ * player is a later nice-to-have, not a retired idea.
+ *
+ * ── The player cannot be in two places at once ──────────────────────────────
+ *
+ * A `bunny-hop` embed authored onto the wall would put a second player on the
+ * page, with two sets of transport controls for one object. So the authored
+ * content decides and there is no flag to keep in sync: if the wall hosts the
+ * player, the rail does not. This is the same guard `App.tsx` used to hold for
+ * the dock, moved to where the player is now mounted.
+ *
+ * No `surface: "wall" | "rail"` field was added to the wall's item union. It is
+ * sanctioned by the spec and it is not needed: the rail is a place in the page,
+ * not an artifact on the wall, so mounting `<Player />` here directly is both
+ * simpler and one fewer thing for an author to get wrong.
+ *
+ * ── What left the composition, and where it went ────────────────────────────
+ *
+ * `About`, `01 / Journal`, `02 / Elsewhere` and the five journal entries left
+ * when the page became a wall. NOTHING WAS DELETED: `src/components/About.tsx`,
  * `src/components/Journal.tsx` and every post in `src/content/posts.ts` are
  * still in the repo, unrendered. `posts.ts` holds Vero's own About writing and
  * is the only copy of it — it is the obvious source material for the first real
  * wall items.
  *
- * ── The closing line ────────────────────────────────────────────────────────
+ * ── Two selectors in other people's files depend on this shape ──────────────
  *
- * Still here, still outside the wall, still the smallest text on the page and
- * the only italic on the site. It arrives after the whole wall and a long
- * stretch of empty darkness. Whether it should instead become a `blurb` at the
- * bottom of the wall is a content decision and is flagged in
- * `docs/wall-architecture.md`; keeping it rendering means the words survive
- * either way.
+ * `interaction/textSplit.ts` splits `main h1` and `main > p`, and
+ * `interaction/placement.ts` measures the gap that ENDS at `main > p`. Both
+ * still resolve: the identity block is still the page's only `h1`, and the
+ * closing line below is still the only direct paragraph child of `<main>` —
+ * every other paragraph on this page, including the player's, is several levels
+ * deeper. Verified after the restructure. If a fourth region is ever added here,
+ * check it is not a bare `<p>`.
  */
 
 export function Home() {
+  const playerIsOnTheWall = wallHostsEmbed(wallItems, "bunny-hop");
+
   return (
     <main className={styles.page}>
       <div className={styles.identity}>
         <Identity />
       </div>
 
-      <div className={styles.nav}>
-        <Navigation />
+      <div className={styles.elsewhere}>
+        <Elsewhere />
       </div>
 
-      <div className={styles.wall}>
-        <Wall items={wallItems} span={wallSpan} />
+      {/* THE RAIL IS FIRST IN THE DOM AND SECOND ON THE SCREEN.
+          Grid puts it in the right-hand column; document order puts the
+          navigation before the wall, which is where someone reading the page
+          aloud or walking it with a keyboard expects to meet it. Visual
+          position is free. Reading order is not. */}
+      <div className={styles.composition}>
+        <div className={styles.rail}>
+          <div className={styles.railNav}>
+            <Navigation />
+          </div>
+
+          {!playerIsOnTheWall && (
+            /* `data-no-ripple`: an object floating ON the surface is not part of
+               the surface, so touching it does not send a wave across the page.
+               `Ripple.tsx` already honours this; the dock declared it for the
+               same reason and the wall's `Embed` shell still does. */
+            <div className={styles.railPlayer} data-no-ripple="">
+              <Player />
+            </div>
+          )}
+        </div>
+
+        <div className={styles.wall}>
+          <Wall items={wallItems} span={wallSpan} />
+        </div>
       </div>
 
       <p className={styles.closing}>{closingLine}</p>

@@ -1,14 +1,110 @@
-.list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
+/* =============================================================================
+   NAVIGATION — the metadata register, twice
+   =============================================================================
 
+   Both navigations on the page use this file: the rail's section list and the
+   `@starcharm` link opposite the name. Neither is a bar, neither has a
+   background, a border, a rule or a panel. They are small words in the same
+   quiet voice every other label on the site speaks in.
+
+   THERE IS NO HUE HERE AND THERE MUST NOT BE ONE. Everything that distinguishes
+   one state from another below is LUMINANCE, from the four-step foreground
+   scale in tokens.css. The site has no accent colour on purpose.
+   ========================================================================== */
+
+.nav {
   font-family: var(--font-meta);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-meta);
   font-variation-settings: "wdth" var(--meta-width);
+  line-height: var(--leading-meta);
   letter-spacing: var(--tracking-meta);
   text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
+   THE RAIL'S LIST
+   -----------------------------------------------------------------------------
+   A column, not a bar. The rhythm is deliberately tight — this is marginalia
+   beside a wall, and it earns its place by being small.
+   ------------------------------------------------------------------------ */
+
+.list {
+  display: grid;
+  gap: var(--space-2xs);
+
+  /* ONE STEP OF INDENTATION. `--nav-indent` is an integer authored per entry in
+     Navigation.tsx; this is the only place that decides what a step is worth.
+     Retuning the list's whole shape is this value.
+
+     LEAD / VISUAL: the irregular indentation in the wireframe is expressed as
+     0 / 1 here. Nothing in the component knows how far in that is. */
+  --nav-indent-step: var(--space-sm);
+}
+
+/* The nested list under `Projects`. It gets a hair of air above it so the group
+   reads as a group; its own indentation comes from the entries inside it, not
+   from this rule, so the nesting and the indentation stay independent. */
+.sublist {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-block-start: var(--space-2xs);
+}
+
+/* GROUPS. `lead` is air BEFORE an entry, from the space scale, and it is the
+   only thing separating one group of the list from the next — no rule, no
+   heading, no divider. */
+.item[data-lead="normal"] {
+  margin-block-start: var(--space-sm);
+}
+
+.item[data-lead="loose"] {
+  margin-block-start: var(--space-md);
+}
+
+/* ---------------------------------------------------------------------------
+   THE ENTRIES
+   -----------------------------------------------------------------------------
+   `display: block` because a span carrying inline padding cannot be relied on
+   to lay it out down the block axis — and because the indentation has to be a
+   property of the whole line, not of its first fragment.
+   ------------------------------------------------------------------------ */
+
+.label {
+  display: block;
+  padding-inline-start: calc(var(--nav-indent, 0) * var(--nav-indent-step));
+}
+
+/* THE THREE STATES, and all three are luminance.
+
+   current   this page. The brightest thing in the rail, and the only entry at
+             full contrast.
+   pending   a section that will exist. The register's normal weight of light —
+             the same tone every other label on the page sits at, so the list
+             still reads unmistakably as navigation.
+   wip       named as work in progress. One step down from `pending`, which is
+             far enough to feel unfinished and still clears 4.6:1. */
+
+.label[data-state="current"] {
+  color: var(--color-foreground);
+}
+
+.label[data-state="pending"] {
+  color: var(--color-foreground-faint);
+}
+
+.label[data-state="wip"] {
+  color: var(--color-foreground-dim);
+}
+
+/* ---------------------------------------------------------------------------
+   ELSEWHERE — the one real link
+   ------------------------------------------------------------------------ */
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
 .link {
@@ -24,7 +120,7 @@
 }
 
 @media (max-width: 47.9375rem) {
-  .list {
+  .inline {
     gap: var(--space-xs);
   }
 }

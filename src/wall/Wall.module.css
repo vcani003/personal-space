@@ -2,16 +2,48 @@
    THE WALL — the canvas
    =============================================================================
 
-   MINIMAL BY INSTRUCTION. This file establishes the coordinate space the
-   placement model needs and stops. It draws nothing: no surface, no edge, no
-   texture, no shadow. The wall is the same darkness the page already was, and
-   the visual language of the artifacts on it belongs to the
-   visual-design-engineer.
+   This file establishes the coordinate space the placement model needs, and —
+   since MVP 2's revision — the fact that the wall is now a BOUNDED SURFACE
+   rather than the whole width of the page. The visual language of the artifacts
+   ON it still belongs entirely to the visual-design-engineer; nothing here
+   styles an item.
 
-   Three things happen here and they are all structural.
+   Four things happen here. Three are structural. The fourth is the boundary,
+   and it has exactly one dial.
    ========================================================================== */
 
 .wall {
+  /* ==========================================================================
+     THE BOUNDARY — ONE NUMBER, AND IT IS THE OWNER'S TO SET
+     --------------------------------------------------------------------------
+     The wall used to be the page. It now occupies a column, so it needs to be
+     perceptible as a surface — otherwise "most of the left width" is a claim
+     the eye cannot verify and the artifacts read as scattered rather than as
+     hung on something.
+
+     WHAT IT IS: the darkness inside the wall is a fraction of one tonal step
+     lighter than the darkness outside it. That is all. No border, no radius, no
+     shadow, no glass, no texture, no frame — this must never read as a
+     dashboard panel, a card, a corkboard or a gallery mat, and the surest way to
+     avoid all four is to draw no line at all and let a difference in air do it.
+
+     THE DIAL: this one property.
+
+         0     gone. The wall is exactly the page's own darkness, which is what
+               it was before this revision, and every artifact still lands in
+               the same place.
+         0.5   as shipped — about 3 of 255 levels. Barely there on purpose.
+         1     the full step from --color-background to --color-background-raised.
+
+     Setting it to 0 is the complete removal; there is nothing else to undo.
+
+     LEAD / OWNER: 0.5 is a STARTING POINT, not a design decision. It is the
+     quietest value that is still measurable. If a line is wanted instead of a
+     tonal shift, replace the `background-color` in the `::before` rule below
+     with a `border` — the dial keeps working either way, because it is the
+     opacity of the whole treatment. */
+  --wall-surface-lift: 0.5;
+
   /* 1. THE COORDINATE SPACE.
         Children are absolutely positioned against this box, so `x: 62%` and
         `y: 28%` mean something exact. */
@@ -40,6 +72,26 @@
   overflow-y: visible;
 }
 
+/* 4. THE SURFACE ITSELF.
+      A pseudo-element rather than a `background-color` on `.wall`, for two
+      reasons that are both about not disturbing anything: a background on the
+      wall would paint underneath the items but ALSO underneath nothing else,
+      whereas this box can be dialled to zero and disappear completely; and it
+      keeps the boundary as ONE rule that can be replaced wholesale.
+
+      No `z-index`. It is positioned at the stacking context's zero level and
+      every artifact carries `calc(--layer-3-content + z)` or higher, so items
+      are in front of it by the depth model rather than by a number written
+      here. */
+.wall::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: var(--color-background-raised);
+  opacity: var(--wall-surface-lift);
+}
+
 /* ---------------------------------------------------------------------------
    NARROW — a flow column, not a shrunk canvas
    -----------------------------------------------------------------------------
@@ -56,5 +108,12 @@
   .wall {
     display: flow-root;
     block-size: auto;
+
+    /* NO BOUNDARY ON A PHONE. The wall spans the full content column here, so a
+       surface lift would only mark the page's own gutters — it would say
+       "everything between the navigation and the player is the wall", which the
+       vertical rhythm already says. A boundary that outlines the whole screen is
+       not a boundary. */
+    --wall-surface-lift: 0;
   }
 }

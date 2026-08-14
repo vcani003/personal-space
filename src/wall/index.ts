@@ -64,11 +64,16 @@ export type { Offset, WallOffsets } from "./overrides";
 /**
  * Does the wall host a particular functional object?
  *
- * THE PLAYER CANNOT BE IN TWO PLACES AT ONCE. `PlayerDock` pins one copy to the
- * viewport; a `bunny-hop` embed hangs another in the page. `App.tsx` asks this
+ * THE PLAYER CANNOT BE IN TWO PLACES AT ONCE. The rail beside the wall mounts
+ * one copy; a `bunny-hop` embed hangs another ON the wall. `Home.tsx` asks this
  * question and mounts exactly one of them, so the two cannot both appear no
- * matter what is authored — and with no embed on the wall, the docked player
- * behaves exactly as it did in MVP 1.
+ * matter what is authored — and with no embed on the wall, the player is in the
+ * rail, which is where the composition puts it.
+ *
+ * (This guard used to live in `App.tsx` and used to choose between the wall and
+ * `PlayerDock`. The dock is retired — see `src/player/PlayerDock.tsx` — so the
+ * question moved to where the player is now mounted. The question itself is
+ * unchanged.)
  *
  * A derived answer rather than a flag someone has to remember to set. The
  * content is the single source of truth for where the player lives.

@@ -7,6 +7,40 @@ import styles from "./PlayerDock.module.css";
 const DESCRIPTION_ID = "player-dock-operation";
 
 /**
+ * =============================================================================
+ * RETIRED, NOT DELETED. THIS COMPONENT IS NOT MOUNTED.
+ * =============================================================================
+ *
+ * WHAT REPLACED IT: the RAIL. `Home.tsx` now mounts `<Player />` inside a
+ * `position: sticky` column beside the wall (see `.rail` in `Home.module.css`).
+ *
+ * WHY: the requirement this file was built to satisfy — "a music player you
+ * have to go and find is not a music player you use" — is satisfied by sticky
+ * too. The player stays beside you while the wall scrolls. What sticky does NOT
+ * do is the part the site owner replaced: it does not travel with the viewport,
+ * it cannot cover the wall's content, and it stops at the end of the
+ * composition instead of following you to the bottom of the page. In exchange
+ * the player is COMPOSED against the page again, which is exactly the loss the
+ * long note below says docking cost.
+ *
+ * WHAT IS KEPT, and is still complete and still compiles:
+ *
+ *   src/player/PlayerDock.tsx      this file
+ *   src/player/PlayerDock.module.css   the four corners, the margins, the
+ *                                      breakpoints
+ *   src/interaction/useDockDrag.ts     the gesture, the settle, the keyboard
+ *   src/interaction/dockCorner.ts      the corner model and its persistence
+ *   personal-space:v1:playerDock       the stored corner. NOT cleared.
+ *
+ * A dockable player is a later nice-to-have the site owner named explicitly, so
+ * bringing it back is `<PlayerDock />` in `App.tsx` plus removing the rail's
+ * `.railPlayer` block from `Home.tsx` — the two must never both mount, because
+ * that is two players.
+ *
+ * Everything below this line is the original note and is still accurate about
+ * how the dock behaves when it is mounted.
+ * =============================================================================
+ *
  * THE DOCK — the player, always on screen, and movable.
  *
  * The player used to sit in the page's flow, in a `02 / Currently` section,
