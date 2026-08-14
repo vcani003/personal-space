@@ -51,7 +51,7 @@ export function Link({ item }: { item: LinkItem }) {
         <WallImage className={styles.thumbnail} src={item.thumbnail} alt="" />
       )}
 
-      <h3 className={styles.title} data-text="display">
+      <h2 className={styles.title} data-text="display">
         <a
           className={styles.anchor}
           href={item.href}
@@ -62,7 +62,7 @@ export function Link({ item }: { item: LinkItem }) {
         <span className={styles.mark} aria-hidden="true">
           ↗
         </span>
-      </h3>
+      </h2>
 
       {item.note && (
         <p className={styles.note} data-text="body">
@@ -72,7 +72,7 @@ export function Link({ item }: { item: LinkItem }) {
 
       {item.domain && (
         <div className={styles.domain}>
-          <Meta size="sm" dim>
+          <Meta size="sm" dim dataText="meta">
             {item.domain}
           </Meta>
         </div>

@@ -147,7 +147,26 @@ export const wallItems: readonly WallItem[] = [
     source: "Placeholder",
     emphasis: "normal",
     placement: {
-      wide: { x: 33, y: 52, size: 26 },
+      /* x 33 → 48, because of the docked player rather than the composition.
+         At 33 the blurb's left edge sat at 319px against the dock's right edge
+         of 354px, so for the whole scroll range where this passed the bottom
+         of the viewport, 35px of every line was behind the player and it read
+         "…eholder text, waiting to be replaced."
+
+         42 fixed it at 1440 and NOT at 1024, which is the interesting part: the
+         dock is a FIXED 354px wide at every viewport, and `x` is a percentage
+         of a wall that is 1336px at 1440 and 920px at 1024. A percentage cannot
+         express "clear of a fixed object", so the same authored number clears
+         on a large screen and collides on a small one. 48 clears at both, with
+         20px to spare at 1024.
+
+         This is a placement constraint the wall model cannot currently state:
+         the bottom-left ~354×240 of the VIEWPORT is permanently spent, and
+         every item scrolls through it. Until it can, wide `x` for anything
+         text-bearing wants to stay right of ~48. The alternatives are docking
+         the player bottom-right, or reserving the column — both are the lead's
+         call, not an authoring workaround. */
+      wide: { x: 48, y: 52, size: 26 },
       narrow: { x: 50, size: 92, lead: "loose" },
     },
   },

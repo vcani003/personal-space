@@ -29,6 +29,15 @@ export interface WallImageProps {
   readonly className?: string;
   /** Decorative art with no alt — the placeholder must be hidden too. */
   readonly hidden?: boolean;
+  /**
+   * Load immediately rather than lazily.
+   *
+   * `loading="lazy"` is right for a charm and wrong for the memory: the
+   * photograph sits inside the first viewport on any screen taller than about
+   * 900px, so deferring it delays the one element that carries the page's only
+   * colour — the single most important thing to arrive. Charms stay lazy.
+   */
+  readonly eager?: boolean;
 }
 
 export function WallImage({
@@ -37,6 +46,7 @@ export function WallImage({
   aspectRatio,
   className,
   hidden,
+  eager,
 }: WallImageProps) {
   const [missing, setMissing] = useState(false);
 
@@ -58,7 +68,7 @@ export function WallImage({
       src={assetUrl(src)}
       alt={alt}
       aria-hidden={hidden ? "true" : undefined}
-      loading="lazy"
+      loading={eager ? "eager" : "lazy"}
       decoding="async"
       onError={() => setMissing(true)}
     />

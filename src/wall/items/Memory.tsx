@@ -44,6 +44,7 @@ export function Memory({ item }: { item: MemoryItem }) {
   const figure = (
     <figure className={styles.memory}>
       <WallImage
+        eager
         className={styles.image}
         src={item.src}
         alt={item.alt}
@@ -58,7 +59,7 @@ export function Memory({ item }: { item: MemoryItem }) {
             </p>
           )}
           {meta.length > 0 && (
-            <Meta size="sm" dim>
+            <Meta size="sm" dim dataText="meta">
               {meta.join(META_SEPARATOR)}
             </Meta>
           )}

@@ -42,7 +42,7 @@ export function Blurb({ item }: { item: BlurbItem }) {
       </blockquote>
       {item.source && (
         <figcaption className={styles.source}>
-          <Meta size="sm" dim>
+          <Meta size="sm" dim dataText="meta">
             {item.source}
           </Meta>
         </figcaption>
