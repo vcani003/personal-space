@@ -104,10 +104,19 @@ const DURATION_SECONDS = 0.6;
 export const WAVE_START_FRACTION = 0.16;
 
 /** The furthest the front travels, in px, and the fraction of the viewport it
- *  is allowed to be on a small screen. 180px is about a hand's width: far
- *  enough to cross a couple of lines of prose, short enough that it is a local
- *  disturbance rather than an event that crosses the composition. */
-const RADIUS_MAX = 180;
+ *  is allowed to be on a small screen.
+ *
+ *  RAISED 180 → 380 when the homepage became a wall.
+   180px was tuned against a page whose text ran nearly edge to edge, where a
+   hand's-width disturbance always had words in it. The wall put the writing in
+   a narrow column of small artifacts with real emptiness between them, so most
+   of the page is now further than 180px from any word — and a ripple that
+   reliably moves nothing reads as broken rather than as restrained. The reach
+   has to be a function of how far apart the words are, not of the hand.
+ *
+ *  The viewport fraction still governs small screens, where 380px would be most
+ *  of the display and the disturbance would stop being local. */
+const RADIUS_MAX = 380;
 const RADIUS_VIEWPORT_FRACTION = 0.34;
 
 /** Half-width of the moving band, in px. Wide relative to the travel on
