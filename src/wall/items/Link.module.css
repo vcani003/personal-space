@@ -1,0 +1,111 @@
+/* =============================================================================
+   LINK — an annotated bookmark, pinned up
+   =============================================================================
+
+   THE KIND OF THING THIS IS: an address. Not an object like a memory, not
+   writing like a blurb — a name, a direction, and a reason. It is also the only
+   inherently interactive thing on the wall, and that scarcity is what it is
+   allowed to spend its emphasis on.
+
+   WHAT IT IS NOT, and this is most of the design:
+
+     NOT A PREVIEW CARD.  No panel, no background, no border, no radius, no
+     padding box, no big thumbnail, no fetched og:image, no favicon, no
+     "Read more". Every one of those is a link pretending to be a product, and
+     a wall of them is a feed.
+
+     NOT A BUTTON.  No fill, no outline, no capsule, no minimum width, no
+     centred label. A link on a wall is a piece of text with a rule under it,
+     the way a link has been since 1993, at a size that says it matters.
+
+   What actually tells a visitor it is interactive, in order of load:
+     1. a hairline rule under the words
+     2. the mark that says it leaves
+     3. it brightens when pointed at
+
+   Three signals, none of them a shape. Nothing moves — no lift, no slide, no
+   scale — because motion on hover is how a page starts feeling like an app.
+
+   The type does the rest of the work. 28px display / 19px reading copy / 10px
+   tracked uppercase inside one artifact is a 2.8× jump and then a 1.9× drop; a
+   stack with that much internal contrast cannot read as a card, because a card
+   is a set of fields at similar sizes.
+   ========================================================================== */
+
+.link {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2xs);
+}
+
+/* Optional, and deliberately not authored on the prototype link. A bookmark
+   that leads with a picture is a memory that happens to be clickable. */
+.thumbnail {
+  inline-size: 100%;
+  aspect-ratio: var(--aspect, 16 / 10);
+  object-fit: cover;
+  margin-block-end: var(--space-3xs);
+}
+
+/* The smallest size in the display register — the largest thing on the wall
+   apart from the photograph, which is the point: a bookmark is a destination
+   and it says its own name out loud. */
+.title {
+  font-size: var(--text-display-sm);
+}
+
+/* Underlined by a border rather than `text-decoration` so the distance from the
+   baseline is ours to set — a hairline serif needs the rule further away than a
+   sans does, or the descenders sit on it.
+
+   It begins one step below full brightness so that pointing at it has somewhere
+   to go. The link arriving already at maximum luminance would make hover a
+   change of nothing, and would also make the brightest text on the page an
+   advertisement for somewhere else. */
+.anchor {
+  border-block-end: 1px solid var(--color-rule);
+  padding-block-end: var(--space-3xs);
+  color: var(--color-foreground-muted);
+  transition:
+    color var(--duration-response) var(--ease-out),
+    border-color var(--duration-response) var(--ease-out);
+}
+
+.anchor:hover,
+.anchor:focus-visible {
+  color: var(--color-foreground);
+  border-block-end-color: var(--color-edge);
+}
+
+/* The metadata register, applied to a piece of interface rather than to a
+   label — near-subliminal but perfectly legible, sitting beside display type
+   eleven times its size. It is a mark, not an icon: no box, no circle, no fill,
+   nothing that could be mistaken for a control. */
+.mark {
+  margin-inline-start: var(--space-2xs);
+  font-family: var(--font-meta);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-meta);
+  letter-spacing: var(--tracking-meta);
+  line-height: 1;
+  vertical-align: middle;
+  color: var(--color-foreground-faint);
+}
+
+/* One line, dim, in the content register. It is an aside about the destination,
+   so it sits below full contrast — the words a visitor is meant to read here
+   are the ones in the title. */
+.note {
+  margin-block-start: var(--space-3xs);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-dim);
+  max-inline-size: min(var(--measure), 100%);
+}
+
+/* The address, last and quietest. A wrapper carries the spacing because `Meta`
+   zeroes its own margins by design and overriding that from here would depend
+   on stylesheet order. */
+.domain {
+  margin-block-start: var(--space-2xs);
+}

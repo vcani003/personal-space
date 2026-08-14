@@ -1,0 +1,91 @@
+/* =============================================================================
+   BLURB — writing, sitting directly on the darkness
+   =============================================================================
+
+   THE KIND OF THING THIS IS: not an object. Where a memory has edges and a
+   picture plane, a blurb has neither — it is words on the wall itself, with
+   nothing behind them and nothing around them. That difference is the whole
+   distinction between the two types, and it is why this file draws no box, no
+   rule, no quotation mark, no accent bar and no background. The moment a blurb
+   gets a container it becomes a memory made of text.
+
+   THE THREE REGISTERS ARE A LADDER OF LIGHT AND SCALE AND NOTHING ELSE. No
+   colour that is not a step on the foreground luminance ramp; no size that is
+   not already in the type scale. Their whole purpose is contrast BETWEEN
+   blurbs, so a wall that sets every blurb to `feature` has spent the type
+   system and bought nothing.
+   ========================================================================== */
+
+.blurb {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-xs);
+}
+
+.text {
+  display: grid;
+  gap: var(--space-sm);
+  /* Eiko Thin at 19px wants a narrow measure. `min()` so the item's authored
+     width still wins when it is narrower than the ideal measure — which, on a
+     wall, it usually is. */
+  max-inline-size: min(var(--measure), 100%);
+}
+
+/* ---------------------------------------------------------------------------
+   THE SOURCE — above the words, not under them
+   -----------------------------------------------------------------------------
+   Set first visually while staying last in the DOM, where a screen reader wants
+   it: quote, then attribution.
+
+   Above rather than below is a composition decision made across all three text
+   types at once, so that metadata position becomes a way of telling them apart
+   at a glance rather than a detail each renderer decided alone:
+
+     MEMORY   caption BELOW the picture, indented and overhanging
+     BLURB    source ABOVE the words, like a tag beside something pinned up
+     LINK     address BELOW, after the note, where an address goes
+
+   Under the text it would have read as a pull-quote attribution, which is a
+   magazine gesture and would have made the blurb look designed. Above, it reads
+   as a small hand-written label saying where this came from.
+   ------------------------------------------------------------------------ */
+
+.source {
+  order: -1;
+  /* On top of the grid gap — the label is a separate act from the sentence. */
+  margin-block-end: var(--space-2xs);
+}
+
+/* Reading copy at full contrast — the type is a hairline, and contrast is what
+   pays for that. Do not dim it to make it feel softer. */
+.blurb[data-emphasis="normal"] .text {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground);
+}
+
+/* Almost gone. Something noticed rather than read — but still 4.6:1, because
+   quiet is not the same as unreadable. */
+.blurb[data-emphasis="whisper"] .text {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-dim);
+}
+
+/* The display register at scale. This is the loud one, and the wall should hold
+   very few of them — the emptiness around it is most of the effect, so a
+   `feature` blurb needs the space its neighbours would have used. */
+.blurb[data-emphasis="feature"] .text {
+  font-size: var(--text-display-md);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  max-inline-size: none;
+}
+
+@media (max-width: 47.9375rem) {
+  /* One step down. 40px of Eiko on a 375px screen wraps to five lines and stops
+     reading as a statement. */
+  .blurb[data-emphasis="feature"] .text {
+    font-size: var(--text-display-sm);
+  }
+}

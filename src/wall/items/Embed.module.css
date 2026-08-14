@@ -1,0 +1,18 @@
+/* =============================================================================
+   EMBED — placeholder treatment
+   =============================================================================
+
+   MINIMAL BY INSTRUCTION, and here that is close to permanent: the embedded
+   object draws itself. The player is a defined physical thing with its own
+   chassis, radius, edge and glow, and the wall adding a second container around
+   it would give it two silhouettes.
+
+   So this file establishes a block box and nothing else. Do not add a frame, a
+   background, a border or a shadow — the object already has all four and they
+   are its own.
+   ========================================================================== */
+
+.embed {
+  display: block;
+  inline-size: 100%;
+}

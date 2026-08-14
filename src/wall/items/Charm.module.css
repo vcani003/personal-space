@@ -1,0 +1,43 @@
+/* =============================================================================
+   CHARM — a small thing, and nothing else
+   =============================================================================
+
+   THE KIND OF THING THIS IS: a mark. It has no caption, no date, no source, no
+   address, no accessible name and no hover state. It is the only type on the
+   wall that is allowed to mean nothing, and the design of it is almost entirely
+   subtraction — a charm is what is left when you remove everything a portfolio
+   would have attached.
+
+   NO FRAME, NO BACKGROUND, NO GLOW, NO SHADOW, NO RADIUS, NO ANIMATION, NO
+   POINTER RESPONSE. It sits on the darkness the way a sticker sits on a wall.
+
+   ── The one rule with teeth ─────────────────────────────────────────────────
+
+   NOTHING HERE MAY TOUCH THE ARTWORK'S OWN COLOUR. No `opacity`, no `filter`,
+   no `mix-blend-mode`, no tint. Charms are the type most likely to arrive vivid,
+   ugly, funny, animated, or plainly from a different decade — and that is
+   correct. Dimming them from this file would quietly flatten every future charm
+   into the site's palette and delete exactly what made each one worth keeping.
+   If a specific charm is too loud, make that charm quieter, or make it smaller,
+   or place it somewhere it is found rather than seen. Do not fade the type.
+
+   ── The other rule ──────────────────────────────────────────────────────────
+
+   IT STAYS SMALL. About 43px on a wide screen. Size is authored per item in
+   `src/content/wall.ts`, so this file cannot enforce it — but a charm large
+   enough to hold the eye has stopped being a charm and become decoration, and
+   decoration has to earn its space the way everything else does.
+   ========================================================================== */
+
+.charm {
+  /* Block, so a missing file's placeholder box still holds its space. */
+  display: block;
+}
+
+.image {
+  inline-size: 100%;
+  aspect-ratio: var(--aspect, 1);
+  /* `contain`, not `cover` — a charm is a whole small picture, and cropping one
+     to a box is the one thing that would make it look like an asset. */
+  object-fit: contain;
+}

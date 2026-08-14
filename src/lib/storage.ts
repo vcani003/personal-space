@@ -31,6 +31,13 @@
  * `v1` data, and `purgeOtherVersions()` sweeps it when convenient. Bump
  * `SCHEMA_VERSION` when a stored shape changes incompatibly.
  *
+ * MORE THAN ONE VERSION CAN BE LIVE AT ONCE, and in this build two are. The
+ * version segment is not a global "how old is this site" counter; it scopes one
+ * FAMILY of stored shapes. MVP 1's remembered positions (`v1:objectPositions`,
+ * `v1:playerDock`) are current, correct and still in use. MVP 2's wall is a new
+ * system with a new shape, so it opens `v2` rather than invalidating theirs —
+ * see `scoped()` below and `LIVE_VERSIONS`.
+ *
  * ── Validation ──────────────────────────────────────────────────────────────
  *
  * Reads take a type-guard. There is no schema library and there should not be
@@ -42,16 +49,30 @@
 
 const NAMESPACE = "personal-space";
 
-/** Bump when a persisted shape changes incompatibly. Old keys are then
- *  invisible to reads and can be swept with `purgeOtherVersions()`. */
-export const SCHEMA_VERSION = "v1";
+/**
+ * Every version this build still reads or writes.
+ *
+ * `purgeOtherVersions()` preserves all of them and sweeps everything else. Drop
+ * a version from this list only when nothing reads it any more — that is what
+ * makes the sweep safe.
+ */
+export const LIVE_VERSIONS = ["v1", "v2"] as const;
 
-const KEY_PREFIX = `${NAMESPACE}:${SCHEMA_VERSION}:`;
+export type SchemaVersion = (typeof LIVE_VERSIONS)[number];
+
+/** The default version. Every call site that does not say otherwise gets this.
+ *  Bump ONLY if `v1`'s own shapes change incompatibly; a new subsystem with a
+ *  new shape should open its own version instead — see `scoped()`. */
+export const SCHEMA_VERSION: SchemaVersion = "v1";
+
 const NAMESPACE_PREFIX = `${NAMESPACE}:`;
 
-/** `personal-space:v1:<name>` */
-export function storageKey(name: string): string {
-  return `${KEY_PREFIX}${name}`;
+/** `personal-space:<version>:<name>` */
+export function storageKey(
+  name: string,
+  version: SchemaVersion = SCHEMA_VERSION,
+): string {
+  return `${NAMESPACE_PREFIX}${version}:${name}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -99,7 +120,7 @@ function backend(): Storage | null {
   try {
     if (typeof window === "undefined") return cachedBackend;
     const store = window.localStorage;
-    const probe = `${KEY_PREFIX}__probe__`;
+    const probe = `${NAMESPACE_PREFIX}__probe__`;
     store.setItem(probe, "1");
     store.removeItem(probe);
     cachedBackend = store;
@@ -127,11 +148,12 @@ export function resetStorageProbe(): void {
 export function readResult<T>(
   name: string,
   validate: Validator<T>,
+  version: SchemaVersion = SCHEMA_VERSION,
 ): StorageResult<T> {
   const store = backend();
   if (store === null) return { status: "unavailable" };
 
-  const key = storageKey(name);
+  const key = storageKey(name, version);
 
   let raw: string | null;
   try {
@@ -163,8 +185,9 @@ export function read<T>(
   name: string,
   validate: Validator<T>,
   fallback: T,
+  version: SchemaVersion = SCHEMA_VERSION,
 ): T {
-  const result = readResult(name, validate);
+  const result = readResult(name, validate, version);
   return result.status === "ok" ? result.value : fallback;
 }
 
@@ -172,7 +195,11 @@ export function read<T>(
 /* Write / remove                                                              */
 /* -------------------------------------------------------------------------- */
 
-export function write(name: string, value: unknown): WriteResult {
+export function write(
+  name: string,
+  value: unknown,
+  version: SchemaVersion = SCHEMA_VERSION,
+): WriteResult {
   const store = backend();
   if (store === null) return { status: "unavailable" };
 
@@ -186,7 +213,7 @@ export function write(name: string, value: unknown): WriteResult {
   }
 
   try {
-    store.setItem(storageKey(name), serialised);
+    store.setItem(storageKey(name, version), serialised);
     return { status: "ok" };
   } catch (error) {
     return isQuotaError(error)
@@ -195,19 +222,58 @@ export function write(name: string, value: unknown): WriteResult {
   }
 }
 
-export function remove(name: string): void {
-  discard(backend(), storageKey(name));
+export function remove(
+  name: string,
+  version: SchemaVersion = SCHEMA_VERSION,
+): void {
+  discard(backend(), storageKey(name, version));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Scoping to a non-default version                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The same four functions, bound to one version.
+ *
+ * For a subsystem whose stored shapes are its own — MVP 2's wall positions live
+ * under `v2` while MVP 1's paper and dock positions stay under `v1`, because
+ * those are still correct and still in use. Two live versions is a normal
+ * state, not a migration in progress.
+ *
+ * Call it once at module scope and use the result; it allocates nothing
+ * interesting.
+ */
+export function scoped(version: SchemaVersion) {
+  return {
+    key: (name: string) => storageKey(name, version),
+    readResult: <T>(name: string, validate: Validator<T>) =>
+      readResult(name, validate, version),
+    read: <T>(name: string, validate: Validator<T>, fallback: T) =>
+      read(name, validate, fallback, version),
+    write: (name: string, value: unknown) => write(name, value, version),
+    remove: (name: string) => remove(name, version),
+  };
 }
 
 /**
- * Delete every `personal-space:*` key that is not the current version.
- * Optional housekeeping — call it once at startup if it ever matters. Reads
- * are already immune to stale versions, so this is only about not leaving
- * litter in someone's browser.
+ * Delete every `personal-space:*` key belonging to a version this build no
+ * longer knows about. Optional housekeeping — call it once at startup if it
+ * ever matters. Reads are already immune to stale versions, so this is only
+ * about not leaving litter in someone's browser.
+ *
+ * IT PRESERVES EVERY VERSION IN `LIVE_VERSIONS`, not just the default one. The
+ * earlier form kept only `SCHEMA_VERSION`, which was correct while exactly one
+ * version existed and became a trap the moment a second one did: the first call
+ * would have swept the wall's remembered positions.
  */
 export function purgeOtherVersions(): void {
   const store = backend();
   if (store === null) return;
+
+  const live: readonly string[] = LIVE_VERSIONS.map(
+    (version) => `${NAMESPACE_PREFIX}${version}:`,
+  );
 
   try {
     const stale: string[] = [];
@@ -216,7 +282,7 @@ export function purgeOtherVersions(): void {
       if (
         key !== null &&
         key.startsWith(NAMESPACE_PREFIX) &&
-        !key.startsWith(KEY_PREFIX)
+        !live.some((prefix) => key.startsWith(prefix))
       ) {
         stale.push(key);
       }

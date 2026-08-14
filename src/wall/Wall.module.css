@@ -1,0 +1,60 @@
+/* =============================================================================
+   THE WALL — the canvas
+   =============================================================================
+
+   MINIMAL BY INSTRUCTION. This file establishes the coordinate space the
+   placement model needs and stops. It draws nothing: no surface, no edge, no
+   texture, no shadow. The wall is the same darkness the page already was, and
+   the visual language of the artifacts on it belongs to the
+   visual-design-engineer.
+
+   Three things happen here and they are all structural.
+   ========================================================================== */
+
+.wall {
+  /* 1. THE COORDINATE SPACE.
+        Children are absolutely positioned against this box, so `x: 62%` and
+        `y: 28%` mean something exact. */
+  position: relative;
+
+  /* 2. A LOCAL DEPTH MODEL.
+        `isolation: isolate` makes the wall its own stacking context, so the
+        depth bands in WallItem.module.css order artifacts against EACH OTHER
+        and against nothing else. Without it a `front` artifact at z-index 50
+        would be competing with the interaction layer's root, which is genuinely
+        layer 5 of the page and must stay above all of this. The wall as a whole
+        occupies layer 3 — page content — exactly as the old composition did. */
+  isolation: isolate;
+
+  /* 3. HOW TALL. Authored in `src/content/wall.ts`, published by `Wall.tsx`.
+        The wall is FINITE. `svh` rather than `vh` so a mobile browser's
+        collapsing toolbar cannot change the wall's height mid-scroll. */
+  block-size: calc(var(--wall-span) * 100svh);
+
+  /* An artifact may hang past the left or right edge — that is a compositional
+     move, not a mistake — but it must never create a horizontal scrollbar.
+     `clip` rather than `hidden` so this does not become a scroll container, and
+     paired with an explicit `visible` on the block axis so rotation and glow
+     can still bleed vertically. That pairing is only legal with `clip`. */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW — a flow column, not a shrunk canvas
+   -----------------------------------------------------------------------------
+   The wall stops declaring a height and lets its contents decide, because on
+   narrow the artifacts are in normal flow. Everything about WHY is in
+   `types.ts` on `WallPlacementNarrow`; the mechanism is `position: relative` on
+   the items, which lives in their own module.
+
+   `flow-root` so the first item's `margin-block-start` cannot escape the wall
+   and push the whole page down.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .wall {
+    display: flow-root;
+    block-size: auto;
+  }
+}

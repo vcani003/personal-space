@@ -1,0 +1,125 @@
+/* =============================================================================
+   MEMORY — a photograph, and something written next to it
+   =============================================================================
+
+   THE KIND OF THING THIS IS: an object. It has edges, it has a picture plane, it
+   is turned slightly, and it is the only thing on the wall with colour in it.
+   That is enough to distinguish it — it does not need a frame to be an object.
+
+   WHAT THIS FILE DOES NOT DO, and none of it by accident:
+     no frame, no border, no matte, no tape, no pin, no polaroid edge
+     no drop shadow, no radius, no hover lift, no zoom
+     NO FILTER OF ANY KIND — no grayscale, tint, duotone, blur or desaturation
+
+   The last one is the load-bearing prohibition. A saturated photograph inside a
+   near-monochrome environment is a piece of someone's life entering a restrained
+   room, and every instinct to "make it fit the palette" is an instinct to delete
+   the reason it was hung. The wall provides the cohesion. The artifact does not
+   have to.
+
+   The image is also its own edge treatment: this photograph falls to near-black
+   in its corners, so it does not end at a rectangle, it dissolves into the page.
+   A border would have drawn a line exactly where the composition wants none.
+   ========================================================================== */
+
+.memory {
+  display: grid;
+
+  /* THE COLUMN IS BOUNDED BY THE ITEM, and this line is load-bearing.
+     Without it the implicit column is auto-sized, which means max-content of
+     its widest child — and the caption below is deliberately `max-content`, so
+     the column grew to the caption's one-line width (~407px), the picture
+     stretched to the COLUMN rather than to the item, and a 152px artifact
+     rendered at 424px and dominated the viewport.
+
+     `minmax(0, 1fr)` pins the column to the item's width. The caption can
+     still overhang, because an item is allowed to overflow its column — it
+     just no longer gets to resize it. */
+  grid-template-columns: minmax(0, 1fr);
+
+  /* Both children start at the same edge; the caption's own indent is then a
+     visible, deliberate offset rather than the accident of a stretched box. */
+  justify-items: start;
+  gap: var(--space-xs);
+}
+
+/* `--aspect` is published by WallImage from the authored ratio, and holds the
+   box open before the file arrives. The item shell owns the width. */
+.image {
+  inline-size: 100%;
+  aspect-ratio: var(--aspect, 3 / 2);
+  object-fit: cover;
+}
+
+/* ---------------------------------------------------------------------------
+   THE CAPTION — an annotation, not a card footer
+   -----------------------------------------------------------------------------
+   THE DEFAULT ARRANGEMENT IS THE WRONG ONE. A caption set flush under an image
+   at the image's own width completes a rectangle, and a completed rectangle is
+   a card no matter what it is made of. Two moves undo that:
+
+     INDENT   it starts inside the picture, not at its left edge
+     OVERHANG it is wider than the picture, so it runs past the right edge
+
+   so the block is asymmetric on both sides and the eye reads two things placed
+   near each other rather than one composite object.
+
+       [ PHOTO ]
+           a flower projection
+           room somewhere in tokyo
+
+   Both are expressed against the picture's own width rather than in characters,
+   so the geometry holds at any authored size and in any font — a `ch` measure
+   would have been one width with PP Eiko and a different one with the Georgia
+   fallback, and the overhang would have appeared and disappeared with the font.
+
+   Set in the content register (this is a sentence, not a label) but one step
+   below full contrast, because the photograph is the loud one and a caption
+   that competes with it is a caption arguing with its own subject.
+
+   `--leading-lyric` rather than `--leading-body`: this is the display face
+   wrapping at a small size across two or three short lines, which is exactly the
+   case that token was drawn for. Body leading here would open the caption into a
+   paragraph.
+   ------------------------------------------------------------------------ */
+
+.caption {
+  inline-size: max-content;
+  max-inline-size: calc(100% + var(--space-sm));
+  margin-inline-start: var(--space-md);
+
+  display: grid;
+  gap: var(--space-2xs);
+
+  line-height: var(--leading-lyric);
+  color: var(--color-foreground-muted);
+}
+
+/* The aside, not the description — a step quieter again. The whole reason
+   `caption` and `annotation` are separate fields is that they are not the same
+   voice, so they must not land on the same luminance. */
+.annotation {
+  color: var(--color-foreground-dim);
+}
+
+/* Most memories are not links. When one is, the whole artifact is the target. */
+.link {
+  display: block;
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW
+   -----------------------------------------------------------------------------
+   The overhang is a wide-screen move. On a phone the wall clips horizontally and
+   does not scroll sideways, so a caption running past the picture is a caption
+   running off the screen. The indent survives — it is what keeps the pairing
+   from squaring up into a card — and the overhang is given back.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .caption {
+    inline-size: auto;
+    max-inline-size: 100%;
+    margin-inline-start: var(--space-sm);
+  }
+}

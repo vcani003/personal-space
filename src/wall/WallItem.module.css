@@ -1,0 +1,117 @@
+/* =============================================================================
+   THE PLACEMENT SHELL
+   =============================================================================
+
+   The only file on the wall that positions anything. Every value it uses is a
+   custom property published by `placement.ts` from authored data — there is not
+   a single coordinate, size, angle or layer written here.
+
+   THE INDIRECTION AT THE TOP IS THE RESPONSIVE STRATEGY. Both compositions are
+   published at once under two prefixes; these six local properties choose which
+   set is live, and one media query re-points them. Nothing else in the file
+   knows there are two compositions, and no JavaScript is involved in picking
+   one.
+
+   Mobile is a DIFFERENT COMPOSITION, not a scaled one — see `types.ts` on
+   `WallPlacementNarrow` for why, at length.
+   ========================================================================== */
+
+.item {
+  --x: var(--wall-x);
+  --y: var(--wall-y);
+  --inline-size: var(--wall-inline-size);
+  --rotation: var(--wall-rotation);
+  --depth: var(--wall-depth);
+  --z: var(--wall-z);
+
+  /* The visitor's remembered displacement. Zero is the normal state. */
+  --offset-x: var(--wall-offset-x, 0px);
+  --offset-y: var(--wall-offset-y, 0px);
+
+  position: absolute;
+  inset-inline-start: var(--x);
+  inset-block-start: var(--y);
+  inline-size: var(--inline-size);
+
+  /* THE ANCHOR IS THE ITEM'S CENTRE. `translate: -50% -50%` is what makes
+     `x: 62, y: 28` mean "this artifact's middle is there" rather than "its top
+     left corner is there" — so an item does not crawl sideways when its caption
+     grows a line, and so rotation happens about the point that was authored.
+
+     The visitor's offset is folded into the same property rather than given its
+     own transform, so an authored anchor and a nudge can never fight. */
+  translate: calc(-50% + var(--offset-x)) calc(-50% + var(--offset-y));
+  rotate: var(--rotation);
+
+  /* Depth band + ordering within it. Both are data; the bands are token
+     references resolved in `placement.ts`, the ordinal is authored. Resolves
+     inside the wall's own stacking context — see `Wall.module.css`. */
+  z-index: calc(var(--depth) + var(--z));
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW — flow, with authored displacement
+   -----------------------------------------------------------------------------
+   Vertical position comes from document order, so nothing can collide. What
+   keeps this a wall rather than a card feed is that everything else survives:
+   horizontal position, width and rotation are all still authored, per item, at
+   this breakpoint specifically.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 47.9375rem) {
+  .item {
+    --x: var(--wall-nx);
+    --inline-size: var(--wall-ninline-size);
+    --rotation: var(--wall-nrotation);
+    --depth: var(--wall-ndepth);
+    --z: var(--wall-nz);
+
+    /* Remembered positions are a wide-composition affordance. A vertical offset
+       inside a flow column pushes an artifact into its neighbour, and a
+       position saved during a desktop session must not be able to damage the
+       phone view. */
+    --offset-x: 0px;
+    --offset-y: 0px;
+
+    position: relative;
+    inset: auto;
+
+    /* Same meaning as the wide composition — x is the CENTRE — reached a
+       different way. The margin puts the item's leading edge at x% of the wall;
+       the translate pulls it back by half its own width. Works whether the
+       width was authored or is intrinsic, which the absolute version's
+       percentage arithmetic would not have. */
+    margin-inline-start: var(--x);
+    translate: -50% 0;
+
+    margin-block-start: var(--lead, var(--space-xl));
+
+    /* An artifact may hang past an edge on a wide screen. On a phone that is
+       content nobody can reach, so it cannot exceed the wall. */
+    max-inline-size: 100%;
+  }
+
+  /* The vertical rhythm of the column. An attribute rather than a custom
+     property because these are SPACING VALUES and they belong next to the space
+     scale, where a visual engineer will look for them. */
+  .item[data-lead="tight"] {
+    --lead: var(--space-lg);
+  }
+
+  .item[data-lead="loose"] {
+    --lead: var(--space-2xl);
+  }
+
+  /* Nothing leads the first artifact — the wall's own top edge already did. */
+  .item:first-child {
+    margin-block-start: 0;
+  }
+
+  /* FEWER THINGS ON A SMALL SCREEN. `display: none` rather than a conditional
+     render, so this stays a CSS decision with no resize listener behind it —
+     and so an absent link is genuinely out of the tab order and out of the
+     accessibility tree, rather than being a phantom stop nobody can see. */
+  .item[data-narrow="absent"] {
+    display: none;
+  }
+}

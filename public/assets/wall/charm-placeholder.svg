@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"
+     fill="none" stroke="#e9e8ef" stroke-opacity="0.52" stroke-width="1.1"
+     stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    CHARM — PLACEHOLDER MARK.
+
+    A neutral stand-in so the `charm` type has something to render while the
+    real one does not exist. It is deliberately unremarkable: a thin line
+    drawing, no colour, no personality, nothing anyone would mistake for a
+    decision. The real charm is the site owner's to choose and is allowed to be
+    vivid, funny, ugly or entirely off-palette — a charm does NOT have to
+    harmonise with this page.
+
+    Replace this file, or point `src` somewhere else in src/content/wall.ts.
+
+    The colour is baked in rather than inherited because this is loaded through
+    an <img>. Charms are never dimmed by CSS: doing so would quietly flatten
+    every future charm into the site's palette.
+  -->
+  <g>
+    <ellipse cx="24" cy="13.6" rx="5.4" ry="9.6" />
+    <ellipse cx="24" cy="13.6" rx="5.4" ry="9.6" transform="rotate(60 24 24)" />
+    <ellipse cx="24" cy="13.6" rx="5.4" ry="9.6" transform="rotate(120 24 24)" />
+    <ellipse cx="24" cy="13.6" rx="5.4" ry="9.6" transform="rotate(180 24 24)" />
+    <ellipse cx="24" cy="13.6" rx="5.4" ry="9.6" transform="rotate(240 24 24)" />
+    <ellipse cx="24" cy="13.6" rx="5.4" ry="9.6" transform="rotate(300 24 24)" />
+  </g>
+  <circle cx="24" cy="24" r="2.3" />
+</svg>
