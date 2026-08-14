@@ -1,4 +1,9 @@
-import type { WallItem, WallPlacement, WallPlacementNarrow } from "./types";
+import type {
+  WallAlign,
+  WallItem,
+  WallPlacement,
+  WallPlacementNarrow,
+} from "./types";
 
 /* =============================================================================
    AUTHORING CHECKS — development only, and deliberately tiny
@@ -24,6 +29,43 @@ const inRange = (value: number, max = 100): boolean =>
 
 /** Depth bands are ten apart in `tokens.css`; a larger `z` leaks into the next. */
 const Z_MAX = 9;
+
+/**
+ * WHERE AN ITEM ACTUALLY SITS, given which edge `x` names.
+ *
+ * This check used to assume `x` was always the item's CENTRE, which was true
+ * until `align` was added and has been wrong since. The cost was not a missed
+ * warning but a FALSE one: every left-anchored item wide enough to matter
+ * reported as running off the wall, so the whole narrow composition warned on
+ * every load and the one message that would have meant something was buried in
+ * three that did not. A validator nobody can trust is worse than no validator.
+ */
+function footprint(
+  x: number,
+  size: number,
+  align: WallAlign,
+): readonly [number, number] {
+  switch (align) {
+    case "left":
+      return [x, x + size];
+    case "center":
+      return [x - size / 2, x + size / 2];
+    case "right":
+      return [x - size, x];
+  }
+}
+
+/** The legal range for `x` at a given size and anchor, as a message fragment. */
+function footprintBounds(size: number, align: WallAlign): string {
+  switch (align) {
+    case "left":
+      return `0 and ${(100 - size).toFixed(1)}`;
+    case "center":
+      return `${(size / 2).toFixed(1)} and ${(100 - size / 2).toFixed(1)}`;
+    case "right":
+      return `${size.toFixed(1)} and 100`;
+  }
+}
 
 export function validateWall(items: readonly WallItem[]): void {
   const problems: string[] = [];
@@ -92,11 +134,11 @@ function checkNarrow(
      the size is authored; an intrinsic item's width is not known here. */
   const { size } = placement;
   if (size !== undefined) {
-    const start = placement.x - size / 2;
-    const end = placement.x + size / 2;
+    const align = placement.align ?? "left";
+    const [start, end] = footprint(placement.x, size, align);
     if (start < 0 || end > 100) {
       problems.push(
-        `${where}: narrow placement runs off the wall (${start.toFixed(1)}% – ${end.toFixed(1)}%). x is the item's CENTRE, so keep it between ${(size / 2).toFixed(1)} and ${(100 - size / 2).toFixed(1)}.`,
+        `${where}: narrow placement runs off the wall (${start.toFixed(1)}% – ${end.toFixed(1)}%). x names the item's ${align.toUpperCase()} edge, so with size ${size} keep it between ${footprintBounds(size, align)}.`,
       );
     }
   }

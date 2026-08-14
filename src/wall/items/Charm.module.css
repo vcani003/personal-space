@@ -8,8 +8,16 @@
    subtraction — a charm is what is left when you remove everything a portfolio
    would have attached.
 
-   NO FRAME, NO BACKGROUND, NO GLOW, NO SHADOW, NO RADIUS, NO ANIMATION, NO
-   POINTER RESPONSE. It sits on the darkness the way a sticker sits on a wall.
+   NO FRAME, NO BACKGROUND, NO GLOW, NO SHADOW, NO RADIUS, NO ANIMATION. It sits
+   on the darkness the way a sticker sits on a wall.
+
+   THE ONE POINTER RESPONSE IS NOT IN THIS FILE. A charm is 28px wide at 1024,
+   which is small enough that a line drawing stops resolving at all, so the shell
+   scales it on hover along with the photograph — `WallItem.module.css`, where
+   `scale` and z-index live. It is deliberately the SAME gesture at the SAME
+   magnitude as the memory's: the two visual artifacts behave alike, which is
+   what stops the expansion reading as a feature attached to the photograph and
+   keeps it reading as how objects on this wall respond to being looked at.
 
    ── The one rule with teeth ─────────────────────────────────────────────────
 

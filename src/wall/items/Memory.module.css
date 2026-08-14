@@ -8,8 +8,16 @@
 
    WHAT THIS FILE DOES NOT DO, and none of it by accident:
      no frame, no border, no matte, no tape, no pin, no polaroid edge
-     no drop shadow, no radius, no hover lift, no zoom
+     no drop shadow, no radius, no glow, no brightness change, no cursor
      NO FILTER OF ANY KIND — no grayscale, tint, duotone, blur or desaturation
+
+   A MEMORY DOES EXPAND WHEN YOU POINT AT IT, AND NOT FROM HERE. The photograph
+   is small on purpose and small photographs are hard to look at, so the shell
+   scales it ~1.35× on hover. That lives in `WallItem.module.css`, with the rest
+   of placement, because it needs `scale` and a z-index lift and a renderer is
+   not allowed to set either. Nothing else happens on hover — no glow, no
+   shadow, no caption reveal — and nothing else should be added here to
+   accompany it.
 
    The last one is the load-bearing prohibition. A saturated photograph inside a
    near-monochrome environment is a piece of someone's life entering a restrained

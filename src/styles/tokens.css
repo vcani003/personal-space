@@ -379,6 +379,13 @@
 
      Still governed by: a viewer should perceive DEPTH before consciously
      perceiving PARALLAX, and the page must never visibly swing. */
+  /* HOVER LIFT — how much a small artifact grows when pointed at.
+     A scale factor is a motion magnitude, not a size, which is why it sits with
+     the durations rather than in the space scale: nothing in the layout is this
+     number, and no box is ever this big. It exists so a photograph can stay
+     genuinely small in the composition and still be legible when looked at. */
+  --scale-lift: 1.35;
+
   --parallax-far: 10px;
   --parallax-middle: 18px;
   --parallax-near: 26px;

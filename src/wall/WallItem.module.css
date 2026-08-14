@@ -56,6 +56,139 @@
   z-index: calc(var(--depth) + var(--z));
 }
 
+/* =============================================================================
+   HOVER EXPANSION — the artifact comes forward, the page does not move
+   =============================================================================
+
+   THE PROBLEM IT SOLVES. The wall is a column now, so a photograph authored at
+   a restrained fraction of it is 221px at 1440 and 126px at 1024. That is the
+   right SIZE for the composition and the wrong size for LOOKING at a
+   photograph. Pointing at one brings it forward far enough to read; letting go
+   puts it back. Nothing around it moves.
+
+   ── The five decisions, and why each one is the way it is ───────────────────
+
+   1. `scale`, NEVER width/height. A width change is layout: everything below
+      the photograph would slide down the page while you were reading it, which
+      is the precise opposite of "I want the page to flow". `scale` is a
+      compositor property and the document does not know it happened.
+
+      It is the INDEPENDENT `scale` property rather than `transform`, because
+      the shell already spends `translate` on the anchor + the visitor's
+      remembered offset and `rotate` on the authored angle. Those three compose
+      in a fixed order (translate → rotate → scale) without any of them having
+      to know about the others — so a future drag implementation can keep
+      writing `translate` per frame and this rule cannot fight it.
+
+   2. IT LIFTS IN Z. Without it an artifact expands UNDERNEATH its neighbours
+      and looks broken. `--layer-above` rather than an arithmetic bump past the
+      bands, because "above every band" is exactly what that token means and a
+      hovered artifact is briefly outside the depth model. It cannot escape the
+      wall: `Wall.module.css` sets `isolation: isolate`, so 100 here is local.
+      z-index is deliberately NOT in the transition — the lift must complete
+      before the growth starts, not halfway through it.
+
+   3. `transform-origin: 50% 50%` — CENTRE, AND IT IS LOAD-BEARING.
+
+      THE OSCILLATION TRAP: if an element grows AWAY from the pointer, the
+      pointer can end up outside the new bounds, so it shrinks, so the pointer
+      is inside again, so it grows — a flickering photograph. The geometry that
+      rules it out: scaling a convex box about any origin INSIDE it produces a
+      strict superset of the original box, so every point that was hovering it
+      still is. Centre is the safest member of that family and the only one that
+      needs no per-`align` variant.
+
+      It also agrees with the placement model. The shell is vertically
+      centre-anchored (`translate: -50%`) and rotation already happens about the
+      centre, so the authored anchor point is the one point that does not move.
+
+      The alternative — origin on the authored edge, so a left-anchored item
+      keeps its left edge — was rejected twice over: it needs three rules to
+      cover three `align` values, and it makes the artifact lunge sideways
+      instead of coming toward you.
+
+   4. VISUAL ARTIFACTS ONLY — `memory` and `charm`. Not blurb, not link.
+      Scaling type is a zoom widget, not an object moving in space, and hairline
+      Eiko at 19px growing 35% reads as an accessibility control. It also
+      re-renders glyphs at a non-integer scale for the whole transition. A
+      selector on `data-wall-item` rather than a class, so this stays a decision
+      about KINDS of artifact and no renderer has to opt in.
+
+   5. `prefers-reduced-motion` NEEDS NO BRANCH HERE. `--duration-response`
+      already resolves to 0ms under that query in `tokens.css`, so the artifact
+      still expands — becoming legible is content, not decoration — and simply
+      arrives instantly. Adding a media query would be a second copy of a
+      decision the token layer has already made.
+
+   ── Two things this deliberately does not do ────────────────────────────────
+
+   NO OTHER HOVER TREATMENT. No glow, no shadow, no brightness, no cursor, no
+   caption reveal. Design-review question 7: the wall already spends a pointer
+   response on the link's underline, and two responses across four artifacts is
+   already at the edge of the interaction hierarchy.
+
+   NOT ON TOUCH, and not on narrow. `(hover: hover) and (pointer: fine)` keeps
+   it off touch screens, where `:hover` latches after a tap and would leave a
+   photograph stuck at 1.35× until you tapped something else. The phone does not
+   need it: the narrow composition authors the memory at 70% of the wall — 228px
+   on a 390px screen — so it is already the most legible it is anywhere. Mobile
+   is a different composition, and this is what that means in practice.
+   `min-width: 48rem` is the complement of the narrow breakpoint below, so the
+   two can never both apply.
+   ========================================================================== */
+
+@media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
+  .item[data-wall-item="memory"],
+  .item[data-wall-item="charm"] {
+    /* THE MAGNITUDE, AND IT IS ONE DIAL.
+       Judge it on the Tokyo photograph, which is the only real image and
+       therefore the only real test.
+
+         1.00  off. The composition is unchanged and nothing else has to be
+               undone — this rule collapses to a no-op.
+         1.30  the restrained starting point.
+         1.35  as shipped.
+         1.50+ a lightbox. At that point the honest change is the BASE size, or
+               a real full-view interaction, not a bigger hover.
+
+       Why 1.35 rather than 1.30: at 1440 the photograph is 221px, so 1.30 buys
+       66px of width and 1.35 buys 77px. The subject's face is ~14% of the frame,
+       which puts it at 31px at rest, 40px at 1.30 and 42px at 1.35 — the step
+       where her glasses and her expression start resolving rather than merely
+       being present. Below 1.30 the change is deniable; above 1.40 a 221px
+       artifact starts spending its neighbours' air rather than its own.
+
+       The photograph does not soften when it grows: the file is 768px wide and
+       is displayed at 221–298px, so the whole expansion is still a downscale
+       and it resolves MORE detail, not less.
+
+       LEAD: this is a raw multiplier in a stylesheet, which the token rules
+       would rather it were not. It wants `--scale-lift` in `tokens.css`
+       alongside the motion tokens — a scale factor is a motion magnitude, not a
+       size. Not added here; that file is yours. Same shape as
+       `--wall-surface-lift` in `Wall.module.css`. */
+    --hover-scale: var(--scale-lift);
+
+    transform-origin: 50% 50%;
+
+    /* `scale` ALONE. Never `transform`, never `all`, never `translate` — the
+       visitor's remembered offset and a future drag both write `translate`, and
+       a transition on it would make dragging lag the pointer by 200ms. */
+    transition: scale var(--duration-response) var(--ease-out);
+  }
+
+  /* `:focus-within` costs nothing today — neither of these two types is
+     focusable unless it is authored with an `href` — and it is the difference
+     between the affordance existing for a keyboard and not, the moment one is. */
+  .item[data-wall-item="memory"]:hover,
+  .item[data-wall-item="memory"]:focus-within,
+  .item[data-wall-item="charm"]:hover,
+  .item[data-wall-item="charm"]:focus-within {
+    scale: var(--hover-scale);
+    z-index: var(--layer-above);
+  }
+}
+
 /* ---------------------------------------------------------------------------
    NARROW — flow, with authored displacement
    -----------------------------------------------------------------------------
