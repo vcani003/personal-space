@@ -232,7 +232,7 @@ export const wallItems: readonly WallItem[] = [
     caption: "a flower projection room somewhere in tokyo",
     aspectRatio: 0.75,
     placement: {
-      wide: { x: 14, y: 16, size: 23, rotation: -1.8, align: "left" },
+      wide: { x: 14, y: 16, size: 20, rotation: -1.8, align: "left" },
       /* THE PHONE IS WHERE THIS PHOTOGRAPH IS MOST LEGIBLE, and that is on
          purpose rather than by accident. 70% of a 326px wall is 228px on a 390px
          screen — 58% of the display, against 23% of the wall on a desktop. There

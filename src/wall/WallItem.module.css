@@ -287,6 +287,18 @@
      then translate — so this can never fight any of them, and none of them has
      to know it exists. */
   --drift: 1.6px;
+
+  /* THE TURN. Drift alone is a thing being carried; drift plus a slow turn is a
+     thing FLOATING — an object with no gravity holding its orientation does not
+     keep facing the same way, it comes round slowly as it goes.
+
+     It is an OSCILLATION, not a rotation: the object leans a degree or so each
+     way across the cycle and returns. A continuous spin would be the brief's
+     "nothing spins" and would also read as a loading state. It is deliberately
+     out of phase with the translation — the extremes of the turn land between
+     the extremes of the path — so the two never peak together and the motion
+     cannot resolve into a rigid sway. */
+  --spin: 1.1deg;
 }
 
 /* The charm takes the other character: further, slower, and the other way
@@ -296,6 +308,9 @@
   animation-duration: var(--duration-atmosphere-slowest);
   animation-delay: calc(var(--duration-atmosphere-slowest) * -0.41);
   --drift: 2.9px;
+  /* A mark can turn further than a photograph before it reads as broken — there
+     is no horizon in it to be wrong about. */
+  --spin: 2.6deg;
 }
 
 /* PATH A — a lopsided eddy, wide to the right, pinched at the bottom.
@@ -305,31 +320,31 @@
    Spaced this way the fastest segment is within 7% of the slowest. */
 @keyframes driftA {
   0% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) rotate(calc(var(--spin) * 0));
   }
   13% {
-    transform: translate(calc(var(--drift) * 0.48), calc(var(--drift) * -0.26));
+    transform: translate(calc(var(--drift) * 0.48), calc(var(--drift) * -0.26)) rotate(calc(var(--spin) * 0.62));
   }
   25% {
-    transform: translate(calc(var(--drift) * 0.86), calc(var(--drift) * -0.62));
+    transform: translate(calc(var(--drift) * 0.86), calc(var(--drift) * -0.62)) rotate(calc(var(--spin) * 0.95));
   }
   34% {
-    transform: translate(calc(var(--drift) * 0.62), calc(var(--drift) * -0.95));
+    transform: translate(calc(var(--drift) * 0.62), calc(var(--drift) * -0.95)) rotate(calc(var(--spin) * 0.71));
   }
   49% {
-    transform: translate(calc(var(--drift) * -0.04), calc(var(--drift) * -0.86));
+    transform: translate(calc(var(--drift) * -0.04), calc(var(--drift) * -0.86)) rotate(calc(var(--spin) * -0.18));
   }
   64% {
-    transform: translate(calc(var(--drift) * -0.58), calc(var(--drift) * -0.5));
+    transform: translate(calc(var(--drift) * -0.58), calc(var(--drift) * -0.5)) rotate(calc(var(--spin) * -0.83));
   }
   77% {
-    transform: translate(calc(var(--drift) * -0.72), calc(var(--drift) * 0.04));
+    transform: translate(calc(var(--drift) * -0.72), calc(var(--drift) * 0.04)) rotate(calc(var(--spin) * -1));
   }
   87% {
-    transform: translate(calc(var(--drift) * -0.44), calc(var(--drift) * 0.36));
+    transform: translate(calc(var(--drift) * -0.44), calc(var(--drift) * 0.36)) rotate(calc(var(--spin) * -0.55));
   }
   100% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) rotate(calc(var(--spin) * 0));
   }
 }
 
@@ -339,31 +354,31 @@
    timing; fastest segment within 12% of the slowest. */
 @keyframes driftB {
   0% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) rotate(calc(var(--spin) * 0));
   }
   13% {
-    transform: translate(calc(var(--drift) * -0.34), calc(var(--drift) * -0.42));
+    transform: translate(calc(var(--drift) * -0.34), calc(var(--drift) * -0.42)) rotate(calc(var(--spin) * -0.48));
   }
   22% {
-    transform: translate(calc(var(--drift) * -0.72), calc(var(--drift) * -0.58));
+    transform: translate(calc(var(--drift) * -0.72), calc(var(--drift) * -0.58)) rotate(calc(var(--spin) * -0.88));
   }
   33% {
-    transform: translate(calc(var(--drift) * -0.9), calc(var(--drift) * -0.14));
+    transform: translate(calc(var(--drift) * -0.9), calc(var(--drift) * -0.14)) rotate(calc(var(--spin) * -1));
   }
   48% {
-    transform: translate(calc(var(--drift) * -0.62), calc(var(--drift) * 0.45));
+    transform: translate(calc(var(--drift) * -0.62), calc(var(--drift) * 0.45)) rotate(calc(var(--spin) * -0.34));
   }
   63% {
-    transform: translate(calc(var(--drift) * -0.06), calc(var(--drift) * 0.7));
+    transform: translate(calc(var(--drift) * -0.06), calc(var(--drift) * 0.7)) rotate(calc(var(--spin) * 0.52));
   }
   76% {
-    transform: translate(calc(var(--drift) * 0.48), calc(var(--drift) * 0.52));
+    transform: translate(calc(var(--drift) * 0.48), calc(var(--drift) * 0.52)) rotate(calc(var(--spin) * 0.93));
   }
   85% {
-    transform: translate(calc(var(--drift) * 0.62), calc(var(--drift) * 0.16));
+    transform: translate(calc(var(--drift) * 0.62), calc(var(--drift) * 0.16)) rotate(calc(var(--spin) * 0.6));
   }
   100% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) rotate(calc(var(--spin) * 0));
   }
 }
 
