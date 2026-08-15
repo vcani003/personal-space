@@ -74,23 +74,23 @@ import type { WallItem } from "../wall";
 /** The wall's height, in viewport heights. Wide composition only — on narrow
  *  the wall is as tall as its contents.
  *
- *  1.6, RAISED FROM 1.5, AND ONLY FOR A MEASURED COLLISION. At 1024×800 the
- *  wall is 546px wide, which makes the link and the blurb roughly 1.5× as tall
- *  as they are at 1440 (more wrapping) inside a wall that is 1200px rather than
- *  1350px (shorter viewport). At span 1.5 those two came within 5px of touching.
- *  1.6 opens that to ~126px and costs the composition nothing else.
+ *  0.8, DOWN FROM 1.25, BECAUSE THE LAST QUARTER OF THE WALL WAS EMPTY.
+ *  Measured at 2000×1052: the wall ran to 1315px and the lowest artifact ended
+ *  at 1013 — 303px, twenty-three percent of the whole surface, holding nothing.
+ *  That is not silence, it is a scroll through nothing on the way to the end of
+ *  the page, and it is the single largest source of the emptiness the site
+ *  owner reported.
  *
- *  IT IS NOT A LICENCE TO SPREAD OUT. The largest gap in the composition below
- *  is ~228px, about a quarter of a viewport — silence, not absence. Going past
- *  ~2.0 with four artifacts starts producing the dead vertical stretches the
- *  brief specifically rules out; the wall would read as unfinished rather than
- *  as spacious.
+ *  IT IS STILL NOT A LICENCE TO CROWD. Every `y` below is a percentage of this
+ *  number, so lowering it pulls the whole composition together rather than
+ *  cropping it — the artifacts keep their relative rhythm and simply stop being
+ *  spread across a surface that was taller than they needed.
  *
  *  RAISE THIS BEFORE ENLARGING ANYTHING when the wall gets crowded. The wall
  *  growing is the correct answer to a crowded composition; artifacts growing to
- *  fill emptiness is not. Every `y` below is a percentage of this number, so the
- *  whole composition rescales when it changes. */
-export const wallSpan = 1.25;
+ *  fill emptiness is not — and with 10–15 items still to come, this number is
+ *  expected to go back up. */
+export const wallSpan = 0.8;
 
 /* =============================================================================
    THE COMPOSITION — four artifacts, three loose zones, one crescendo
@@ -104,39 +104,62 @@ export const wallSpan = 1.25;
    ── The shape of it ─────────────────────────────────────────────────────────
 
          x →   0        25        50        75      100
-     y 8                                 ✦                 charm      50px
-     ↓
-      30       ┌──────────┐                                memory    221px
+     y 18                      A Placeholder Link ↗        link      462px
+     ↓                         note
+                               example.com
+      25       ┌──────────┐                                memory    221px
                │  PHOTO   │
                └──────────┘
                   caption
-     62                        A Placeholder Link ↗        link      462px
-                               note
-                               example.com
-     85     Placeholder text, waiting to be replaced.      blurb     532px
+      45                                ✦                  charm      50px
+
+      85    Placeholder text, waiting to be replaced.      blurb     532px
             A blurb is something worth keeping in words…
             (all figures at 1440)
 
+   THE LINK SITS BESIDE THE PHOTOGRAPH RATHER THAN BELOW IT, and that is the
+   answer to "too much white space". It used to be at y 46, and the region to
+   the RIGHT of the photograph — 630px across and 540 down, a fifth of the
+   surface — held nothing but the charm. The two never overlapped horizontally
+   (photo ends at x 34, link begins at 50), so the vertical distance between
+   them was buying no separation at all: it was paying for a void with a scroll.
+
+   Raising it fills that void with the one artifact wide enough to occupy it,
+   and the composition still reads as offset rather than as a row, because the
+   two sit at different heights and different sizes.
+
    THREE THINGS ARE AUTHORED HERE AND EACH ONE IS DOING A JOB:
 
-   1. IT GETS BIGGER AS IT DESCENDS. 50 → 221 → 462 → 532px. That single
-      progression is what expresses the owner's three zones without any of them
-      becoming a section: the top of the wall is sparse because the only thing
-      up there is tiny, and the bottom is denser because the two things down
-      there are wide. Nothing had to be grouped, boxed or labelled to say it.
+   1. THE SIZES STILL CLIMB, BUT THEY NO LONGER CLIMB DOWNWARD. 50 / 221 / 462 /
+      532px is the same crescendo it always was; what changed is that the two
+      largest are no longer both at the foot of the wall. The photograph and the
+      link now share the upper band at 221 and 462, the charm sits alone in the
+      middle at 50, and the blurb closes at 532.
 
-   2. NOTHING SHARES AN EDGE. Left edges at x 3 / 14 / 46 / 68. The two closest
-      are the blurb (3) and the photograph (14) — 106px apart at 1440, 60px at
-      1024, and 700px apart vertically, so they read as two placements rather
-      than as a failed alignment. Two items within ~4 points of each other is
-      the thing to avoid: too far to be an alignment, too close to be a
-      decision.
+      That is a different claim from the one this list used to make, and it is
+      the honest one: the wall is not a descending progression any more, it is a
+      dense top, a held breath, and a wide close.
 
-   3. THE VERTICAL GAPS ARE UNEVEN. At 1440: 114 / 228 / 211px, then 151px of
-      silence at the foot. At 1024: 142 / 197 / 126px, then 111px. The link and
-      the blurb are the pair — closer to each other than to anything else — and
-      that pairing is what "the lower wall may be a little denser" means when it
-      is not allowed to become a section.
+   2. NOTHING SHARES AN EDGE. Left edges at x 3 / 14 / 50 / 72. The two closest
+      are the blurb (3) and the photograph (14) — 104px apart at 1440, and 200px
+      apart vertically, so they read as two placements rather than as a failed
+      alignment. Two items within ~4 points of each other is the thing to avoid:
+      too far to be an alignment, too close to be a decision.
+
+   3. THE UPPER PAIR SEPARATES LATERALLY, NOT VERTICALLY. Measured at 1440×760:
+      the photograph occupies y 17–337 and the link y 60–194, so they OVERLAP
+      through most of their height and never touch, because the photograph ends
+      at x 330 and the link begins at 481 — 151px of clear air between them.
+
+      This is the compositional move the wall exists to allow, and it is worth
+      naming because it is easy to undo by accident: two artifacts on a canvas
+      are separated by the axis on which they are actually near each other. The
+      previous version separated this pair on the vertical, which they did not
+      need, and paid for it with the empty upper right.
+
+      Below them the wall does go quiet — the charm at y 289 and then nothing
+      until the blurb at 533 — and that gap is the composition's one long
+      silence rather than an oversight.
 
    ── The honest limit of it ──────────────────────────────────────────────────
 
@@ -232,7 +255,7 @@ export const wallItems: readonly WallItem[] = [
     caption: "a flower projection room somewhere in tokyo",
     aspectRatio: 0.75,
     placement: {
-      wide: { x: 14, y: 16, size: 20, rotation: -1.8, align: "left" },
+      wide: { x: 14, y: 25, size: 20, rotation: -1.8, align: "left" },
       /* THE PHONE IS WHERE THIS PHOTOGRAPH IS MOST LEGIBLE, and that is on
          purpose rather than by accident. 70% of a 326px wall is 228px on a 390px
          screen — 58% of the display, against 23% of the wall on a desktop. There
@@ -282,7 +305,7 @@ export const wallItems: readonly WallItem[] = [
     src: "wall/charm-placeholder.svg",
     aspectRatio: 1,
     placement: {
-      wide: { x: 68, y: 5, size: 5.2, rotation: -9, align: "left" },
+      wide: { x: 72, y: 45, size: 5.2, rotation: -9, align: "left" },
       /* THE PHONE PUTS IT BACK BESIDE THE PHOTOGRAPH, and that is not an
          inconsistency with the wide composition, it is what "mobile is a
          different composition" means. A column has no lateral emptiness, so a
@@ -331,7 +354,7 @@ export const wallItems: readonly WallItem[] = [
     source: "Placeholder",
     emphasis: "normal",
     placement: {
-      wide: { x: 3, y: 72, size: 58, align: "left" },
+      wide: { x: 3, y: 85, size: 58, align: "left" },
       narrow: { x: 3, size: 94, align: "left", lead: "loose" },
     },
   },
@@ -373,7 +396,7 @@ export const wallItems: readonly WallItem[] = [
     note: "Placeholder note — one line about why this is worth going to.",
     domain: "example.com",
     placement: {
-      wide: { x: 46, y: 46, size: 48, align: "left" },
+      wide: { x: 50, y: 18, size: 48, align: "left" },
       narrow: { x: 12, size: 84, align: "left", lead: "tight" },
     },
   },

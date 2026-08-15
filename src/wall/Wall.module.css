@@ -63,6 +63,22 @@
         collapsing toolbar cannot change the wall's height mid-scroll. */
   block-size: calc(var(--wall-span) * 100svh);
 
+  /* AND IT CANNOT BE SHORTER THAN WHAT IT HOLDS.
+     The wall's height is a multiple of the VIEWPORT's height; the artifacts
+     inside it are sized in pixels off the wall's WIDTH. Those two have nothing
+     to do with each other, and the gap between them is what has repeatedly
+     shown up as "the blurb and the link nearly touch" — a wide-but-short window
+     shrinks the canvas while the wrapping text inside it grows.
+
+     Measured at 1024×800, the narrowest the wide layout ever gets: the wall
+     computes to 640px and the lowest artifact ends at 641. One pixel over, and
+     it gets worse on anything shorter.
+
+     44rem is that worst case with room to spare, and it is inert everywhere
+     else — at 2000×1052 the span already gives 842px, so this never applies.
+     It is a floor under the arithmetic, not a second opinion about height. */
+  min-block-size: 44rem;
+
   /* An artifact may hang past the left or right edge — that is a compositional
      move, not a mistake — but it must never create a horizontal scrollbar.
      `clip` rather than `hidden` so this does not become a scroll container, and
@@ -108,6 +124,11 @@
   .wall {
     display: flow-root;
     block-size: auto;
+
+    /* The floor above is a wide-layout repair and has no meaning here, where
+       the contents already decide the height. Left in place it would hold a
+       short phone composition open to 704px of mostly nothing. */
+    min-block-size: 0;
 
     /* NO BOUNDARY ON A PHONE. The wall spans the full content column here, so a
        surface lift would only mark the page's own gutters — it would say

@@ -119,8 +119,82 @@
   color: var(--color-foreground);
 }
 
+/* =============================================================================
+   THE DISCLOSURE — a phone only
+   =============================================================================
+
+   ABSENT ON THE WIDE LAYOUT, and `display: none` rather than a visual trick,
+   because that is the one way to hide a control that also takes it out of the
+   tab order. A rail with room for the list has nothing for this button to do,
+   and a tab stop that does nothing is worse than no button.
+   ========================================================================== */
+
+.toggle {
+  /* Not rendered until a phone asks for it. */
+  display: none;
+
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-foreground-faint);
+  cursor: pointer;
+  transition: color var(--duration-response) var(--ease-out);
+}
+
+/* The only change is luminance, exactly as for the one real link above. */
+.toggle:hover,
+.toggle:focus-visible {
+  color: var(--color-foreground);
+}
+
+.toggle svg {
+  display: block;
+  /* Tied to the register it sits in rather than to a pixel count, so the glyph
+     and the words beside it stay the same size as each other for good. */
+  inline-size: calc(var(--text-meta) * 1.6);
+  /* The stroke must not scale with the box, or the hairline stops being one. */
+  vector-effect: non-scaling-stroke;
+}
+
 @media (max-width: 47.9375rem) {
   .inline {
     gap: var(--space-xs);
+  }
+
+  .toggle {
+    display: flex;
+
+    /* A REAL HIT TARGET. The glyph is ~17px in a register that is deliberately
+       tiny, and 17px is not a thumb. 2.75rem is the 44px floor every touch
+       guideline agrees on, and it is a floor rather than a size so the button
+       never grows past the glyph it contains.
+
+       The pressable box is allowed to be genuinely 44px tall — it costs 16px
+       against the 244px that collapsing the list gives back. Only the INLINE
+       negative margin survives, pulling the padded box's left edge back out to
+       the rail's margin so the glyph still lines up with the words below it
+       rather than sitting mysteriously indented. */
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    justify-content: flex-start;
+    padding-inline: var(--space-2xs);
+    margin-inline-start: calc(var(--space-2xs) * -1);
+  }
+
+  /* CLOSED IS GENUINELY CLOSED. `display: none` and not `visibility`, `height:
+     0` or an off-screen shift — a collapsed disclosure must leave the
+     accessibility tree, or a screen reader still finds seven sections that are
+     not on screen and the keyboard still tabs into them. */
+  .list {
+    display: none;
+  }
+
+  .list[data-open] {
+    display: grid;
+
+    /* Air between the button and the list it opened. Only ever present when
+       there is a list, so a closed navigation collapses to exactly the glyph. */
+    margin-block-start: var(--space-sm);
   }
 }

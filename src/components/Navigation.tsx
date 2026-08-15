@@ -1,3 +1,4 @@
+import { useId, useState } from "react";
 import { identity } from "../content/posts";
 import type { StyleVars } from "../lib/vars";
 import styles from "./Navigation.module.css";
@@ -89,16 +90,91 @@ const SECTIONS: readonly NavEntry[] = [
  * A landmark holding a list of the site's sections. It is a landmark even
  * though it currently contains no links: it is still the answer to "what is on
  * this site", which is what a visitor asks a navigation.
+ *
+ * =============================================================================
+ * ON A PHONE IT COLLAPSES, AND IT IS COLLAPSED TO BUY SPACE
+ * =============================================================================
+ *
+ * Seven entries in the metadata register cost about 160px at the top of a
+ * 390px-wide screen — a third of the first view, spent on a list of sections
+ * before a single artifact appears. On a wall whose entire premise is the
+ * things hanging on it, that is the most expensive thing on the page.
+ *
+ * WHAT THIS IS NOT: it is not a menu of places to go. Nothing in `SECTIONS` is
+ * a link, because there is one page (see the note at the top of this file), so
+ * the button does not open a way out of here — it opens a table of contents for
+ * a site that mostly does not exist yet. That is worth being clear about,
+ * because it decides the shape: a full-screen overlay would be a lot of
+ * machinery and a lot of drama in front of seven words nobody can press.
+ *
+ * SO IT EXPANDS IN PLACE. The list opens above the wall and pushes it down,
+ * which is the same thing the list did when it was always open, and closes
+ * again. No overlay, no scrim, no trapped focus, no scroll lock, no portal —
+ * none of which would have anything to protect.
+ *
+ * IT IS A `<button>` WITH `aria-expanded`, which is the entire accessibility
+ * contract for a disclosure. The list is genuinely removed when closed rather
+ * than moved off-screen, so a screen reader hears the same thing the eye sees
+ * and cannot tab into a collapsed list.
+ *
+ * THE WIDE LAYOUT NEVER SEES ANY OF THIS. The rail has room, so the button is
+ * `display: none` there and the list is unconditionally open — one branch, in
+ * CSS, where the viewport question already lives.
  */
 export function Navigation() {
+  const [open, setOpen] = useState(false);
+  const listId = useId();
+
   return (
     <nav className={styles.nav} aria-label="Sections">
-      <ul className={styles.list} role="list">
+      <button
+        type="button"
+        className={styles.toggle}
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => {
+          setOpen((value) => !value);
+        }}
+      >
+        <Bars />
+        {/* The word is for screen readers and nothing else. A visible "MENU"
+            beside the glyph would cost most of what collapsing the list saved. */}
+        <span className="visually-hidden">Sections</span>
+      </button>
+
+      <ul
+        id={listId}
+        className={styles.list}
+        role="list"
+        data-open={open ? "" : undefined}
+      >
         {SECTIONS.map((entry) => (
           <Entry key={entry.label} entry={entry} />
         ))}
       </ul>
     </nav>
+  );
+}
+
+/**
+ * Three hairlines. Drawn rather than typed, because "≡" is a mathematical
+ * identity sign that screen readers pronounce and fonts disagree about.
+ *
+ * The middle line is shorter. That is the one liberty taken with an otherwise
+ * completely conventional glyph, and it is there because a perfectly regular
+ * stack of three reads as a UI control from a component library, which is the
+ * one thing this page has avoided being everywhere else.
+ */
+function Bars() {
+  return (
+    <svg viewBox="0 0 18 12" aria-hidden="true" focusable="false">
+      <path
+        d="M0 1h18M0 6h12M0 11h18"
+        stroke="currentColor"
+        strokeWidth="1"
+        fill="none"
+      />
+    </svg>
   );
 }
 

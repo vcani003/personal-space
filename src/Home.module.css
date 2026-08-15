@@ -310,7 +310,13 @@
   .composition {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--space-xl);
-    margin-block-start: var(--space-xl);
+
+    /* NO `margin-block-start`. The page grid's `row-gap` is already 84px of
+       air above this, and a margin here is added to it rather than absorbed by
+       it — 168px between the name and the first artifact, which is a fifth of
+       a laptop screen spent before anything has been shown. Nobody chose 168;
+       it was 84 written down twice, in two files, by two rules that could not
+       see each other. */
   }
 
   .rail {
@@ -399,7 +405,10 @@
   }
 
   .composition {
-    margin-block-start: var(--space-lg);
+    /* Same double-count as the tablet block above, measured at 390×844: the
+       name's metadata ended at y=181 and the first thing under it began at
+       y=317. 84px of page row-gap is the air under the name, and it is enough
+       on a screen this size. */
     row-gap: var(--space-lg);
   }
 
