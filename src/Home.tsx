@@ -1,4 +1,4 @@
-import { Elsewhere, Navigation } from "./components/Navigation";
+import { Navigation } from "./components/Navigation";
 import { Identity } from "./components/Identity";
 import { closingLine } from "./content/posts";
 import { wallItems, wallSpan } from "./content/wall";
@@ -11,7 +11,7 @@ import styles from "./Home.module.css";
  *
  * Three zones, and that is the whole file:
  *
- *   IDENTITY        the name, the metadata line, and `@starcharm` opposite it.
+ *   IDENTITY        the name and the metadata line beneath it.
  *   COMPOSITION     the WALL on the left, a floating RAIL beside it holding the
  *                   navigation and the Bunny Hop player.
  *   THE CLOSING     one quiet line, a long way down.
@@ -77,9 +77,11 @@ export function Home() {
         <Identity />
       </div>
 
-      <div className={styles.elsewhere}>
-        <Elsewhere />
-      </div>
+      {/* `@starcharm` used to sit here, opposite the name. Removed at Vero's
+          request — the handle is already in the metadata line directly under
+          the name, so this was the same word twice in the same view, and the
+          paopu now sits beside that one. `Elsewhere` remains exported from
+          Navigation.tsx for whenever there is somewhere to point. */}
 
       {/* THE RAIL IS FIRST IN THE DOM AND SECOND ON THE SCREEN.
           Grid puts it in the right-hand column; document order puts the
