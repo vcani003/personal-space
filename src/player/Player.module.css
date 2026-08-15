@@ -192,6 +192,17 @@
   text-wrap: balance;
 }
 
+/* AN EMPTY LINE STILL OCCUPIES ITS LINE.
+   Two of the fixture's lines are deliberately empty — that is how LRC marks an
+   instrumental gap — and before the first line there is no previous one at all.
+   Without this the screen would visibly shrink and re-grow every time the song
+   passed through a gap, which is the object changing shape while nobody touched
+   it. A non-breaking space in a pseudo-element keeps the box and puts nothing in
+   the accessibility tree. */
+.line:empty::before {
+  content: "\00a0";
+}
+
 /* The active line leads on luminance and scale. Nothing else. The bloom
    belongs to the screen rather than sitting on top of it as a card. */
 .active {
@@ -246,8 +257,9 @@
   color: var(--color-foreground);
 }
 
-/* Phase 2 controls are inert. They should look composed rather than broken —
-   dimmed, but not the browser's default 50%-grey disabled treatment. */
+/* A control with nothing to do — `next` always, `restart` until there is
+   something to restart. It should look composed rather than broken: dimmed, but
+   not the browser's default 50%-grey disabled treatment. */
 .control:disabled {
   cursor: default;
   opacity: 0.85;
@@ -263,12 +275,149 @@
   background-color: var(--color-rule);
 }
 
+/* REAL POSITION, WRITTEN PER FRAME AND NEVER RENDERED.
+   `--player-progress` is a 0…1 number published straight onto this element from
+   inside the shared animation loop (see `useFrameBinding`). Scale rather than
+   width, so a bar that changes sixty times a second never touches layout; and
+   0 rather than a decorative default, because before anything has played the
+   honest position is the beginning. */
 .progressFill {
   display: block;
+  inline-size: 100%;
   block-size: 100%;
-  /* Static in Phase 2. A real value arrives with playback. */
-  inline-size: 34%;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--player-progress, 0));
   background-color: var(--color-foreground-faint);
+}
+
+/* =============================================================================
+   THE VIDEO — a second object in the rail, and a mask over it
+   =============================================================================
+
+   It sits BELOW the player, at the rail's width, in its own 16:9 rectangle. It
+   is not a fourth band of the player and must never acquire the player's
+   vocabulary: no chassis, no radius, no border, no glow, no frosted surface.
+   Those belong to the player alone and are the reason the player reads as an
+   object at all. This is a rectangle of moving image and it gets as little
+   treatment as it can survive with.
+
+   IT ONLY EXISTS AFTER THE FIRST PRESS. The element is not rendered until
+   playback is requested — see Player.tsx — so before that the rail is exactly
+   as tall as it always was and nothing has been requested from YouTube.
+
+   THE MASK IS THE CONTROL. It covers the whole rectangle, dims rather than
+   conceals, and clicking it takes the dimming off. There is no chip, no bar and
+   no icon: the affordances are the cursor and the dimming lifting slightly
+   under the pointer, which is also a preview of what pressing will do. Clicking
+   the exposed video puts the mist back.
+
+   WHY THE MASK STAYS OVER THE EXPOSED VIDEO, transparent and still catching
+   clicks: it keeps YouTube's own controls out of the way, so this site's
+   transport remains the single place playback is operated and the object above
+   can never disagree with the picture below it.
+
+   DIMMED MEANS DESATURATED AND DARKENED, not blurred. A blur is a per-frame
+   convolution over live video for the whole length of a song; greyscale and
+   brightness are per-pixel and effectively free. It also says the right thing:
+   the page is monochrome weather, the artifacts carry the colour, and this
+   artifact hands its colour over when you ask for it.
+   ========================================================================== */
+
+.video {
+  /* Named here rather than in tokens.css for the same reason as the player's
+     own radius and control sizes: this is one object's material, and nothing
+     else on the page should be reaching for it.
+
+     TUNED ON SCREEN, against what this particular source actually is: an
+     official "Topic" upload, which means a still album cover on a near-white
+     field rather than a music video. At brightness 0.5 that white read as a
+     mid-grey rectangle — the brightest thing in the rail and louder than the
+     player it belongs to. 0.28 puts its lightest area at roughly the value of
+     the player's own chassis, so the video sits UNDER the object rather than
+     competing with it.
+
+     Contrast comes BEFORE brightness on purpose: a contrast reduction lifts
+     blacks toward mid-grey, and applying it afterwards would raise YouTube's
+     letterbox bars above the page's own darkness and draw a visible rectangle
+     around the whole thing. Ordered this way the bars stay at 3/255 against the
+     page's 8 and the element has no edges at all until there is picture in it.
+
+     The two lists hold the same functions in the same order so the transition
+     between them is a plain interpolation with nothing to guess. */
+  --player-video-dim: grayscale(0.9) contrast(0.9) brightness(0.28);
+  --player-video-open: grayscale(0) contrast(1) brightness(1);
+  --player-video-scrim: rgb(from var(--tone-ink) r g b / 0.34);
+  --player-video-scrim-lifted: rgb(from var(--tone-ink) r g b / 0.2);
+
+  position: relative;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+
+  /* Close to the player, because it is the player's picture rather than an
+     unrelated artifact — the rail's own 136px gap is what separates unrelated
+     things from each other. */
+  margin-block-start: var(--space-sm);
+
+  /* Until the player answers, this is one rectangle of the page's own darkness.
+     Fading in rather than growing in: the space is taken immediately and only
+     the image arrives late, so nothing on the page moves twice. */
+  background-color: var(--color-background);
+  opacity: 0;
+  transition: opacity var(--duration-transition-slow) var(--ease-out);
+}
+
+.video[data-ready] {
+  opacity: 1;
+}
+
+.videoHost {
+  position: absolute;
+  inset: 0;
+  filter: var(--player-video-dim);
+  transition: filter var(--duration-transition) var(--ease-out);
+}
+
+.video[data-exposed] .videoHost {
+  filter: var(--player-video-open);
+}
+
+/* The IFrame API creates this element; it is not React's and not authored
+   here, which is why it is styled by tag. */
+.videoHost iframe {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: none;
+}
+
+.videoMask {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  background-color: var(--player-video-scrim);
+  cursor: pointer;
+  transition: background-color var(--duration-response-slow) var(--ease-out);
+}
+
+.videoMask:hover,
+.videoMask:focus-visible {
+  background-color: var(--player-video-scrim-lifted);
+}
+
+/* Wins over the hover rule by specificity, deliberately: once the video is
+   exposed there is nothing left to lift. */
+.video[data-exposed] .videoMask {
+  background-color: transparent;
+}
+
+/* The ring goes INSIDE. The default 3px outset would be clipped by this
+   element's own edge and would also draw a bright rectangle around a piece of
+   video, which is more chrome than this object is allowed. */
+.videoMask:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-offset));
+  border-radius: 0;
 }
 
 /* ---------------------------------------------------------------------------

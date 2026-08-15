@@ -37,6 +37,14 @@ const DESCRIPTION_ID = "player-dock-operation";
  * `.railPlayer` block from `Home.tsx` — the two must never both mount, because
  * that is two players.
  *
+ * ONE THING CHANGED UNDER THIS FILE WHILE IT WAS RETIRED. `<Player />` is no
+ * longer a single element: it renders the object AND, once playback has been
+ * requested, a 16:9 video beneath it. Docked, that would attach a 181px-tall
+ * moving image to a floating corner object — which is not what a dock is for.
+ * Whoever revives this has a decision to make first, and it is a real one:
+ * either the dock renders the player without its video, or the dock is not the
+ * right home for a player that now has a picture.
+ *
  * Everything below this line is the original note and is still accurate about
  * how the dock behaves when it is mounted.
  * =============================================================================

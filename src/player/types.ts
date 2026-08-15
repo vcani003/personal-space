@@ -11,8 +11,10 @@
  * fields, eight of them LRCLIB provenance (provider ids, fetch timestamps,
  * match source) that mean nothing here. Four fields is the whole requirement.
  *
- * The homepage player is mock data only in MVP 1: no network, no lyric search,
- * no YouTube IFrame API.
+ * THE LYRICS ARE STILL MOCK. Playback is now real — see `useYouTubePlayback` —
+ * but the words in `mockTrack.ts` remain invented placeholder text. Real lyrics
+ * are copyrighted and none are committed here; they would come from a licensed
+ * runtime source, which is a later milestone and not this one.
  */
 
 export interface LyricLine {
@@ -23,8 +25,32 @@ export interface LyricLine {
 export interface MockTrack {
   readonly title: string;
   readonly artist: string;
+  /**
+   * The FIXTURE's duration, not the recording's. Once a real player exists the
+   * authoritative duration is whatever it reports, and that is what lands in
+   * `PlaybackSample.durationSeconds` and drives the progress bar. This number
+   * describes the placeholder lyric timings and nothing else.
+   */
   readonly durationSeconds: number;
   readonly lines: readonly LyricLine[];
+}
+
+/**
+ * Where the audio actually comes from.
+ *
+ * Separate from `MockTrack` on purpose: the words and the recording are two
+ * different things with two different provenances, and the day real lyrics
+ * arrive from a licensed provider this field must not have to move.
+ */
+export interface TrackSource {
+  /** The YouTube video id. */
+  readonly videoId: string;
+  /**
+   * The embed host. `youtube-nocookie.com` is the strictly better of the two
+   * available hosts for the same embed and is what we pass; see the header of
+   * `youtube.ts` for what still reaches `youtube.com` regardless.
+   */
+  readonly embedHost: string;
 }
 
 /**
