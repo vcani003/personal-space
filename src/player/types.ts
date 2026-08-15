@@ -7,14 +7,16 @@
  * `useLyricSync`) is written against it, and MVP 2's real lyric bundle exposes
  * `lines: LyricLine[]`, so it slots straight in.
  *
- * `MockTrack` is NOT the extension's `LyricsBundle`. That type has twelve
+ * `TrackMeta` is NOT the extension's `LyricsBundle`. That type has twelve
  * fields, eight of them LRCLIB provenance (provider ids, fetch timestamps,
- * match source) that mean nothing here. Four fields is the whole requirement.
+ * match source) that mean nothing here. Two fields is the whole requirement.
  *
- * THE LYRICS ARE STILL MOCK. Playback is now real — see `useYouTubePlayback` —
- * but the words in `mockTrack.ts` remain invented placeholder text. Real lyrics
- * are copyrighted and none are committed here; they would come from a licensed
- * runtime source, which is a later milestone and not this one.
+ * THE LYRICS ARE REAL NOW, AND THEY ARE NOT IN THIS REPOSITORY. They are
+ * fetched from LRCLIB at runtime by `lyrics.ts` and held in memory for the life
+ * of the tab. That is why `TrackMeta` has no `lines` and no `durationSeconds`:
+ * the words arrive over the network and the duration is whatever the player
+ * reports, so a checked-in copy of either would be a second source of truth
+ * that is wrong the moment it disagrees.
  */
 
 export interface LyricLine {
@@ -22,23 +24,15 @@ export interface LyricLine {
   readonly text: string;
 }
 
-export interface MockTrack {
+export interface TrackMeta {
   readonly title: string;
   readonly artist: string;
-  /**
-   * The FIXTURE's duration, not the recording's. Once a real player exists the
-   * authoritative duration is whatever it reports, and that is what lands in
-   * `PlaybackSample.durationSeconds` and drives the progress bar. This number
-   * describes the placeholder lyric timings and nothing else.
-   */
-  readonly durationSeconds: number;
-  readonly lines: readonly LyricLine[];
 }
 
 /**
  * Where the audio actually comes from.
  *
- * Separate from `MockTrack` on purpose: the words and the recording are two
+ * Separate from `TrackMeta` on purpose: the words and the recording are two
  * different things with two different provenances, and the day real lyrics
  * arrive from a licensed provider this field must not have to move.
  */

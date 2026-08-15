@@ -193,7 +193,7 @@
 }
 
 /* AN EMPTY LINE STILL OCCUPIES ITS LINE.
-   Two of the fixture's lines are deliberately empty — that is how LRC marks an
+   Real LRC sheets are full of empty lines — that is how LRC marks an
    instrumental gap — and before the first line there is no previous one at all.
    Without this the screen would visibly shrink and re-grow every time the song
    passed through a gap, which is the object changing shape while nobody touched
@@ -210,6 +210,64 @@
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);
   color: var(--color-foreground);
+}
+
+/* =============================================================================
+   THE RISE — a line does not appear, it arrives
+   =============================================================================
+
+   "the words aren't floating above when it goes through"              — the owner
+
+   And they were not. The screen swapped three strings in place: the words
+   changed and NOTHING MOVED, so a song passing from one line to the next
+   produced no event at all — the reader's eye had no reason to look up at the
+   moment it should have. The Bunny Hop extension has answered this since it
+   shipped, with a fade-and-rise on every line change (`lyric-enter` in
+   `FloatingPlayer.module.css`), and this is that behaviour brought across.
+
+   IT IS THE SAME CURVE, NOT A SIMILAR ONE. The extension animates on
+   `cubic-bezier(0.22, 1, 0.36, 1)`, and `--ease-out` in this site's token file
+   IS that curve — it was carried over at the start of the project and the
+   comment beside it says why: "Bunny Hop's own curve, kept for continuity."
+   Reaching for it here is that decision finally being spent. The site's own
+   600ms replaces the extension's 520 because everything on this page moves a
+   little more slowly than the extension does.
+
+   ALL THREE LINES MOVE, AND THE ACTIVE ONE MOVES FURTHEST. The whole stack
+   advances when the song does — previous takes what active was saying, active
+   takes next's — so animating only the middle would show one line arriving into
+   a pair that teleported around it. The neighbours travel a third as far, which
+   is enough to read as the stack carrying them and not enough to compete with
+   the line that matters.
+
+   `prefers-reduced-motion` NEEDS NO BRANCH HERE. `base.css` collapses every
+   animation not marked `data-motion="essential"` to 1ms globally, and this is
+   decoration by that definition: the highlight still moves, it simply stops
+   travelling to get there.
+   ========================================================================== */
+
+.line {
+  --rise: var(--space-3xs);
+
+  /* `backwards` matters. Without it the element paints at its resting position
+     for one frame before the animation's first keyframe applies, which is a
+     visible flash of the finished state under the arriving one. */
+  animation: lyric-rise var(--duration-transition-slow) var(--ease-out) backwards;
+}
+
+.active {
+  --rise: var(--space-xs);
+}
+
+@keyframes lyric-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------------------------------------------------------------------------

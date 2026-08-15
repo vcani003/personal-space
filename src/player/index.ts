@@ -1,5 +1,9 @@
-export type { LyricLine, MockTrack, PlaybackSample, TrackSource } from "./types";
-export { mockTrack, trackSource } from "./mockTrack";
+export type { LyricLine, PlaybackSample, TrackMeta, TrackSource } from "./types";
+export { track, trackSource } from "./track";
+export { useLyrics } from "./useLyrics";
+export type { Lyrics, LyricsStatus } from "./useLyrics";
+export { fetchLyrics } from "./lyrics";
+export { parseLrc } from "./lrc";
 export { Player } from "./Player";
 /** RETIRED, NOT DELETED, and not mounted anywhere. The player lives in the
  *  sticky rail beside the wall now — see the header of `PlayerDock.tsx`. The

@@ -53,6 +53,30 @@
      paint containment. */
   container-type: inline-size;
 
+  /* THE SHIFT ARITHMETIC, and the two things it has to be told.
+     `100cqw` is the ARTIFACT's width. The picture used to be all of it, so the
+     picture's height was `100cqw / --aspect` and half its growth was how far
+     the caption had to travel. Neither of those is unconditional any more:
+
+       --picture-fraction  how much of the artifact the picture occupies. 1 on
+                           a desktop; 0.42 on a phone, where the picture is a
+                           thumbnail and the artifact keeps its width for the
+                           words. Leave the height arithmetic out of this and
+                           the caption jumps four times too far on a phone.
+       --expand-lift       how far it opens. The hover swell and the tap
+                           expansion are different magnitudes, because a
+                           thumbnail has much further to go.
+
+     Both are declared here rather than on `.caption`, because the picture and
+     the caption both need them and this is the element they share. */
+  --picture-fraction: 1;
+  --expand-lift: var(--wall-lift);
+
+  --swell-shift: calc(
+    100cqw * var(--picture-fraction) / var(--aspect, 1.5) *
+      (var(--expand-lift) - 1) / 2
+  );
+
   /* THE COLUMN IS BOUNDED BY THE ITEM, and this line is load-bearing.
      Without it the implicit column is auto-sized, which means max-content of
      its widest child — and the caption below is deliberately `max-content`, so
@@ -241,9 +265,9 @@
        `container-type` on `.memory`), so `100cqw / --aspect` is the picture's
        height in px, and half of its growth is how far its lower edge travels.
        At 1440 and a 1.35 lift that is 51.7px; at 1.75 it is 83px. */
-    --swell-shift: calc(
-      100cqw / var(--aspect, 1.5) * (var(--wall-lift) - 1) / 2
-    );
+    /* Declared on `.memory` now — see THE SHIFT ARITHMETIC there. It has to be
+       readable outside this media query, because the tap toggle below enlarges
+       the picture on exactly the screens this query excludes. */
 
     /* One declaration, both directions, and the lag is in it. `translate` and
        not `transform`, so that this composes with anything the type system ever
@@ -273,6 +297,7 @@
   }
 
   .image:hover ~ .caption,
+  .trigger:hover ~ .caption,
   .link:focus-visible .caption {
     translate: 0 var(--swell-shift);
   }
@@ -288,9 +313,105 @@
    ------------------------------------------------------------------------ */
 
 @media (max-width: 47.9375rem) {
+  /* THUMBNAIL. The picture drops to 42% of the artifact on a phone — about
+     85px against the 228px it used to be.
+
+     THE ITEM DOES NOT SHRINK WITH IT, and that is the point of doing it here
+     rather than in the authored `size`. `size` sets the artifact's width, and
+     the caption is a child of the artifact: taking the artifact down to
+     thumbnail width would have taken the caption with it and left a sentence
+     wrapping in an 85px column. The picture shrinks; the block it sits in keeps
+     the room the words need.
+
+     A phone has no hover, so the tap toggle below is what makes this legible
+     rather than merely small. */
+  /* A LINKED memory has no trigger, so the picture carries the width itself.
+     The trigger's own narrow width is set at the BOTTOM of this file, after the
+     base `.trigger` rule — see the note there. */
+  .image {
+    inline-size: 42%;
+  }
+
+  .memory {
+    --picture-fraction: 0.42;
+  }
+
   .caption {
     inline-size: auto;
     max-inline-size: 100%;
     margin-inline-start: var(--space-sm);
+  }
+}
+
+
+/* =============================================================================
+   TAP TO OPEN IT — the phone's answer to hover
+   =============================================================================
+
+   A thumbnail nobody can enlarge is not a small photograph, it is an
+   unreadable one. `:hover` cannot help here: on a touch screen it latches after
+   a tap and would leave a picture stuck open until you pressed something else,
+   which is why the swell above is gated behind `(hover: hover)`.
+
+   So the picture is a real toggle button, and it is one at EVERY width rather
+   than only on phones — a viewport is not a fact about this component, and the
+   markup should not change shape underneath the layout. What that buys on
+   desktop is a keyboard path to the expansion that previously existed only for
+   memories authored with an `href`.
+
+   `aria-pressed` carries the state, so the control describes itself rather than
+   relying on the picture's size to communicate.
+   ========================================================================== */
+
+.trigger {
+  display: block;
+  inline-size: 100%;
+  border: none;
+  padding: 0;
+  background: none;
+  /* The picture is the affordance. No ring, no icon, no overlay, no caption
+     change — the only thing that happens is the thing you asked for. */
+  cursor: zoom-in;
+}
+
+.trigger[aria-pressed="true"] {
+  cursor: zoom-out;
+}
+
+.trigger[aria-pressed="true"] .image {
+  scale: var(--expand-lift);
+  transition: scale var(--duration-transition) var(--wall-ease-swell);
+}
+
+.trigger[aria-pressed="true"] ~ .caption {
+  translate: 0 var(--swell-shift);
+}
+
+/* On a phone the picture is 42% of the artifact, so the same multiplier buys
+   far less — 96px becomes 130px, which is not an answer to "I want to see it".
+   ONE VARIABLE, NOT A SECOND `scale` RULE: `--expand-lift` feeds the caption's
+   displacement too, so setting it here keeps the picture and the words in
+   agreement. Overriding `scale` alone would have opened the picture without
+   moving the caption out from under it. */
+@media (max-width: 47.9375rem) {
+  .memory {
+    --expand-lift: 1.9;
+  }
+
+  /* THE THUMBNAIL WIDTH, AND IT HAS TO BE HERE RATHER THAN IN THE NARROW BLOCK
+     ABOVE. `.trigger` and `.trigger` are the same specificity, so the base rule
+     — which is declared further up this section and sets `inline-size: 100%` —
+     beats an identical selector written EARLIER in the file, media query or
+     not. Written up there, the picture rendered at 233px on a 390px screen:
+     the whole artifact, exactly what it was before.
+
+     The button carries the width so that its hit area is the picture and not
+     the empty column beside it. Tapping blank space must not open a photograph. */
+  .trigger {
+    inline-size: 42%;
+  }
+
+  .trigger .image {
+    inline-size: 100%;
   }
 }

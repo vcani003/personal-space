@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { mockTrack, trackSource } from "./mockTrack";
+import { track, trackSource } from "./track";
+import { useLyrics } from "./useLyrics";
 import { useFrameBinding, useLyricSync } from "./useLyricSync";
 import { useYouTubePlayback } from "./useYouTubePlayback";
 import styles from "./Player.module.css";
@@ -48,18 +49,6 @@ import styles from "./Player.module.css";
  */
 
 /**
- * The window the screen shows before anything has ever played.
- *
- * NOT a fallback for "index unknown". It is the object at rest, and it has to
- * be authored rather than derived: the fixture's first line starts at t = 0 and
- * is one of the deliberate instrumental blanks, so a resting player that simply
- * asked the timing core what was playing would show an empty screen to a
- * visitor who has not pressed anything. Once there is a real player, the real
- * index takes over and this constant is never read again.
- */
-const RESTING_INDEX = 6;
-
-/**
  * Lyric offset, in seconds. Positive means "show the lyrics later".
  *
  * Zero, and there is nothing to tune until the lyrics are real: the fixture's
@@ -76,8 +65,14 @@ export function Player() {
   const playback = useYouTubePlayback(trackSource);
   const drive = { live: playback.playing, revision: playback.revision };
 
+  /* The words are asked for the moment playback is under way, and not before.
+     `status` rather than `playing`: a visitor who pressed play and is now
+     buffering has asked for the song, and pausing must not cancel the lookup. */
+  const started = playback.status === "loading" || playback.status === "ready";
+  const lyrics = useLyrics(track, playback.sampleRef, started);
+
   const { activeIndex, timeRef } = useLyricSync(
-    mockTrack.lines,
+    lyrics.lines,
     playback.sampleRef,
     LYRIC_OFFSET_SECONDS,
     drive,
@@ -105,13 +100,17 @@ export function Player() {
     drive,
   );
 
-  /* The screen follows real time only once there is a real player to follow.
-     Before that, and if playback turns out to be impossible here, it holds the
-     authored resting window instead of reporting the position of nothing. */
-  const index = playback.status === "ready" ? activeIndex : RESTING_INDEX;
-  const previous = mockTrack.lines[index - 1];
-  const active = mockTrack.lines[index];
-  const next = mockTrack.lines[index + 1];
+  /* The screen follows real time only once there is a real player to follow AND
+     real words to show. Before that it is EMPTY, which is a deliberate resting
+     state rather than a missing one: the alternative is inventing something to
+     put there, and inventing something to put there is exactly what made the
+     player caption a song with sentences from nowhere. A dark screen that fills
+     when you press play is a better first impression than a full one that turns
+     out to be lying. */
+  const index = playback.status === "ready" && lyrics.status === "ready" ? activeIndex : -1;
+  const previous = lyrics.lines[index - 1];
+  const active = lyrics.lines[index];
+  const next = lyrics.lines[index + 1];
 
   const videoExists = playback.status === "loading" || playback.status === "ready";
 
@@ -119,14 +118,27 @@ export function Player() {
     <>
       <section className={styles.chassis} aria-label="Music player">
         <p className={styles.meta}>
-          {mockTrack.title} — {mockTrack.artist}
+          {track.title} — {track.artist}
         </p>
 
         <div className={styles.screen}>
           <div className={styles.lines}>
-            <p className={styles.line}>{previous?.text}</p>
-            <p className={`${styles.line} ${styles.active}`}>{active?.text}</p>
-            <p className={styles.line}>{next?.text}</p>
+            {/* THE KEY IS THE RETRIGGER, and it is the whole mechanism.
+                A CSS animation plays once per element; re-rendering the same
+                `<p>` with different words replaces the text and plays nothing,
+                which is exactly what the screen used to do — the words changed
+                but nothing MOVED. Keying each line on its own index makes React
+                mount a new element every time the line changes, and a new
+                element runs the animation from the start. */}
+            <p key={`p${index}`} className={styles.line}>
+              {previous?.text}
+            </p>
+            <p key={`a${index}`} className={`${styles.line} ${styles.active}`}>
+              {active?.text}
+            </p>
+            <p key={`n${index}`} className={styles.line}>
+              {next?.text}
+            </p>
           </div>
         </div>
 
@@ -142,6 +154,16 @@ export function Player() {
             <span className={styles.progressFill} ref={progressRef} />
           </div>
         </div>
+
+        {lyrics.status === "absent" && (
+          /* Said once, to the people for whom the empty screen is not itself
+             the message. The object stays silent on screen: a visitor watching
+             a player that is playing music does not need to be told that a
+             community lyrics database has never heard of this recording. */
+          <p className="visually-hidden" role="status">
+            No synchronized lyrics found for this track.
+          </p>
+        )}
 
         {playback.status === "unavailable" && (
           /* The object stays composed and says nothing on screen — a visitor who

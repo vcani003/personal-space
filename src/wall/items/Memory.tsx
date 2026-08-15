@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Meta, META_SEPARATOR } from "../../components/Meta";
 import { formatPostDate } from "../../lib/date";
 import type { StyleVars } from "../../lib/vars";
@@ -57,15 +57,19 @@ export function Memory({ item }: { item: MemoryItem }) {
       ? undefined
       : { "--aspect": String(item.aspectRatio) };
 
+  const picture = (
+    <WallImage
+      eager
+      className={styles.image}
+      src={item.src}
+      alt={item.alt}
+      aspectRatio={item.aspectRatio}
+    />
+  );
+
   const figure = (
     <figure className={styles.memory} style={ratio}>
-      <WallImage
-        eager
-        className={styles.image}
-        src={item.src}
-        alt={item.alt}
-        aspectRatio={item.aspectRatio}
-      />
+      {item.href ? picture : <Trigger>{picture}</Trigger>}
       {described && (
         <figcaption className={styles.caption}>
           {item.caption && <p data-text="body">{item.caption}</p>}
@@ -85,6 +89,52 @@ export function Memory({ item }: { item: MemoryItem }) {
   );
 
   return item.href ? linked(item.href, figure) : figure;
+}
+
+/**
+ * THE PICTURE, MADE PRESSABLE — the phone's answer to hover.
+ *
+ * On a touch screen the swell does not exist: `:hover` latches after a tap and
+ * would leave a photograph stuck open until you pressed something else, which
+ * is why the hover rules are gated behind `(hover: hover)`. Without a
+ * replacement, the thumbnail this component now renders on a phone would be a
+ * photograph nobody could see — small with no way out of being small.
+ *
+ * SO THE PICTURE IS A TOGGLE BUTTON, AT EVERY WIDTH RATHER THAN ONLY ON PHONES.
+ * A viewport is not a fact about this component and the markup must not change
+ * shape underneath the layout — CSS decides how far it opens (`--expand-lift`),
+ * this decides only that it can be opened. What that buys on a desktop is a
+ * keyboard path to the expansion, which previously existed only for the
+ * memories that happen to be authored with an `href`.
+ *
+ * NOT WHEN IT IS A LINK. A button inside an anchor is invalid, and a linked
+ * photograph already has an answer to being tapped — it goes somewhere. The
+ * expansion is what a picture does when it has nowhere to send you.
+ *
+ * IT HAS NO `aria-label`, AND THAT IS THE ACCESSIBLE CHOICE RATHER THAN AN
+ * OMISSION. A button takes its name from its contents, and its contents are an
+ * image with alt text — so the name is already "a dark room where enormous red
+ * and magenta flowers…, toggle button": the subject first, the mechanism
+ * second, which is the right order for a control whose entire purpose is that
+ * photograph. Adding `aria-label` would have overridden that with a second copy
+ * of the same sentence, leaving the image announced underneath it. `aria-pressed`
+ * carries the state, so nothing has to infer it from the size on screen.
+ */
+function Trigger({ children }: { children: ReactNode }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <button
+      type="button"
+      className={styles.trigger}
+      aria-pressed={expanded}
+      onClick={() => {
+        setExpanded((value) => !value);
+      }}
+    >
+      {children}
+    </button>
+  );
 }
 
 /**
