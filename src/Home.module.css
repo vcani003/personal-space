@@ -36,6 +36,14 @@
   margin-inline: auto;
   padding-inline: var(--page-gutter-inline);
 
+  /* THE RAIL'S WIDTH, DECLARED ONCE FOR THE WHOLE PAGE. It was on
+     `.composition`, which was the only thing that needed it until the
+     navigation moved into the header row — and the navigation has to be
+     exactly as wide as the rail, or its left edge stops agreeing with the
+     player's. Two rules reading one number is the whole point of moving it up
+     here; three copies of 322px across two files was already one too many. */
+  --rail-inline-size: 322px;
+
   /* 260px of tail. IT NO LONGER BUYS WHAT IT WAS BOUGHT FOR, AND IT MUST NOT BE
      REMOVED ON ITS OWN. Both halves of that matter.
 
@@ -72,6 +80,49 @@
 
 .identity {
   grid-column: 1 / 9;
+}
+
+/* =============================================================================
+   THE NAVIGATION, IN THE HEADER ROW
+   =============================================================================
+
+   It used to sit at the top of the rail, which put it one full row-gap plus the
+   whole identity block below the top of the page — about 300px down, level with
+   the wall rather than with the name. Moved up here it is level with the name,
+   which is what "toward the top of the page" means on a page whose first row is
+   the name.
+
+   IT IS THE RAIL'S WIDTH, PINNED TO THE RAIL'S EDGE. `1 / -1` plus
+   `justify-self: end` plus the rail's own inline size puts this box exactly
+   over the rail's column — so the navigation's left edge and the player's left
+   edge are the same line, and the right-hand margin still reads as one object
+   in two pieces rather than as two things that happen to be on the right.
+
+   WHAT IT GIVES UP, stated because it is a real loss: the navigation was inside
+   `position: sticky` and travelled with the viewport. Here it scrolls away with
+   the name. That is the honest trade for having it at the top, and it is the
+   right way round — the PLAYER is the thing you reach for while reading and it
+   still floats; the navigation is a table of contents for a site that is one
+   page, and a table of contents does not need to follow you.
+   ========================================================================== */
+
+.topNav {
+  grid-row: 1;
+
+  /* THE RIGHT-HAND COLUMNS, NOT THE WHOLE ROW. `1 / -1` was the obvious way to
+     write "pin me to the right edge" and it is wrong: an item spanning every
+     column OWNS row 1, so the name could not share it and was pushed down to
+     row 2 — the navigation ended up above the title. Spanning only the columns
+     it actually sits in leaves row 1 open for the name. */
+  grid-column: 9 / -1;
+  justify-self: end;
+  align-self: start;
+  inline-size: var(--rail-inline-size);
+
+  /* Optically level with the cap-height of the hairline serif beside it, which
+     sits lower than its box's top edge — the same correction `.elsewhere` makes
+     for the same reason. */
+  margin-block-start: var(--space-2xs);
 }
 
 .elsewhere {
@@ -118,8 +169,6 @@
      of it — `PlayerDock.module.css` has the first. Both want a
      `--player-inline-size` token in tokens.css. Not added here, since that file
      is yours. */
-  --rail-inline-size: 322px;
-
   /* How far below the top of the viewport the rail comes to rest once it
      sticks. Enough that it reads as floating rather than as pinned to an edge —
      the same distance the dock kept from the screen's corner. */
@@ -323,27 +372,20 @@
     display: contents;
   }
 
-  /* Order-modified document order. The DOM is rail-then-wall so that the
-     navigation is read first; here the wall has to come back between the two
-     halves of the rail, which is exactly what `order` is for. */
-  .railNav {
-    order: 1;
+  /* THE NAVIGATION IS NOT IN THE RAIL ANY MORE, so it needs no `order` here.
+     It is a header-row item at every width above a phone, and the reason the
+     old rule fought so hard to keep it on the right still holds and is still
+     satisfied: the paper fragment's wide anchor is x 22% of the viewport, and
+     a left-flush list at this breakpoint landed underneath it — measured at
+     768×900 the sheet occupied x 77–270 while a left-aligned nav sat at
+     x 52–139, covering `HOME` and `ARCHIVE`. In the header row it is pinned to
+     the right-hand edge, which clears that anchor by more than 360px.
 
-    /* STILL ON THE RIGHT. It hugs its own words rather than stretching across
-       the column — in the rail it was already shrink-to-fit, and here the grid
-       would otherwise hand it the whole page width for seven short labels — and
-       it stays at the right-hand edge, under `@starcharm`, which is where the
-       two-column composition puts it. Relocating a thing does not have to mean
-       moving it to the left margin.
-
-       IT ALSO HAS TO BE HERE. The paper fragment's wide anchor is x 22% of the
-       viewport, so a left-flush list at this breakpoint lands underneath it:
-       measured at 768×900 the sheet occupies x 77–270 and y 325–485, and a
-       left-aligned nav sat at x 52–139, y 400–624 — the paper covered `HOME`
-       and `ARCHIVE`. On the right it clears by ~360px at 768 and more above it.
-       See `interaction/placement.ts`, whose header explains why that anchor is
-       a percentage and why it is fragile. */
-    justify-self: end;
+     What it does need is its width back. The rail's 322px is a fixed object
+     width for a fixed object; there is no rail at this breakpoint, so the list
+     shrinks to its own words instead of holding a column open. */
+  .topNav {
+    inline-size: auto;
   }
 
   /* The explicit row/column the two-column composition needs must be given
@@ -384,6 +426,7 @@
      single-column grid and the page would fall apart. */
   .identity,
   .elsewhere,
+  .topNav,
   .composition,
   .closing {
     grid-column: 1 / -1;
@@ -399,9 +442,16 @@
   /* Back to the left margin with everything else. There is no right-hand side
      on a phone to keep it on, and the paper fragment is anchored to the gap at
      the BOTTOM of this page rather than to 22% of the viewport, so the reason
-     the tablet breakpoint pushes it right does not apply here. */
-  .railNav {
+     the tablet breakpoint pushes it right does not apply here.
+
+     `grid-row: auto` is the load-bearing half. The wide layout pins this to
+     row 1 so it can sit level with the name; on one column that would put it
+     IN the name's cell, on top of an 80px serif. Here it takes the next row,
+     which is where a hamburger under a title belongs anyway. */
+  .topNav {
+    grid-row: auto;
     justify-self: start;
+    inline-size: auto;
   }
 
   .composition {

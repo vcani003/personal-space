@@ -83,17 +83,22 @@ export function Home() {
           paopu now sits beside that one. `Elsewhere` remains exported from
           Navigation.tsx for whenever there is somewhere to point. */}
 
-      {/* THE RAIL IS FIRST IN THE DOM AND SECOND ON THE SCREEN.
-          Grid puts it in the right-hand column; document order puts the
-          navigation before the wall, which is where someone reading the page
-          aloud or walking it with a keyboard expects to meet it. Visual
-          position is free. Reading order is not. */}
+      {/* THE RAIL HOLDS ONLY THE PLAYER NOW. Document order still meets the
+          navigation before the wall — it moved UP the page rather than down,
+          so the reading order the rail was arranged to protect is now simply
+          the order things appear in. Visual position is free. Reading order is
+          not, and this is the rare change that costs nothing to keep. */}
+      {/* THE NAVIGATION SITS IN THE HEADER ROW, level with the name, and no
+          longer at the top of the rail. It is placed to the rail's own column
+          width, so its left edge still lines up with the player beneath it —
+          the two read as one right-hand margin, they simply no longer travel
+          together. See `.topNav`. */}
+      <div className={styles.topNav}>
+        <Navigation />
+      </div>
+
       <div className={styles.composition}>
         <div className={styles.rail}>
-          <div className={styles.railNav}>
-            <Navigation />
-          </div>
-
           {!playerIsOnTheWall && (
             /* `data-no-ripple`: an object floating ON the surface is not part of
                the surface, so touching it does not send a wave across the page.
