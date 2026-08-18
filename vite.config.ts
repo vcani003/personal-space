@@ -1,7 +1,8 @@
-import { copyFileSync } from "node:fs";
+import { copyFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Plugin, defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { ROUTE_PATHS } from "./src/router/paths.js";
 
 /**
  * The GitHub Pages base path.
@@ -53,7 +54,27 @@ function spaFallback(): Plugin {
     apply: "build",
     writeBundle(options) {
       const dir = options.dir ?? resolve("dist");
-      copyFileSync(resolve(dir, "index.html"), resolve(dir, "404.html"));
+      const shell = resolve(dir, "index.html");
+
+      copyFileSync(shell, resolve(dir, "404.html"));
+
+      /* AND A REAL PAGE AT EVERY KNOWN ROUTE.
+         The 404 fallback alone renders correctly but is SERVED WITH A 404
+         STATUS — measured on the live site: /projects/spatial redirected to
+         /projects/spatial/ and came back 404 with the app inside it. A human
+         sees the right page; a crawler, a link preview and anything checking
+         status codes see a dead URL.
+
+         The route set is closed and tiny, so each one gets its own
+         `index.html` — the same shell, at a path the host can actually
+         resolve. The 404 fallback stays for genuinely unknown paths, which is
+         the only thing it should ever have been answering. */
+      for (const path of Object.values<string>(ROUTE_PATHS)) {
+        if (path === "") continue;
+        const routeDir = resolve(dir, path);
+        mkdirSync(routeDir, { recursive: true });
+        copyFileSync(shell, resolve(routeDir, "index.html"));
+      }
     },
   };
 }

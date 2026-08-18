@@ -28,13 +28,14 @@
  * `import.meta.env.BASE_URL` is Vite's resolved `base` and always ends in "/".
  * ========================================================================== */
 
-export type Route = "home" | "spatial" | "not-found";
+import { ROUTE_PATHS, type RouteName } from "./paths";
 
-/** The path each route lives at, relative to the base. `home` is the root. */
-const PATHS = {
-  home: "",
-  spatial: "projects/spatial",
-} as const satisfies Partial<Record<Route, string>>;
+/** Every real destination, plus the state the router falls into. */
+export type Route = RouteName | "not-found";
+
+/** The path each route lives at, relative to the base. `home` is the root.
+ *  Declared in `paths.ts` because the BUILD reads the same list — see there. */
+const PATHS = ROUTE_PATHS;
 
 /** Strips the deployment's base prefix and any surrounding slashes. */
 function toRelative(pathname: string): string {
