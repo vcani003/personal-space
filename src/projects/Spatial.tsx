@@ -1,5 +1,6 @@
 import { Meta } from "../components/Meta";
 import { Link } from "../router";
+import { SPATIAL_APP_URL } from "./spatialApp";
 import styles from "./Spatial.module.css";
 
 /**
@@ -65,6 +66,19 @@ export function Spatial() {
           An infinite canvas for composing freely, where what you arrange on a
           desktop becomes something accessible and responsive without any of it
           being thrown away in translation.
+        </p>
+
+        {/* THE LINK OUT, and it goes HERE rather than after the argument.
+            A case study about something you can actually open should say so
+            before it starts explaining itself. The first version of this page
+            described a canvas and offered no way to reach it, and the second
+            put the way in below a long list — both are the same dead end §10
+            refuses to allow inside the tool itself. */}
+        <p className={styles.open}>
+          <a className={styles.openLink} href={SPATIAL_APP_URL} data-text="body">
+            Open the canvas
+            <span aria-hidden="true"> &#8599;</span>
+          </a>
         </p>
       </header>
 

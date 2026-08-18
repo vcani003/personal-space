@@ -57,6 +57,49 @@ jobs:
           echo "Building with base /$BASE_PATH/"
           npm run build
 
+      # ---------------------------------------------------------------------
+      # SPATIAL — a separate repository, composed in at DEPLOY time
+      # ---------------------------------------------------------------------
+      # The application source is deliberately NOT vendored into this
+      # repository and is not a dependency in package.json. It is checked out,
+      # built with a base path pointing at where it will be served, and copied
+      # into the site's output. The two codebases never meet; only their built
+      # artifacts do.
+      #
+      # WHAT MAKES THIS REPLACEABLE, which is the point: the only thing this
+      # site tells Spatial is BASE_PATH. If Spatial ever moves to its own
+      # domain, these two steps are deleted and the link in
+      # `src/projects/Spatial.tsx` changes. Nothing inside either application
+      # is restructured.
+      #
+      # PRECONDITION: the Spatial repository must exist and be public under
+      # the same owner. Until it is pushed, THESE STEPS FAIL THE DEPLOY —
+      # loudly and on purpose. The alternative, `continue-on-error`, would
+      # publish a case study whose "open the canvas" link 404s, which is
+      # exactly the dead end the site should not ship.
+      - name: Check out Spatial
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/spatial
+          ref: main
+          path: .spatial-src
+
+      - name: Build Spatial into /projects/spatial/app
+        working-directory: .spatial-src
+        # The base is this site's own subpath plus where the app is mounted,
+        # derived from the repository name exactly as the site's own build is.
+        run: |
+          export BASE_PATH="${GITHUB_REPOSITORY#*/}/projects/spatial/app"
+          echo "Building Spatial with base /$BASE_PATH/"
+          npm ci
+          npm run build
+
+      - name: Copy Spatial into the site output
+        run: |
+          mkdir -p dist/projects/spatial/app
+          cp -R .spatial-src/dist/. dist/projects/spatial/app/
+          test -f dist/projects/spatial/app/index.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -130,3 +130,52 @@
     gap: var(--space-xl);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   OPEN THE CANVAS
+   -----------------------------------------------------------------------------
+   The one thing on this page that leaves it, so it is the one thing allowed to
+   sit at full contrast. Everything else here is muted or dim; the step up in
+   luminance is the whole emphasis, in a site that has no accent colour to
+   reach for.
+
+   A rule under it rather than an underline, because the display face's
+   descenders collide with a text-decoration at this size. It grows to the full
+   width of the link on hover, which is the only motion on the page.
+   ------------------------------------------------------------------------ */
+
+.open {
+  margin: 0;
+  /* It sits inside the header, so it needs air from the sentence above it
+     without opening a gap the header's own `gap` would then double. */
+  margin-block-start: var(--space-sm);
+}
+
+.openLink {
+  display: inline-block;
+  position: relative;
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground);
+  text-decoration: none;
+}
+
+.openLink::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -0.2em;
+  block-size: 1px;
+  background-color: currentColor;
+  opacity: 0.35;
+  transform-origin: 0 50%;
+  transition:
+    opacity var(--duration-response) var(--ease-out),
+    scale var(--duration-response) var(--ease-out);
+}
+
+.openLink:hover::after,
+.openLink:focus-visible::after {
+  opacity: 1;
+}
