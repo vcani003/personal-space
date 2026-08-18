@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { identity } from "../content/posts";
+import { Link, type Route, useRoute } from "../router";
 import type { StyleVars } from "../lib/vars";
 import styles from "./Navigation.module.css";
 
@@ -52,6 +53,17 @@ import styles from "./Navigation.module.css";
 
 interface NavEntry {
   readonly label: string;
+  /**
+   * The route this entry goes to, when there is one.
+   *
+   * ITS PRESENCE IS WHAT MAKES AN ENTRY A LINK. The rule at the top of this
+   * file — a destination that does not exist is not rendered as a link, is
+   * not focusable, and cannot be pressed — is now enforced by the type rather
+   * than by remembering it: an entry without a `route` has nothing to render
+   * an `<a>` from. And because `Route` is a closed union, pointing an entry
+   * at a page that does not exist is a compile error.
+   */
+  readonly route?: Exclude<Route, "not-found">;
   /** Steps in from the rail's left edge. 0 is flush. Authored, not derived. */
   readonly indent: number;
   /**
@@ -68,7 +80,7 @@ interface NavEntry {
 }
 
 const SECTIONS: readonly NavEntry[] = [
-  { label: "Home", indent: 0, state: "current" },
+  { label: "Home", indent: 0, state: "pending", route: "home" },
   { label: "Archive", indent: 0, state: "wip" },
   { label: "About", indent: 1, state: "pending", lead: "loose" },
   {
@@ -77,7 +89,11 @@ const SECTIONS: readonly NavEntry[] = [
     state: "pending",
     lead: "loose",
     children: [
-      { label: "Project 1", indent: 1, state: "pending" },
+      /* The first entry with somewhere to go. It keeps the label the site
+         owner wrote — the page it opens is titled `Spatial`, and the two are
+         allowed to differ: this list is her table of contents, not the page's
+         own name. */
+      { label: "Project 1", indent: 1, state: "pending", route: "spatial" },
       { label: "Project 2", indent: 1, state: "pending" },
       { label: "Project 3", indent: 1, state: "pending" },
     ],
@@ -124,6 +140,7 @@ const SECTIONS: readonly NavEntry[] = [
 export function Navigation() {
   const [open, setOpen] = useState(false);
   const listId = useId();
+  const active = useRoute();
 
   return (
     <nav className={styles.nav} aria-label="Sections">
@@ -149,7 +166,7 @@ export function Navigation() {
         data-open={open ? "" : undefined}
       >
         {SECTIONS.map((entry) => (
-          <Entry key={entry.label} entry={entry} />
+          <Entry key={entry.label} entry={entry} active={active} />
         ))}
       </ul>
     </nav>
@@ -178,24 +195,51 @@ function Bars() {
   );
 }
 
-function Entry({ entry }: { entry: NavEntry }) {
+/**
+ * One entry, in one of three renderings — and which one it gets is decided
+ * entirely by whether it has somewhere to go and whether you are already
+ * there.
+ *
+ *   the page you are on   a `<span>` with `aria-current="page"`. Not a link:
+ *                         there is nowhere to go, and a link to the current
+ *                         page is a tab stop that does nothing.
+ *   a page that exists    a real `<a href>`, via `Link`.
+ *   a page that does not  a `<span>`. Unfocusable, unpressable, and honest —
+ *                         see the note at the top of this file.
+ *
+ * `data-state` is what the stylesheet reads, and it now comes from the ROUTE
+ * for the current page rather than from a hardcoded field. The old version had
+ * `state: "current"` written against `Home` in the data, which was true only
+ * for as long as the site had one page.
+ */
+function Entry({ entry, active }: { entry: NavEntry; active: Route }) {
   const style: StyleVars = { "--nav-indent": entry.indent };
+  const isCurrent = entry.route !== undefined && entry.route === active;
+  const state = isCurrent ? "current" : entry.state;
 
   return (
     <li className={styles.item} data-lead={entry.lead}>
-      <span
-        className={styles.label}
-        style={style}
-        data-state={entry.state}
-        aria-current={entry.state === "current" ? "page" : undefined}
-      >
-        {entry.label}
-      </span>
+      {entry.route !== undefined && !isCurrent ? (
+        <Link to={entry.route} className={styles.entryLink}>
+          <span className={styles.label} style={style} data-state={state}>
+            {entry.label}
+          </span>
+        </Link>
+      ) : (
+        <span
+          className={styles.label}
+          style={style}
+          data-state={state}
+          aria-current={isCurrent ? "page" : undefined}
+        >
+          {entry.label}
+        </span>
+      )}
 
       {entry.children !== undefined && (
         <ul className={styles.sublist} role="list">
           {entry.children.map((child) => (
-            <Entry key={child.label} entry={child} />
+            <Entry key={child.label} entry={child} active={active} />
           ))}
         </ul>
       )}

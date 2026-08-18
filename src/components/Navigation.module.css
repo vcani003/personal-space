@@ -198,3 +198,27 @@
     margin-block-start: var(--space-sm);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   AN ENTRY THAT IS A LINK
+   -----------------------------------------------------------------------------
+   The anchor is a wrapper and contributes nothing visual — the `.label` inside
+   it already carries the register, the indentation and the state luminance. All
+   this does is remove the underline the browser adds and let the label's own
+   colour through, so a destination that exists looks exactly like one that does
+   not until you point at it.
+
+   That is deliberate. The list is a table of contents, and marking the one
+   live entry with a colour or an underline would turn it into a call to action
+   in a rail that is meant to murmur.
+   ------------------------------------------------------------------------ */
+
+.entryLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.entryLink:hover .label,
+.entryLink:focus-visible .label {
+  color: var(--color-foreground);
+}

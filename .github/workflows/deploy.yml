@@ -10,7 +10,10 @@
 #      declared in src/styles/fonts.css. That is correct until a licence is
 #      bought. If Eiko files ever appear in a build here, stop.
 #
-# There is no SPA 404.html fallback and none is needed: one page, no routing.
+# The site now has routing, so the build emits a `404.html` that is a copy of
+# `index.html` — see `spaFallback()` in vite.config.ts. GitHub Pages serves it
+# for any unresolved path with the URL intact, which is what makes a deep link
+# to a project page work on a host that only serves files.
 
 name: Deploy to GitHub Pages
 

@@ -1,4 +1,6 @@
-import { defineConfig } from "vite";
+import { copyFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { type Plugin, defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 /**
@@ -24,7 +26,39 @@ function resolveBase(): string {
   return `/${raw.replace(/^\/+|\/+$/g, "")}/`;
 }
 
+/**
+ * THE SPA FALLBACK, and why a static host needs one.
+ *
+ * GitHub Pages serves files. A visitor who opens `/personal-space/projects/spatial`
+ * directly — from a bookmark, a shared link, or a reload after navigating —
+ * asks for a FILE at that path, and there is no such file. Pages answers 404
+ * and the app never boots to see the route it would have handled perfectly.
+ *
+ * The fix Pages provides is `404.html`: it is served, with the original URL
+ * intact, for any path that does not resolve. So `404.html` is a byte-for-byte
+ * copy of `index.html` — the same app, the same hashed asset URLs — and it
+ * boots, reads `location.pathname`, and renders the route. The visitor sees
+ * the page they asked for and never learns a 404 was involved.
+ *
+ * IT IS COPIED AT BUILD TIME RATHER THAN COMMITTED, because `index.html`
+ * references hashed bundle filenames that change on every build. A committed
+ * copy would be a file that is correct exactly once.
+ *
+ * `writeBundle` rather than `closeBundle`: it runs after the files are on
+ * disk, and unlike `closeBundle` it does not also fire for the dev server.
+ */
+function spaFallback(): Plugin {
+  return {
+    name: "spa-fallback-404",
+    apply: "build",
+    writeBundle(options) {
+      const dir = options.dir ?? resolve("dist");
+      copyFileSync(resolve(dir, "index.html"), resolve(dir, "404.html"));
+    },
+  };
+}
+
 export default defineConfig({
   base: resolveBase(),
-  plugins: [react()],
+  plugins: [react(), spaFallback()],
 });
