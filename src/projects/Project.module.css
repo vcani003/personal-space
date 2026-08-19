@@ -183,3 +183,26 @@
 .openLink:focus-visible::after {
   opacity: 1;
 }
+
+/* A second destination, under the first. One step quieter, because it is for
+   the smaller number of people who want to read a thing rather than use it —
+   and because two links at equal weight is two links with no answer to
+   "which one". */
+.secondary {
+  margin: 0;
+  margin-block-start: var(--space-2xs);
+}
+
+.secondaryLink {
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-dim);
+  text-decoration: none;
+  transition: color var(--duration-response) var(--ease-out);
+}
+
+.secondaryLink:hover,
+.secondaryLink:focus-visible {
+  color: var(--color-foreground);
+}

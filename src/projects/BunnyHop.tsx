@@ -8,16 +8,24 @@ import styles from "./Project.module.css";
  * The extension is finished. This page exists because a finished thing nobody
  * can see is, from the outside, indistinguishable from an unfinished one.
  *
- * IT LINKS TO THE SOURCE AND SAYS SO PLAINLY. It is not on the Chrome Web
- * Store, and the page does not imply otherwise — a project page that overstates
- * where something is available is the kind of thing that unravels in one
- * question.
+ * TWO DESTINATIONS, AND THE INSTALL COMES FIRST. It is published on the Chrome
+ * Web Store, so most people arriving here want to use it rather than read it.
+ * The source is the second link, for the smaller number who want the other
+ * thing.
+ *
+ * An earlier version of this page said it was NOT on the store. That was
+ * inferred from there being no store URL in the repository — absence of
+ * evidence read as evidence of absence — and it understated the single
+ * strongest fact about the project. Worth remembering that being wrong in the
+ * modest direction is still being wrong.
  *
  * As with the Spatial page, everything here is factual: what it does, which
  * decisions shaped it, what is actually built. The narrative voice is left for
  * the site owner rather than invented on her behalf.
  */
 
+const STORE_URL =
+  "https://chromewebstore.google.com/detail/olndcfciliijffieflkaflpajehhnhap";
 const SOURCE_URL = "https://github.com/vcani003/bunny-hop-player";
 
 /** The decisions worth stating, each drawn from what the code actually does. */
@@ -43,9 +51,9 @@ const DECISIONS: readonly { readonly claim: string; readonly because: string }[]
       "Sampling playback often enough to highlight the right line would be wasteful, and sampling rarely leaves the highlight drifting. Estimating between samples, with correction for stalls and rate changes, keeps it accurate through pause, seek and replay.",
   },
   {
-    claim: "A match is ranked, not guessed.",
+    claim: "A match is scored, not guessed.",
     because:
-      "Searching a public lyric database by title returns covers, live takes and remixes. Lyrics that are subtly the wrong version read as broken in a way that no lyrics does not, so candidates are normalised and ranked before one is chosen.",
+      "Searching a lyrics database for a song title turns up covers, live versions and remixes alongside the real one. Showing the wrong version is worse than showing nothing: the words almost line up, so it reads as a bug rather than a gap. Candidates are cleaned up and scored — on artist, album and length — before one is picked.",
   },
   {
     claim: "Two origins, three fields.",
@@ -71,7 +79,14 @@ export function BunnyHop() {
         </p>
 
         <p className={styles.open}>
-          <a className={styles.openLink} href={SOURCE_URL} target="_blank" rel="noreferrer noopener" data-text="body">
+          <a className={styles.openLink} href={STORE_URL} target="_blank" rel="noreferrer noopener" data-text="body">
+            Install from the Chrome Web Store
+            <span aria-hidden="true"> &#8599;</span>
+          </a>
+        </p>
+
+        <p className={styles.secondary}>
+          <a className={styles.secondaryLink} href={SOURCE_URL} target="_blank" rel="noreferrer noopener" data-text="body">
             Read the source
             <span aria-hidden="true"> &#8599;</span>
           </a>
@@ -104,8 +119,8 @@ export function BunnyHop() {
           Finished, and in use. A Manifest V3 extension in TypeScript and React
           — service worker, content script, side panel and floating window —
           with 164 tests over the parts that are easy to get quietly wrong:
-          playback timing, lyric parsing, matching and caching. It runs
-          unpacked; it is not on the Chrome Web Store.
+          playback timing, lyric parsing, matching and caching. Published on the
+          Chrome Web Store.
         </p>
       </section>
 
