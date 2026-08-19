@@ -47,8 +47,11 @@ function toRelative(pathname: string): string {
 /** The route for a browser pathname. Anything unrecognised is `not-found`. */
 export function routeFromPath(pathname: string): Route {
   const relative = toRelative(pathname);
-  if (relative === PATHS.home) return "home";
-  if (relative === PATHS.spatial) return "spatial";
+  /* Matched against the same table the build prerenders from, so a route
+     cannot exist in one and not the other. */
+  for (const [name, path] of Object.entries(PATHS)) {
+    if (relative === path) return name as Route;
+  }
   return "not-found";
 }
 
@@ -81,6 +84,7 @@ const SITE_NAME = "Veronica Canido";
 const TITLES: Record<Route, string> = {
   home: SITE_NAME,
   spatial: `Spatial — ${SITE_NAME}`,
+  bunnyHop: `Bunny Hop Player — ${SITE_NAME}`,
   "not-found": `Not found — ${SITE_NAME}`,
 };
 

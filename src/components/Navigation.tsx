@@ -94,7 +94,7 @@ const SECTIONS: readonly NavEntry[] = [
          allowed to differ: this list is her table of contents, not the page's
          own name. */
       { label: "Project 1", indent: 1, state: "pending", route: "spatial" },
-      { label: "Project 2", indent: 1, state: "pending" },
+      { label: "Project 2", indent: 1, state: "pending", route: "bunnyHop" },
       { label: "Project 3", indent: 1, state: "pending" },
     ],
   },

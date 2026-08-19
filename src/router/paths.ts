@@ -13,6 +13,7 @@
 export const ROUTE_PATHS = {
   home: "",
   spatial: "projects/spatial",
+  bunnyHop: "projects/bunny-hop",
 } as const;
 
 export type RouteName = keyof typeof ROUTE_PATHS;

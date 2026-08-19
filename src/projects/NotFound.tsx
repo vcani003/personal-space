@@ -1,6 +1,6 @@
 import { Meta } from "../components/Meta";
 import { Link } from "../router";
-import styles from "./Spatial.module.css";
+import styles from "./Project.module.css";
 
 /**
  * A page that does not exist.
@@ -9,9 +9,9 @@ import styles from "./Spatial.module.css";
  * broken robot — it is one line in the site's own voice and a way back, which
  * is all a visitor who mistyped a URL actually needs.
  *
- * It borrows the project page's stylesheet deliberately. A second stylesheet
- * for two elements would be a second place for the reading column's measure
- * and rhythm to drift out of agreement with the first.
+ * It shares the project pages' stylesheet deliberately. A second stylesheet for
+ * two elements would be a second place for the reading column's measure and
+ * rhythm to drift out of agreement with the first.
  */
 export function NotFound() {
   return (

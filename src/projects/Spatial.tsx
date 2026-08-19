@@ -1,7 +1,7 @@
 import { Meta } from "../components/Meta";
 import { Link } from "../router";
 import { SPATIAL_APP_URL } from "./spatialApp";
-import styles from "./Spatial.module.css";
+import styles from "./Project.module.css";
 
 /**
  * PROJECT 01 — SPATIAL. A case study page, not the tool.
