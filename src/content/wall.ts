@@ -74,140 +74,53 @@ import type { WallItem } from "../wall";
 /** The wall's height, in viewport heights. Wide composition only — on narrow
  *  the wall is as tall as its contents.
  *
- *  0.8, DOWN FROM 1.25, BECAUSE THE LAST QUARTER OF THE WALL WAS EMPTY.
- *  Measured at 2000×1052: the wall ran to 1315px and the lowest artifact ended
- *  at 1013 — 303px, twenty-three percent of the whole surface, holding nothing.
- *  That is not silence, it is a scroll through nothing on the way to the end of
- *  the page, and it is the single largest source of the emptiness the site
- *  owner reported.
+ *  0.55, DOWN FROM 0.8, BECAUSE THE PLACEHOLDERS ARE GONE. The wall held four
+ *  artifacts; two of them were a blurb and a link written to demonstrate what
+ *  a blurb and a link look like, and they have been taken down until there is
+ *  something real to hang there.
  *
- *  IT IS STILL NOT A LICENCE TO CROWD. Every `y` below is a percentage of this
- *  number, so lowering it pulls the whole composition together rather than
- *  cropping it — the artifacts keep their relative rhythm and simply stop being
- *  spread across a surface that was taller than they needed.
+ *  Every `y` below is a percentage of this number, so lowering it pulls the
+ *  remaining two together rather than leaving them adrift at either end of a
+ *  surface sized for a composition that no longer exists.
  *
- *  RAISE THIS BEFORE ENLARGING ANYTHING when the wall gets crowded. The wall
- *  growing is the correct answer to a crowded composition; artifacts growing to
- *  fill emptiness is not — and with 10–15 items still to come, this number is
- *  expected to go back up. */
-export const wallSpan = 0.8;
+ *  RAISE IT AGAIN WHEN REAL ARTIFACTS ARRIVE. The wall growing is the correct
+ *  answer to a crowded composition; artifacts growing to fill emptiness is
+ *  not. */
+export const wallSpan = 0.55;
 
 /* =============================================================================
-   THE COMPOSITION — four artifacts, three loose zones, one crescendo
+   THE COMPOSITION — two artifacts, and deliberately unfinished
    =============================================================================
 
-   FOUR ITEMS. The question this composition answers is not "what goes on the
-   wall" but "what does each KIND of artifact look and feel like in this world".
-   It is deliberately not full. Do not add a fifth item to balance it, and do not
-   enlarge these four to occupy the emptiness — see `wallSpan` above.
+   TWO ITEMS: a photograph, and a charm beside it. It held four; the other two
+   were a blurb and a link written to show what a blurb and a link look like,
+   and placeholder copy on a personal site reads worse than empty space —
+   it tells a visitor the room is not finished AND wastes their attention
+   proving it.
+
+   WHAT IS LEFT IS REAL. The photograph is hers and the charm is decoration.
+   The wall is quiet now, and that is the honest state of it.
 
    ── The shape of it ─────────────────────────────────────────────────────────
 
          x →   0        25        50        75      100
-     y 18                      A Placeholder Link ↗        link      462px
-     ↓                         note
-                               example.com
-      25       ┌──────────┐                                memory    221px
-               │  PHOTO   │
-               └──────────┘
-                  caption
-      45                                ✦                  charm      50px
+     y 38       ┌──────────┐                         memory    221px
+                │  PHOTO   │
+                └──────────┘
+                   caption
+     70                                ✦              charm      50px
 
-      85    Placeholder text, waiting to be replaced.      blurb     532px
-            A blurb is something worth keeping in words…
-            (all figures at 1440)
+   The two do not share an edge and are not aligned: left edges at x 14 and
+   x 72, and different heights. That is the same rule the fuller composition
+   followed, and it is what keeps two things from reading as a row.
 
-   THE LINK SITS BESIDE THE PHOTOGRAPH RATHER THAN BELOW IT, and that is the
-   answer to "too much white space". It used to be at y 46, and the region to
-   the RIGHT of the photograph — 630px across and 540 down, a fifth of the
-   surface — held nothing but the charm. The two never overlapped horizontally
-   (photo ends at x 34, link begins at 50), so the vertical distance between
-   them was buying no separation at all: it was paying for a void with a scroll.
+   ── ADDING THE NEXT ONE ─────────────────────────────────────────────────────
 
-   Raising it fills that void with the one artifact wide enough to occupy it,
-   and the composition still reads as offset rather than as a row, because the
-   two sit at different heights and different sizes.
-
-   THREE THINGS ARE AUTHORED HERE AND EACH ONE IS DOING A JOB:
-
-   1. THE SIZES STILL CLIMB, BUT THEY NO LONGER CLIMB DOWNWARD. 50 / 221 / 462 /
-      532px is the same crescendo it always was; what changed is that the two
-      largest are no longer both at the foot of the wall. The photograph and the
-      link now share the upper band at 221 and 462, the charm sits alone in the
-      middle at 50, and the blurb closes at 532.
-
-      That is a different claim from the one this list used to make, and it is
-      the honest one: the wall is not a descending progression any more, it is a
-      dense top, a held breath, and a wide close.
-
-   2. NOTHING SHARES AN EDGE. Left edges at x 3 / 14 / 50 / 72. The two closest
-      are the blurb (3) and the photograph (14) — 104px apart at 1440, and 200px
-      apart vertically, so they read as two placements rather than as a failed
-      alignment. Two items within ~4 points of each other is the thing to avoid:
-      too far to be an alignment, too close to be a decision.
-
-   3. THE UPPER PAIR SEPARATES LATERALLY, NOT VERTICALLY. Measured at 1440×760:
-      the photograph occupies y 17–337 and the link y 60–194, so they OVERLAP
-      through most of their height and never touch, because the photograph ends
-      at x 330 and the link begins at 481 — 151px of clear air between them.
-
-      This is the compositional move the wall exists to allow, and it is worth
-      naming because it is easy to undo by accident: two artifacts on a canvas
-      are separated by the axis on which they are actually near each other. The
-      previous version separated this pair on the vertical, which they did not
-      need, and paid for it with the empty upper right.
-
-      Below them the wall does go quiet — the charm at y 289 and then nothing
-      until the blurb at 533 — and that gap is the composition's one long
-      silence rather than an oversight.
-
-   ── The honest limit of it ──────────────────────────────────────────────────
-
-   `y` IS A PERCENTAGE AND ITEM HEIGHTS ARE PIXELS, so the vertical rhythm is
-   not the same composition at every size. At 1024 the text blocks are ~1.6× as
-   tall as at 1440 in a wall that is shorter, so the gaps compress and the lower
-   pair reads as a pair. At 1440 everything fits on fewer lines and the three
-   gaps come out within 50px of each other — closer to even than authored. At
-   that width the composition is carried by lateral position and by the size
-   crescendo rather than by clustering, which is why both of those are as
-   emphatic as they are. There is no `y` value that fixes it; it would want a
-   `size` that can be authored per breakpoint, which the placement model
-   deliberately does not have.
-
-   ── On narrow it is a different composition, and here is its rhythm ──────────
-
-   Order is memory → charm → blurb → link, and the leads are 0 / tight / loose /
-   tight. Same idea as the wide wall — a thing, then a breath, then the writing
-   in a pair — reached the only way a column can reach it. The charm rejoins the
-   photograph there; see its own note for why.
-
-   ── The stale `x` values, and what replaced them ────────────────────────────
-
-   `blurb.x` had been pushed 33 → 48 → 12 and `memory.x` 74 → 65 to dodge a
-   player docked to a fixed corner of the VIEWPORT. That object no longer
-   exists — the player is in the rail, in the page, and it can never cover the
-   wall. Every one of those numbers was a workaround for a constraint that is
-   gone, and all four have been re-authored from the composition instead. The
-   whole width of the wall is available again, which is why anything is on the
-   right half of it at all.
-
-   ── The one rule this composition follows ───────────────────────────────────
-
-   OBJECTS ARE ASKEW. TEXT IS LEVEL.
-
-   The photograph and the charm are things, hung by a person, so they are turned
-   a degree or two. The blurb and the link are writing, so they sit straight —
-   a rotated paragraph of hairline serif is harder to read and reads as styling
-   rather than as placement. Rotation is how the wall says "someone put this
-   here"; it is not a texture to apply to everything.
-
-   ── What is real and what is not ────────────────────────────────────────────
-
-   REAL      the memory. Her photograph, her caption, kept in its own colour.
-   PLACEHOLDER   the blurb, the link and the charm — every string marked below.
-                 Neutral on purpose: inventing a favourite website or a
-                 sentimental line on her behalf would put words in her mouth
-                 that are much harder to notice and remove than obvious ones.
+   Raise `wallSpan` first, then place it. `size` is a percentage of the WALL,
+   not the page — see the note above about 1024 being the width every size is
+   authored against. And run the composition through the validator: it warns
+   about duplicate ids, coordinates off the wall, and a narrow item that runs
+   off the edge, every one of which is otherwise silent.
    ========================================================================== */
 
 export const wallItems: readonly WallItem[] = [
@@ -255,7 +168,7 @@ export const wallItems: readonly WallItem[] = [
     caption: "a flower projection room somewhere in tokyo",
     aspectRatio: 0.75,
     placement: {
-      wide: { x: 14, y: 25, size: 20, rotation: -1.8, align: "left" },
+      wide: { x: 14, y: 38, size: 20, rotation: -1.8, align: "left" },
       /* THE PHONE IS WHERE THIS PHOTOGRAPH IS MOST LEGIBLE, and that is on
          purpose rather than by accident. 70% of a 326px wall is 228px on a 390px
          screen — 58% of the display, against 23% of the wall on a desktop. There
@@ -305,7 +218,7 @@ export const wallItems: readonly WallItem[] = [
     src: "wall/charm-placeholder.svg",
     aspectRatio: 1,
     placement: {
-      wide: { x: 72, y: 45, size: 5.2, rotation: -9, align: "left" },
+      wide: { x: 72, y: 70, size: 5.2, rotation: -9, align: "left" },
       /* THE PHONE PUTS IT BACK BESIDE THE PHOTOGRAPH, and that is not an
          inconsistency with the wide composition, it is what "mobile is a
          different composition" means. A column has no lateral emptiness, so a
@@ -317,87 +230,5 @@ export const wallItems: readonly WallItem[] = [
     },
   },
 
-  /* ---------------------------------------------------------------------------
-     BLURB — PLACEHOLDER COPY. Replace the strings, keep the shape.
-     -----------------------------------------------------------------------------
-     `normal` of the three registers, chosen for the prototype because it is the
-     one that has to work: reading copy sitting directly on the darkness with no
-     container at all. `feature` would have put a second giant serif statement on
-     a page that already has the name at 80px and would have taught nothing —
-     the scale contrast BETWEEN blurbs is the point of the type, and a prototype
-     with one blurb cannot demonstrate it by shouting.
 
-     `whisper` and `feature` are both still implemented in Blurb.module.css.
-
-     SIZE — 58%, UP FROM 26%, AND THIS IS THE MOST URGENT OF THE FOUR. 26% of the
-     column wall was 142px at 1024: about twelve characters a line, which is not
-     reading copy, it is a torn strip. 58% gives 558 / 465 / 317px.
-
-     `Blurb.module.css` caps the text at `min(--measure, 100%)`, so at 1440 the
-     line is 532px (56ch) and not 558 — the type system takes the last 26px back
-     on its own, which is exactly what that token is for. The authored number
-     only has to be generous enough that the CAP is what decides the measure on a
-     wide screen and the WALL is what decides it on a narrow one.
-
-     LEFT MARGIN, LOWEST THING ON THE WALL. `x: 12` was a dodge around the old
-     docked player. At 3 the blurb hangs off the wall's own left edge, which is
-     where writing goes and where the eye is already returning after the link
-     above it steps right. It is also the widest thing in the composition, which
-     is what makes the bottom of the wall the dense end.
-     ------------------------------------------------------------------------ */
-  {
-    type: "blurb",
-    id: "blurb-placeholder",
-    text: [
-      "Placeholder text, waiting to be replaced. A blurb is something worth keeping in words — a lyric, a line out of a book, a sentence someone said that stayed.",
-    ],
-    source: "Placeholder",
-    emphasis: "normal",
-    placement: {
-      wide: { x: 3, y: 85, size: 58, align: "left" },
-      narrow: { x: 3, size: 94, align: "left", lead: "loose" },
-    },
-  },
-
-  /* ---------------------------------------------------------------------------
-     LINK — PLACEHOLDER. Replace title, href, note and domain together.
-     -----------------------------------------------------------------------------
-     An annotated bookmark, not a preview card: no thumbnail, no panel, no
-     rounded rectangle, no fetched title. A name in the display register, a mark
-     that says it goes somewhere, one line about why, and the address underneath
-     in the metadata register.
-
-     `thumbnail` exists on the type and is deliberately unused here. A link that
-     leads with a picture is a memory that happens to be clickable, and it is
-     rendered as such in Link.tsx only if someone authors one.
-
-     SIZE — 48%, UP FROM 24%, AND THE REASON IS "COMPACT". At 24% the link was
-     131px at 1024, which put a 28px display title on four lines and its note on
-     six: a tall thin stack, the least compact shape available. 48% gives
-     462 / 385 / 262px, so the title is one line at 1440 and two at 1024 and the
-     whole artifact is wider than it is tall. A saved piece of the internet is a
-     short wide thing.
-
-     PLACED RIGHT, WHICH IS WHY THE COMPOSITION HAS TWO SIDES. It is the only
-     item whose left edge is past the middle of the wall. Under the photograph on
-     the left and above the blurb on the left, it makes the eye step out and back
-     — and it is what stops the lower half being a single left-aligned column,
-     which is what a feed looks like.
-
-     LAST IN THE ARRAY. It is the only focusable thing on the wall, so it is the
-     last tab stop before the closing line, and on narrow it is the last thing
-     read. Both are correct: a bookmark is where you leave from.
-     ------------------------------------------------------------------------ */
-  {
-    type: "link",
-    id: "link-placeholder",
-    title: "A Placeholder Link",
-    href: "https://example.com",
-    note: "Placeholder note — one line about why this is worth going to.",
-    domain: "example.com",
-    placement: {
-      wide: { x: 50, y: 18, size: 48, align: "left" },
-      narrow: { x: 12, size: 84, align: "left", lead: "tight" },
-    },
-  },
 ];
