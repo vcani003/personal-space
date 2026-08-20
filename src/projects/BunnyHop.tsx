@@ -41,24 +41,9 @@ const DECISIONS: readonly { readonly claim: string; readonly because: string }[]
       "A lyrics panel you can only see while looking at the music tab is a panel you never look at. Document Picture-in-Picture puts them in a window that stays on top across tabs and applications.",
   },
   {
-    claim: "Someone else's markup gets exactly one boundary.",
-    because:
-      "Every assumption about how YouTube Music's page is built lives in a single adapter. When their markup changes — and it will — one file is wrong instead of the whole extension.",
-  },
-  {
     claim: "Timing is interpolated, not polled.",
     because:
       "Sampling playback often enough to highlight the right line would be wasteful, and sampling rarely leaves the highlight drifting. Estimating between samples, with correction for stalls and rate changes, keeps it accurate through pause, seek and replay.",
-  },
-  {
-    claim: "A match is scored, not guessed.",
-    because:
-      "Searching a lyrics database for a song title turns up covers, live versions and remixes alongside the real one. Showing the wrong version is worse than showing nothing: the words almost line up, so it reads as a bug rather than a gap. Candidates are cleaned up and scored — on artist, album and length — before one is picked.",
-  },
-  {
-    claim: "Two origins, three fields.",
-    because:
-      "Host access is scoped to the music site and the lyrics database, and the only things that ever leave the browser are a song title, an artist and a duration. No account, no backend, no telemetry.",
   },
 ];
 
