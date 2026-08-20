@@ -57,9 +57,10 @@ export const siteName = "P.S., ILY";
  *
  * ── TWO MARKERS, AND THEY ARE THE ONLY MARKUP ALLOWED HERE ──────────────────
  *
- *   **loud**   opens a paragraph, or names the site inside one. The biggest
- *              thing in the prose.
- *   *lifted*   a word worth catching the eye on the way past.
+ *   **loud**       opens a paragraph, or names the site inside one. The
+ *                  biggest thing in the prose.
+ *   *lifted*       a word worth catching the eye on the way past.
+ *   [text](url)    a link. Opens in a new tab if it leaves the site.
  *
  * They exist so the emphasis lives in the WRITING rather than in a component —
  * changing which words are large is editing this sentence, not editing markup.
@@ -68,7 +69,7 @@ export const siteName = "P.S., ILY";
  * every third word is large has stopped being prose.
  */
 export const intro: readonly string[] = [
-  "**Hi, I'm Vero.** I really love *traveling*, good food, and spending time with my husband and our cats.",
+  "**Hi, I'm Vero.** I really love *traveling*, good food, and spending time with my husband and our [cats](https://www.instagram.com/lumi2luci/).",
   "I'm a *Type B* personality at heart. I like going with the flow, following whatever catches my *curiosity*, and seeing how the story unfolds.",
   "Lately, I'm finding my *spark* again and seeing where it takes me next \u22c6\u2b52\u02da.\u22c6",
   "**P.S., ILY** is my little *home base* for thoughts, interests, things I'm making, and anything that reminds me what's important in life. P.S. is short for Personal Space, but I liked that it also reads like the end of a letter.",

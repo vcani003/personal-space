@@ -151,11 +151,14 @@
   font-weight: inherit;
 }
 
-/* Opens a paragraph, or names the site inside one. The only size change left,
-   and smaller than before: enough to begin a paragraph, not enough to set the
-   line's height by itself. */
+/* Opens a paragraph, or names the site inside one.
+
+   22px against the header's 28. At 26 it read as the SAME size as the title
+   card above, flattening the two into one level — the header stopped being the
+   header. A paragraph opener should be the largest thing in its paragraph and
+   clearly not the largest thing on the page. */
 .loud {
-  font-size: var(--text-body-lg);
+  font-size: var(--text-body-md);
   line-height: 1;
   letter-spacing: var(--tracking-display);
   color: var(--color-foreground);
@@ -203,4 +206,36 @@
     color: CanvasText;
     background-image: none;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   A LINK IN THE PROSE
+   -----------------------------------------------------------------------------
+   Underlined, which is the one place on this site that happens. Everywhere
+   else a link is distinguished by luminance alone, and everywhere else it is
+   the only thing on its line. Inside a sentence, luminance is not enough — it
+   would read as another lifted word rather than as somewhere to go, and the
+   lifted words are RIGHT THERE in the same paragraph to be confused with.
+
+   `text-underline-offset` because the display face is a Thin at 17px, and the
+   default offset sits the rule on the descenders.
+
+   THE RIPPLE DOES NOT SPLIT THIS. `textSplit.ts` treats `a` as opaque and
+   refuses to take apart text that means something — so these words stay whole
+   while the sentence around them moves. That is deliberate there, not an
+   oversight here.
+   ------------------------------------------------------------------------ */
+
+.link {
+  color: var(--color-foreground);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: var(--color-foreground-dim);
+  transition: text-decoration-color var(--duration-response) var(--ease-out);
+}
+
+.link:hover,
+.link:focus-visible {
+  text-decoration-color: var(--color-foreground);
 }

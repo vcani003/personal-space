@@ -251,8 +251,8 @@ const SPLIT_TABLE: readonly SplitRow[] = [
   },
   {
     selector: 'main [data-text="body"]',
-    amplitude: 4,
-    note: "Reading copy: a blurb's paragraphs, a memory's caption and annotation, a link's note.",
+    amplitude: 8,
+    note: "Reading copy — the intro's paragraphs, a caption, a note. RAISED 4 -> 8, measured rather than guessed: at amplitude 4 the peak displacement on a body word was 2.1px against the heading's 4.3, and 2px of travel on 17px type is invisible. The site owner reported the ripple as not working on the prose; it was working and too small to see. The intro is now most of the page's text, so this row matters more than it did when it only dressed a caption.",
   },
   {
     selector: 'main [data-text="meta"]',

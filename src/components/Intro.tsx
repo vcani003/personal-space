@@ -41,7 +41,9 @@ function withEmphasis(text: string): ReactNode[] {
   /* One pass, so the markers keep their order in the sentence. The `**`
      alternative is listed first or `*` would match its opening pair and
      swallow the rest of the paragraph. */
-  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
+  return text
+    .split(/(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g)
+    .map((part, index) => {
     const key = `${String(index)}:${part}`;
 
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
@@ -58,6 +60,29 @@ function withEmphasis(text: string): ReactNode[] {
         </em>
       );
     }
+
+    const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+    if (link !== null) {
+      const [, label, href] = link;
+      /* A link that leaves the site opens in a new tab, with `noreferrer` —
+         the page it lands on has no business knowing it came from here.
+         Inferred rather than authored, because a URL already says whether it
+         is external and asking the writer to say so again is a second place
+         for it to be wrong. */
+      const external = /^https?:/i.test(href ?? "");
+
+      return (
+        <a
+          className={styles.link}
+          href={href}
+          key={key}
+          {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})}
+        >
+          {label}
+        </a>
+      );
+    }
+
     return part;
   });
 }
