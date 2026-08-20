@@ -47,12 +47,28 @@ export function Identity() {
           aria-hidden="true"
           decoding="async"
         />
+        {/* THE HANDLE IS A LINK, WHICH IT HAD STOPPED BEING.
+            `@starcharm` used to be rendered by `Elsewhere`, an anchor at the
+            top right of the page. That was removed and the handle moved into
+            this metadata line as plain TEXT — so the site went on printing an
+            Instagram handle that could not be pressed, which reads as a
+            username rather than a way to reach her.
+
+            Underlined, like the link in the prose and unlike the navigation.
+            The rule there is that a destination is distinguished by luminance
+            alone, which works when a link is the only thing on its line. Here
+            they sit inside a row of small print beside a year, and a handle
+            that looks exactly like the date next to it is not discoverable. */}
         <Meta>
-          {/* "Personal space" is gone from here — the site's name says it
-              below, and the intro explains it. Spelling it out a third time
-              was a label restating something that had just introduced
-              itself. */}
-          {[identity.handle, "2026"].join(META_SEPARATOR)}
+          <a className={styles.link} href={identity.instagramUrl} target="_blank" rel="noreferrer noopener">
+            {identity.handle}
+          </a>
+          {META_SEPARATOR}
+          <a className={styles.link} href={identity.githubUrl} target="_blank" rel="noreferrer noopener">
+            github
+          </a>
+          {META_SEPARATOR}
+          2026
         </Meta>
       </div>
 

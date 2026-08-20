@@ -89,3 +89,35 @@
   letter-spacing: var(--tracking-display);
   color: var(--color-foreground);
 }
+
+/* ---------------------------------------------------------------------------
+   THE LINKS IN THE METADATA LINE
+   -----------------------------------------------------------------------------
+   Underlined, for the reason in `Identity.tsx`: they sit in a row of small
+   print beside a year, and a handle that looks exactly like the date next to it
+   is not a link anyone will find.
+
+   The underline is dim at rest and comes up to full contrast on hover — the
+   same one-property change every other link on the site makes, just applied to
+   the rule instead of the text, because the text is already as quiet as this
+   register goes.
+   ------------------------------------------------------------------------ */
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  /* The metadata face is tracked-out uppercase at 11px; the default offset
+     collides with the baseline at that size. */
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--color-foreground-dim);
+  transition:
+    color var(--duration-response) var(--ease-out),
+    text-decoration-color var(--duration-response) var(--ease-out);
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--color-foreground);
+  text-decoration-color: var(--color-foreground);
+}

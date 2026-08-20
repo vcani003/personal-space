@@ -155,4 +155,5 @@ export interface SiteIdentity {
   readonly name: string;
   readonly handle: string;
   readonly instagramUrl: string;
+  readonly githubUrl: string;
 }

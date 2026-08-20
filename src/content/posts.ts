@@ -19,6 +19,7 @@ export const identity: SiteIdentity = {
   name: "Veronica Canido",
   handle: "@starcharm",
   instagramUrl: "https://www.instagram.com/starcharm/",
+  githubUrl: "https://github.com/vcani003",
 };
 
 /**
