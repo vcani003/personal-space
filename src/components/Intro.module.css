@@ -16,7 +16,7 @@
      the eye loses the line it is returning to — the wall can have the whole
      surface, prose cannot, which is why the PAGE closed the gap to the player
      rather than this growing to fill it. */
-  max-inline-size: 36rem;
+  max-inline-size: 40rem;
 }
 
 /* NOT A GRID, BECAUSE A FLOAT NEEDS FLOW. Grid items do not wrap around each
@@ -47,8 +47,11 @@
 
 .figure {
   float: inline-end;
-  inline-size: 42%;
-  max-inline-size: 15rem;
+  /* 34%, down from 42. Beside a 42% picture the prose column came out around
+     300px — six or seven words a line, which is not a paragraph, it is a
+     column of fragments. */
+  inline-size: 34%;
+  max-inline-size: 14rem;
   margin: 0;
   /* Air on the side the text runs along, and beneath, so a line never sits
      against the edge. Nothing on the outer side — the picture keeps the
@@ -122,40 +125,82 @@
 /* ---------------------------------------------------------------------------
    THE TWO EMPHASES
    -----------------------------------------------------------------------------
-   Scale and light, nothing else. No colour, no weight, no italic — the display
-   face is a Thin, and the site has no accent colour to reach for. A word is
-   emphasised here by being BIGGER and BRIGHTER, which is the same vocabulary
-   the player's active lyric uses.
+   FIRST ATTEMPT: SCALE. Lifted words at 26px inside 17px prose, loud ones at
+   28. It failed on two counts, both visible immediately.
+
+   THE PUNCTUATION VANISHED. A comma set at 17px between two 26px words is
+   swallowed by them — "traveling, good food" read as one long unfamiliar word
+   rather than two things separated. Punctuation only works at the size of the
+   words it separates.
+
+   AND THE LINES WENT RAGGED. Every lifted word set the height of the line it
+   landed on, so the block breathed unevenly down the page in a way that read
+   as broken rather than as designed.
+
+   SO THE EMPHASIS IS LIGHT, NOT SIZE. That is the vocabulary the rest of the
+   site already speaks: the navigation's three states, the player's active
+   lyric, a caption against its photograph — all luminance, no hue, no weight.
+   A lifted word is the same word, brighter, with a slow shine passing through
+   it. The sentence keeps one size, so the commas do their job and the lines
+   stay level.
    ------------------------------------------------------------------------ */
 
 .loud,
 .lifted {
   font-style: normal;
   font-weight: inherit;
-
-  /* Exactly 1: the word occupies its own height and no more, so it fits inside
-     the paragraph's 29.75px line box instead of setting a taller one. Anything
-     below 1 starts eating into the line above. */
-  line-height: 1;
 }
 
-/* Opens a paragraph, or names the site inside one. */
+/* Opens a paragraph, or names the site inside one. The only size change left,
+   and smaller than before: enough to begin a paragraph, not enough to set the
+   line's height by itself. */
 .loud {
-  font-size: var(--text-display-sm);
+  font-size: var(--text-body-lg);
+  line-height: 1;
   letter-spacing: var(--tracking-display);
   color: var(--color-foreground);
 }
 
-/* A word worth catching the eye on the way past. Between the paragraph and the
-   loud line — the one intermediate step the display register allows itself. */
+/* A word worth catching the eye on the way past. SAME SIZE AS THE SENTENCE —
+   it steps up in light instead, with a slow shine moving through it, so the
+   page has something alive in it without anything moving.
+
+   `background-clip: text` paints the gradient through the glyphs, and the
+   animation moves only the gradient's position — a compositor job, not a
+   layout one, so a dozen of these cost nothing.
+
+   Under `prefers-reduced-motion` the global rule in base.css collapses the
+   animation and the word stays lit at the gradient's first position: the
+   emphasis survives, the movement does not. */
 .lifted {
-  font-size: var(--text-body-lg);
-  color: var(--color-foreground);
+  background-image: linear-gradient(
+    100deg,
+    var(--color-foreground) 0%,
+    var(--color-foreground) 35%,
+    #cdd6ff 50%,
+    var(--color-foreground) 65%,
+    var(--color-foreground) 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+
+  animation: shine 7s linear infinite;
 }
 
-/* The professional beat is one step quieter than the personal one. The page is
-   hers first; this part is context, and context should not compete with the
-   thing it is context for. */
-.work .paragraph {
-  color: var(--color-foreground-dim);
+@keyframes shine {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Windows high-contrast discards background images, which would leave these
+   words transparent and therefore invisible. Give the colour back. */
+@media (forced-colors: active) {
+  .lifted {
+    color: CanvasText;
+    background-image: none;
+  }
 }

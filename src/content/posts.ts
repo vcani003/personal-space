@@ -68,7 +68,7 @@ export const siteName = "P.S., ILY";
  * every third word is large has stopped being prose.
  */
 export const intro: readonly string[] = [
-  "**Hi, I'm Vero.** I really love *traveling*, *good food*, and spending time with my husband and our cats.",
+  "**Hi, I'm Vero.** I really love *traveling*, good food, and spending time with my husband and our cats.",
   "I'm a *Type B* personality at heart. I like going with the flow, following whatever catches my *curiosity*, and seeing how the story unfolds.",
   "Lately, I'm finding my *spark* again and seeing where it takes me next \u22c6\u2b52\u02da.\u22c6",
   "**P.S., ILY** is my little *home base* for thoughts, interests, things I'm making, and anything that reminds me what's important in life. P.S. is short for Personal Space, but I liked that it also reads like the end of a letter.",
