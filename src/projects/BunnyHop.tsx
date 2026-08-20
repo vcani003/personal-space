@@ -1,3 +1,4 @@
+import { Demo, type DemoSource } from "../components/Demo";
 import { Meta } from "../components/Meta";
 import { Link } from "../router";
 import styles from "./Project.module.css";
@@ -23,6 +24,29 @@ import styles from "./Project.module.css";
  * decisions shaped it, what is actually built. The narrative voice is left for
  * the site owner rather than invented on her behalf.
  */
+
+/**
+ * THE DEMO RECORDING, or `null` until there is one.
+ *
+ * Everything is ready for it: `scripts/import-video.sh` encodes, strips the
+ * container metadata and pulls a poster frame; `<Demo>` handles autoplay,
+ * reduced motion and the caption. Adding it is this constant and nothing else.
+ *
+ *   ./scripts/import-video.sh ~/Desktop/recording.mov bunny-hop
+ *
+ *   const DEMO: DemoSource | null = {
+ *     src: "demos/bunny-hop.mp4",
+ *     poster: "demos/bunny-hop.jpg",
+ *     width: 1280,
+ *     height: 800,
+ *     caption: "…what the recording shows…",
+ *   };
+ *
+ * NULL RATHER THAN A PLACEHOLDER FILE. A page that renders a broken video is
+ * worse than one that renders no video, and the section below simply does not
+ * exist until there is something to put in it.
+ */
+const DEMO: DemoSource | null = null;
 
 const STORE_URL =
   "https://chromewebstore.google.com/detail/olndcfciliijffieflkaflpajehhnhap";
@@ -77,6 +101,15 @@ export function BunnyHop() {
           </a>
         </p>
       </header>
+
+      {DEMO !== null && (
+        <section className={styles.section} aria-labelledby="bunny-demo">
+          <Meta id="bunny-demo" tracking="wide" dataText="meta">
+            What it looks like
+          </Meta>
+          <Demo demo={DEMO} />
+        </section>
+      )}
 
       <section className={styles.section} aria-labelledby="bunny-decisions">
         <Meta id="bunny-decisions" tracking="wide" dataText="meta">

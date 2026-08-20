@@ -1,0 +1,29 @@
+/* A recording on a project page. No frame, no shadow, no play badge — the
+   moving image is the whole affordance, exactly as the wall's photographs are
+   their own edge treatment. */
+
+.demo {
+  margin: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.video {
+  /* Fills the reading column and keeps its own proportions. `height: auto`
+     overrides the intrinsic `height` attribute, which is there for the aspect
+     ratio rather than for layout. */
+  inline-size: 100%;
+  block-size: auto;
+  display: block;
+
+  /* Screen recordings are rectangles of bright interface dropped into a very
+     dark page. A hairline stops the light edge reading as a hole. */
+  border: 1px solid var(--color-border, rgb(255 255 255 / 8%));
+  border-radius: 2px;
+}
+
+.caption {
+  /* Indented like the wall's captions, so a recording and a photograph are
+     annotated the same way. */
+  margin-inline-start: var(--space-md);
+}
