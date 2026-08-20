@@ -64,3 +64,25 @@
     text-wrap: balance;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   THE SITE'S NAME
+   -----------------------------------------------------------------------------
+   Under her name, and quieter than it. The display face at the body size —
+   the same two registers as everywhere else, nothing invented between them.
+
+   It sits ABOVE the metadata line rather than inside it, because it is not
+   metadata: it is the name of the place, and putting it in the tracked-out
+   uppercase row would have made it a label.
+   ------------------------------------------------------------------------ */
+
+.site {
+  margin: 0;
+  margin-block-start: var(--space-2xs);
+
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-lyric);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground-muted);
+}

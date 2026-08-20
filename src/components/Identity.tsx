@@ -1,5 +1,5 @@
 import { assetUrl } from "../lib/assets";
-import { identity } from "../content/posts";
+import { identity, siteName } from "../content/posts";
 import { Meta, META_SEPARATOR } from "./Meta";
 import styles from "./Identity.module.css";
 
@@ -38,6 +38,19 @@ export function Identity() {
   return (
     <header className={styles.identity}>
       <h1 className={styles.name}>{identity.name}</h1>
+
+      {/* THE SITE'S NAME, BELOW HERS AND NOT INSTEAD OF IT.
+          It could have been the `<h1>` — it is the name of the place — but
+          then the page announces itself to a screen reader, and appears in a
+          search result, as "P.S., ILY" rather than as a person. Her name is
+          what someone is looking for; the site's name is what they find when
+          they arrive.
+
+          `data-text` puts it in the click-ripple, like everything else in the
+          display register. */}
+      <p className={styles.site} data-text="display">
+        {siteName}
+      </p>
       <div className={styles.line}>
         <img
           className={styles.charm}
@@ -47,7 +60,11 @@ export function Identity() {
           decoding="async"
         />
         <Meta>
-          {[identity.handle, "Personal space", "2026"].join(META_SEPARATOR)}
+          {/* "Personal space" is gone from here. The line above now says
+              P.S., ILY and the intro explains what it stands for, so spelling
+              it out a third time was a label restating a thing that had just
+              introduced itself. */}
+          {[identity.handle, "2026"].join(META_SEPARATOR)}
         </Meta>
       </div>
     </header>

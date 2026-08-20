@@ -35,6 +35,52 @@ export const identity: SiteIdentity = {
 export const closingLine = "Maybe it's kismet.";
 
 /**
+ * THE SITE'S NAME, under hers.
+ *
+ * P.S. is short for Personal Space, and it is also how a letter carries on
+ * after it has signed off. The intro below says so, which is why the metadata
+ * line no longer does — "PERSONAL SPACE" spelled out beside a name that
+ * already reads "P.S., ILY" was the same fact stated twice, once as a label.
+ */
+export const siteName = "P.S., ILY";
+
+/**
+ * THE INTRO — her words, in her voice.
+ *
+ * Written by the site owner. It stays casual on purpose: the professional
+ * paragraph below has its own beat, and merging the two produces the About Me
+ * that reads like a LinkedIn summary, which is the one thing this page should
+ * not sound like.
+ *
+ * An array of paragraphs rather than one string, so the type register and the
+ * spacing are decided once by the component instead of by markup inside the
+ * copy.
+ */
+export const intro: readonly string[] = [
+  "Hi, I'm Vero. I really love traveling, good food, and spending time with my husband and our cats.",
+  "I'm a Type B personality at heart. I like going with the flow, following whatever catches my curiosity, and seeing how the story unfolds.",
+  "Lately, I'm finding my spark again and seeing where it takes me next \u22c6\u2b52\u02da.\u22c6",
+  "P.S., ILY is my little home base for thoughts, interests, things I'm making, and anything that reminds me what's important in life. P.S. is short for Personal Space, but I liked that it also reads like the end of a letter.",
+  "So maybe this is a little love letter to myself, and to the curious wanderer who happens to stumble across it.",
+];
+
+/**
+ * THE PROFESSIONAL BEAT, deliberately separate and deliberately short.
+ *
+ * It has its own heading so the personal section does not have to absorb it.
+ * The project pages and a résumé can prove the engineering; this page only has
+ * to say who is doing it.
+ */
+export const work = {
+  heading: "somewhere between building & becoming",
+  paragraphs: [
+    "I'm a frontend software engineer who took a detour into entrepreneurship. After 6+ years of building software, I stepped away to help build and run a business of my own.",
+    "Now I'm finding my way back to software with a different perspective, and trying to reconnect with the creativity and curiosity that made me love building things in the first place.",
+    "I'm making things again. Let's see what happens.",
+  ],
+} as const;
+
+/**
  * About. THIS IS VERO'S OWN WRITING — not placeholder. Kept verbatim, on
  * purpose, including the run-on energy and the extra Ls.
  *

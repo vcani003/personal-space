@@ -149,6 +149,13 @@
    object with a silhouette, not a responsive box.
    ========================================================================== */
 
+/* The intro sits in the page grid's own rows, left of the rail's column so it
+   never runs under it. It stops well short of the full width anyway — see the
+   measure in Intro.module.css — but the span is what guarantees it. */
+.introBlock {
+  grid-column: 1 / 9;
+}
+
 .composition {
   grid-column: 1 / -1;
 
@@ -348,7 +355,8 @@
     row-gap: var(--space-xl);
   }
 
-  .identity {
+  .identity,
+  .introBlock {
     grid-column: 1 / 10;
   }
 
@@ -427,6 +435,7 @@
   .identity,
   .elsewhere,
   .topNav,
+  .introBlock,
   .composition,
   .closing {
     grid-column: 1 / -1;

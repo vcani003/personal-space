@@ -1,0 +1,38 @@
+/* =============================================================================
+   THE INTRO — prose, in a page made of placement
+   =============================================================================
+
+   A bounded reading column under the identity. Everything below it on the
+   homepage is positioned by coordinate; this is the one part that is read
+   straight through, so it is the one part with a measure.
+   ========================================================================== */
+
+.intro {
+  display: grid;
+  gap: var(--space-xl);
+
+  /* ~65 characters at the body size. Wider and the eye loses the line it is
+     on; the wall can have the whole surface, prose cannot. */
+  max-inline-size: 34rem;
+}
+
+.personal,
+.work {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.paragraph {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--color-foreground-muted);
+}
+
+/* The professional beat is one step quieter than the personal one. The page is
+   hers first; this part is context, and context should not compete with the
+   thing it is context for. */
+.work .paragraph {
+  color: var(--color-foreground-dim);
+}

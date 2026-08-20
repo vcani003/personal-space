@@ -1,5 +1,6 @@
 import { Navigation } from "./components/Navigation";
 import { Identity } from "./components/Identity";
+import { Intro } from "./components/Intro";
 import { closingLine } from "./content/posts";
 import { wallItems, wallSpan } from "./content/wall";
 import { Player } from "./player";
@@ -88,6 +89,12 @@ export function Home() {
           so the reading order the rail was arranged to protect is now simply
           the order things appear in. Visual position is free. Reading order is
           not, and this is the rare change that costs nothing to keep. */}
+      {/* WHO SHE IS, before anything she has made. The wall below is a room;
+          this is the sentence you say when someone walks into it. */}
+      <div className={styles.introBlock}>
+        <Intro />
+      </div>
+
       {/* THE NAVIGATION SITS IN THE HEADER ROW, level with the name, and no
           longer at the top of the rail. It is placed to the rail's own column
           width, so its left edge still lines up with the player beneath it —

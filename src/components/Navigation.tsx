@@ -81,8 +81,11 @@ interface NavEntry {
 
 const SECTIONS: readonly NavEntry[] = [
   { label: "Home", indent: 0, state: "pending", route: "home" },
-  { label: "Archive", indent: 0, state: "wip" },
-  { label: "About", indent: 1, state: "pending", lead: "loose" },
+  { label: "Archive", indent: 0, state: "wip", lead: "loose" },
+  /* ABOUT IS GONE, not hidden. It pointed at a page that did not exist, and
+     the intro on the homepage now says what an About page would have — so the
+     entry was promising a second, fuller version of something the visitor had
+     already read. */
   {
     label: "Projects",
     indent: 0,
