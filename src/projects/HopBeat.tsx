@@ -67,11 +67,6 @@ export function HopBeat() {
             height={1066}
             decoding="async"
           />
-          <figcaption className={styles.figcaption} data-text="body">
-            Three modes of the same screen. The track is blurred — it stood in
-            for a real song while sketching, and it is not licensed for
-            anything here.
-          </figcaption>
         </figure>
 
         <p className={styles.body} data-text="body">
