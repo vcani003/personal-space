@@ -17,12 +17,12 @@ const IDEA: readonly { readonly claim: string; readonly because: string }[] = [
   {
     claim: "A normal webcam is the controller.",
     because:
-      "No mat, no wands, no depth camera — a laptop and the room you are already in. Pose landmarks from the camera decide where your hands are, and hitting a target means physically moving into it.",
+      "No mat, no wands, no depth camera — a laptop and the room you are already in. MediaPipe's pose landmarker reads body position straight from the camera in the browser, and hitting a target means physically moving a wrist into it. Everything renders through PixiJS on the GPU, because the drawing cannot be what makes the input late.",
   },
   {
-    claim: "The music's clock is the only clock.",
+    claim: "The latency gets measured, not guessed.",
     because:
-      "Not the renderer, not the camera's frame rate. Those wander, and a rhythm game that judges you against a wandering clock feels broken in a way players can sense but not describe. Pose updates can arrive slower than the screen redraws; the timing never depends on them.",
+      "Between you moving and the game seeing it, four delays stack up: the camera's exposure and transfer, MediaPipe's inference, the browser's frame scheduling, and the display itself. Together they are tens of milliseconds — enough to sit outside a 80ms window and make correct play read as early. So the game measures that offset per device during calibration and subtracts it before judging, with the audio's own clock as the reference rather than the renderer or the camera, both of which drift.",
   },
   {
     claim: "The song is analysed once, not while you play.",
@@ -33,11 +33,6 @@ const IDEA: readonly { readonly claim: string; readonly because: string }[] = [
     claim: "Beats say when. They do not say what.",
     because:
       "Turning detected onsets into movement someone actually enjoys — reachable, readable, not a scramble across the screen — is the real work, and the part worth writing rather than importing.",
-  },
-  {
-    claim: "Not charging for it does not make the music free.",
-    because:
-      "Rights and monetisation are separate questions. The intended path is an artist supplying audio to analyse and their own upload for playback, with the official player left visible and nothing extracted from it.",
   },
 ];
 
