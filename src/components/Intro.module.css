@@ -16,10 +16,77 @@
   max-inline-size: 34rem;
 }
 
-.personal,
+/* NOT A GRID, BECAUSE A FLOAT NEEDS FLOW. Grid items do not wrap around each
+   other — a float only exists inside normal flow, which is exactly the
+   behaviour the photograph is here for. The paragraphs' own margins do the
+   spacing instead of a `gap`. */
+.personal > * + * {
+  margin-block-start: var(--space-sm);
+}
+
 .work {
   display: grid;
   gap: var(--space-sm);
+}
+
+/* ---------------------------------------------------------------------------
+   THE PHOTOGRAPH, IN THE TEXT
+   -----------------------------------------------------------------------------
+   Floated to the right so the prose keeps its left edge — the eye returns to
+   the same place on every line, and the ragged side is the one against the
+   picture.
+
+   `shape-outside` is deliberately NOT used. The image is a rectangle and the
+   wrap should be one too; contouring text around a photograph's contents is a
+   magazine effect, and this page has been consistent about not borrowing
+   those.
+   ------------------------------------------------------------------------ */
+
+.figure {
+  float: inline-end;
+  inline-size: 42%;
+  max-inline-size: 15rem;
+  margin: 0;
+  /* Air on the side the text runs along, and beneath, so a line never sits
+     against the edge. Nothing on the outer side — the picture keeps the
+     column's right edge. */
+  margin-inline-start: var(--space-md);
+  margin-block-end: var(--space-sm);
+
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.photo {
+  inline-size: 100%;
+  block-size: auto;
+  display: block;
+}
+
+.figcaption {
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-lyric);
+  color: var(--color-foreground-dim);
+}
+
+/* The last paragraph must not sit half-beside the picture with its final line
+   orphaned under it. Clearing here keeps the professional beat starting on a
+   clean full-width line. */
+.work {
+  clear: both;
+}
+
+@media (max-width: 47.9375rem) {
+  /* On a phone the column is too narrow for a float: a 42% picture leaves
+     about twenty characters a line, which is not reading, it is a stack of
+     fragments. The picture becomes a block and the text runs under it. */
+  .figure {
+    float: none;
+    inline-size: 100%;
+    max-inline-size: none;
+    margin-inline-start: 0;
+  }
 }
 
 .paragraph {

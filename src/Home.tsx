@@ -89,12 +89,6 @@ export function Home() {
           so the reading order the rail was arranged to protect is now simply
           the order things appear in. Visual position is free. Reading order is
           not, and this is the rare change that costs nothing to keep. */}
-      {/* WHO SHE IS, before anything she has made. The wall below is a room;
-          this is the sentence you say when someone walks into it. */}
-      <div className={styles.introBlock}>
-        <Intro />
-      </div>
-
       {/* THE NAVIGATION SITS IN THE HEADER ROW, level with the name, and no
           longer at the top of the rail. It is placed to the rail's own column
           width, so its left edge still lines up with the player beneath it —
@@ -117,8 +111,20 @@ export function Home() {
           )}
         </div>
 
-        <div className={styles.wall}>
-          <Wall items={wallItems} span={wallSpan} />
+        {/* THE LEFT COLUMN: who she is, and then the room.
+
+            The intro lives INSIDE the composition rather than in a page row
+            above it, and that is the whole reason the player stays where it
+            is. As its own row it pushed the rail — and the player with it —
+            down by the intro's full height. Here it shares the column with the
+            wall, so the rail keeps the top of the composition and the reading
+            column simply begins beside it. */}
+        <div className={styles.left}>
+          <Intro />
+
+          <div className={styles.wall}>
+            <Wall items={wallItems} span={wallSpan} />
+          </div>
         </div>
       </div>
 

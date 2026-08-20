@@ -149,13 +149,6 @@
    object with a silhouette, not a responsive box.
    ========================================================================== */
 
-/* The intro sits in the page grid's own rows, left of the rail's column so it
-   never runs under it. It stops well short of the full width anyway — see the
-   measure in Intro.module.css — but the span is what guarantees it. */
-.introBlock {
-  grid-column: 1 / 9;
-}
-
 .composition {
   grid-column: 1 / -1;
 
@@ -205,16 +198,27 @@
    is a composition question for `src/content/wall.ts`, not a layout bug.
    ------------------------------------------------------------------------ */
 
-.wall {
+/* The composition's left column. Holds the intro and then the wall; the rail
+   is the other column and is pinned to the same row, so neither pushes the
+   other down. */
+.left {
   grid-column: 1;
+  grid-row: 1;
+
+  display: grid;
+  gap: var(--space-2xl);
+  min-inline-size: 0;
+}
+
+.wall {
   /* EXPLICIT ROW, and it is load-bearing. The rail is FIRST in the DOM and sits
      in column 2; the wall is second and sits in column 1. Grid's sparse
      auto-placement never moves its cursor backwards, so with only the columns
      pinned the wall was placed on row TWO — 566px below the rail, in its own
      band, with the whole composition twice as tall as it should be. Pinning
      both items to row 1 is the fix, and it must survive any reordering of the
-     markup. */
-  grid-row: 1;
+     markup. That pinning now lives on `.left`, which is what the composition
+     places; the wall is inside it. */
 }
 
 /* ---------------------------------------------------------------------------
@@ -355,8 +359,7 @@
     row-gap: var(--space-xl);
   }
 
-  .identity,
-  .introBlock {
+  .identity {
     grid-column: 1 / 10;
   }
 
@@ -435,7 +438,6 @@
   .identity,
   .elsewhere,
   .topNav,
-  .introBlock,
   .composition,
   .closing {
     grid-column: 1 / -1;

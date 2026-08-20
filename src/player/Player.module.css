@@ -682,3 +682,29 @@
     block-size: max(100%, var(--touch-target-min));
   }
 }
+
+/* THE RESTING INVITATION. Centred in the screen where the active lyric will
+   be, in the same face at the same size — so when the first real line arrives
+   it takes this one's place rather than appearing somewhere new.
+
+   One step below full contrast: it is an invitation, not a lyric, and it
+   should not be the brightest thing the object has ever shown. */
+.invitation {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+
+  display: grid;
+  place-items: center;
+
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-display);
+  font-size: var(--text-display-sm);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground-muted);
+
+  /* The screen beneath is the control surface; this is a label on it. */
+  pointer-events: none;
+}

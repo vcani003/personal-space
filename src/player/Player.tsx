@@ -114,6 +114,10 @@ export function Player() {
 
   const videoExists = playback.status === "loading" || playback.status === "ready";
 
+  /* Nothing has been asked for yet, or nothing was found. Either way the screen
+     has no words to show and would otherwise be a dark rectangle. */
+  const resting = index < 0;
+
   return (
     <>
       <section className={styles.chassis} aria-label="Music player">
@@ -122,6 +126,17 @@ export function Player() {
         </p>
 
         <div className={styles.screen}>
+          {/* AT REST IT ASKS. An empty screen is honest — there are no words
+              until there is a song — but it reads as broken rather than as
+              waiting, and it gives nobody a reason to press anything. One line
+              in the player's own voice does the job a placeholder lyric would
+              have done dishonestly.
+
+              It is not a lyric, so it does not live in the three-line window
+              below: it sits in its place and disappears the moment real words
+              arrive. */}
+          {resting && <p className={styles.invitation}>Play me!</p>}
+
           <div className={styles.lines}>
             {/* THE KEY IS THE RETRIGGER, and it is the whole mechanism.
                 A CSS animation plays once per element; re-rendering the same

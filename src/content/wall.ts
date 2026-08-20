@@ -86,13 +86,15 @@ import type { WallItem } from "../wall";
  *  RAISE IT AGAIN WHEN REAL ARTIFACTS ARRIVE. The wall growing is the correct
  *  answer to a crowded composition; artifacts growing to fill emptiness is
  *  not. */
-export const wallSpan = 0.55;
+export const wallSpan = 0.2;
 
 /* =============================================================================
    THE COMPOSITION — two artifacts, and deliberately unfinished
    =============================================================================
 
-   TWO ITEMS: a photograph, and a charm beside it. It held four; the other two
+   ONE ITEM: a charm. The photograph moved into the intro above, where the
+   prose wraps around it — see `Intro.module.css`. It was two artifacts and it
+   held four before that. It held four; the other two
    were a blurb and a link written to show what a blurb and a link look like,
    and placeholder copy on a personal site reads worse than empty space —
    it tells a visitor the room is not finished AND wastes their attention
@@ -124,59 +126,6 @@ export const wallSpan = 0.55;
    ========================================================================== */
 
 export const wallItems: readonly WallItem[] = [
-  /* ---------------------------------------------------------------------------
-     MEMORY — real content. Handle with care.
-     -----------------------------------------------------------------------------
-     KEEP IT RED. No grayscale, no tint, no duotone, no desaturation, no blur.
-     A saturated photograph is the one thing on this page that did not come from
-     the palette, and that contrast is the entire reason it is worth hanging.
-     Harmonising it would remove what made it worth saving.
-
-     SIZE — 23%, RE-AUTHORED UP FROM 16.5%, AND THE ARTIFACT DID NOT GET BIGGER.
-     16.5% of the old full-width wall was 220px, which is the size this
-     photograph was composed and judged at. The wall then became a column and the
-     same percentage rendered it at 158px, and at 1024 at 90px — a thumbnail. 23%
-     restores it to 221px at 1440, 184px at 1280 and 126px at 1024. The number
-     went up so that the object could stay the size it already was.
-
-     It is STILL an artifact and not a hero: 221px inside a 962px surface, 295px
-     tall, with ~550px of empty wall to its right and its caption the only thing
-     that reaches into it. It is legible because it is the only colour for a
-     thousand pixels in any direction, not because it is big.
-
-     126px AT 1024 IS THE HONEST WEAK POINT and it is why the hover expansion
-     exists — see `WallItem.module.css`. Pointing at it takes it to 170px. That
-     is a mitigation, not a fix; the real fix would be a placement model that can
-     express a minimum absolute size, which is the lead's call.
-
-     PLACED LEFT, NOT RIGHT. `x: 65, align: right` was written to keep the photo
-     out from behind a docked player that no longer exists. Left-anchored at 14
-     it starts inside the wall rather than hanging off its right edge, its caption
-     overhangs into open surface, and it stays ~600px clear of the player in the
-     rail — which matters, because a saturated photograph next to the one
-     deliberately-lit object on the page makes them compete.
-
-     The caption is hers, verbatim, and sits indented below the photograph and
-     overhanging its right edge — an annotation written next to a picture rather
-     than a label printed under one.
-     ------------------------------------------------------------------------ */
-  {
-    type: "memory",
-    id: "tokyo-flowers",
-    src: "wall/tokyo-flowers.jpg",
-    alt: "A dark room where enormous red and magenta flowers are projected across the ceiling and reflected in a mirrored floor. A young woman sits among other visitors, looking up into the light.",
-    caption: "a flower projection room somewhere in tokyo",
-    aspectRatio: 0.75,
-    placement: {
-      wide: { x: 14, y: 38, size: 20, rotation: -1.8, align: "left" },
-      /* THE PHONE IS WHERE THIS PHOTOGRAPH IS MOST LEGIBLE, and that is on
-         purpose rather than by accident. 70% of a 326px wall is 228px on a 390px
-         screen — 58% of the display, against 23% of the wall on a desktop. There
-         is no hover on a touch screen, so the narrow composition has to answer
-         the legibility question by itself, and it does it with base size. */
-      narrow: { x: 24, size: 70, rotation: -1.8, align: "left" },
-    },
-  },
 
   /* ---------------------------------------------------------------------------
      CHARM — PLACEHOLDER GRAPHIC. Replace the file, or point `src` elsewhere.
@@ -218,7 +167,7 @@ export const wallItems: readonly WallItem[] = [
     src: "wall/charm-placeholder.svg",
     aspectRatio: 1,
     placement: {
-      wide: { x: 72, y: 70, size: 5.2, rotation: -9, align: "left" },
+      wide: { x: 62, y: 50, size: 5.2, rotation: -9, align: "left" },
       /* THE PHONE PUTS IT BACK BESIDE THE PHOTOGRAPH, and that is not an
          inconsistency with the wide composition, it is what "mobile is a
          different composition" means. A column has no lateral emptiness, so a
