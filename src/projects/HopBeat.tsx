@@ -73,7 +73,9 @@ export function HopBeat() {
             decoding="async"
           />
           <figcaption className={styles.figcaption} data-text="body">
-            Three modes of the same screen. The song shown is illustrative only.
+            Three modes of the same screen. The track is blurred — it stood in
+            for a real song while sketching, and it is not licensed for
+            anything here.
           </figcaption>
         </figure>
 
@@ -115,9 +117,8 @@ export function HopBeat() {
           else is downstream of that answer, so it gets built first and alone.
         </p>
         <p className={styles.body} data-text="body">
-          The name keeps a thread back to Bunny Hop Player — the project that
-          restarted the habit of making things for curiosity rather than for a
-          CV.
+          The name keeps a thread back to Bunny Hop Player: hop is the movement,
+          beat is the game, and the slashes are there because they looked right.
         </p>
       </section>
 
