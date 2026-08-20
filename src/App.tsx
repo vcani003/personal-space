@@ -3,6 +3,7 @@ import { Home } from "./Home";
 import { InteractionLayer } from "./interaction";
 import { NotFound } from "./projects/NotFound";
 import { BunnyHop } from "./projects/BunnyHop";
+import { HopBeat } from "./projects/HopBeat";
 import { Spatial } from "./projects/Spatial";
 import { useRoute, useRouteChangeEffect } from "./router";
 
@@ -59,6 +60,7 @@ export function App() {
       {route === "home" && <Home />}
       {route === "spatial" && <Spatial />}
       {route === "bunnyHop" && <BunnyHop />}
+      {route === "hopBeat" && <HopBeat />}
       {route === "not-found" && <NotFound />}
       {/* In FRONT of the content, unlike the atmosphere. These are the only
           objects on the page a visitor can actually pick up, so they are the

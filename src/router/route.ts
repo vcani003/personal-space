@@ -85,6 +85,7 @@ const TITLES: Record<Route, string> = {
   home: SITE_NAME,
   spatial: `Spatial — ${SITE_NAME}`,
   bunnyHop: `Bunny Hop Player — ${SITE_NAME}`,
+  hopBeat: `hop//beat — ${SITE_NAME}`,
   "not-found": `Not found — ${SITE_NAME}`,
 };
 

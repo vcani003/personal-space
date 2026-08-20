@@ -105,8 +105,11 @@ const SECTIONS: readonly NavEntry[] = [
 
          "Project 3" is gone entirely. It was a numbered placeholder for
          something that does not exist and had nothing to say. */
+      /* hop//beat has a page now — a spec and a concept sheet — so it is a
+         link and sits above the one that does not. Order follows what a
+         visitor can actually reach. */
+      { label: "hop//beat", indent: 1, state: "pending", route: "hopBeat" },
       { label: "Banh Miow Drink Recipes (wip / migrating)", indent: 1, state: "wip" },
-      { label: "hop//beat (game dev, wip)", indent: 1, state: "wip" },
     ],
   },
 ];

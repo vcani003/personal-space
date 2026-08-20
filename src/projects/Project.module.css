@@ -206,3 +206,35 @@
 .secondaryLink:focus-visible {
   color: var(--color-foreground);
 }
+
+/* ---------------------------------------------------------------------------
+   A FIGURE ON A PROJECT PAGE
+   -----------------------------------------------------------------------------
+   Full measure, with the caption indented like the wall's — the same pairing
+   rule, so a picture and its note read the same way wherever they appear.
+
+   A hairline edge because these are bright screenshots dropped into a very dark
+   page, and without one the light edge reads as a hole rather than an object.
+   ------------------------------------------------------------------------ */
+
+.figure {
+  margin: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.image {
+  inline-size: 100%;
+  block-size: auto;
+  display: block;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 2px;
+}
+
+.figcaption {
+  margin-inline-start: var(--space-md);
+  font-family: var(--font-display);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-lyric);
+  color: var(--color-foreground-dim);
+}

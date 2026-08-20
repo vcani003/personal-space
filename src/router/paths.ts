@@ -14,6 +14,7 @@ export const ROUTE_PATHS = {
   home: "",
   spatial: "projects/spatial",
   bunnyHop: "projects/bunny-hop",
+  hopBeat: "projects/hop-beat",
 } as const;
 
 export type RouteName = keyof typeof ROUTE_PATHS;
