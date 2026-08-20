@@ -81,24 +81,32 @@ interface NavEntry {
 
 const SECTIONS: readonly NavEntry[] = [
   { label: "Home", indent: 0, state: "pending", route: "home" },
-  { label: "Archive", indent: 0, state: "wip", lead: "loose" },
-  /* ABOUT IS GONE, not hidden. It pointed at a page that did not exist, and
-     the intro on the homepage now says what an About page would have — so the
-     entry was promising a second, fuller version of something the visitor had
-     already read. */
+  /* Archive is gone with Project 3, and for the same reason: a word pointing
+     at nothing, saying nothing about when it might. The two work-in-progress
+     projects below earn their place by naming what is coming; "Archive" did
+     not. */
   {
     label: "Projects",
     indent: 0,
     state: "pending",
     lead: "loose",
     children: [
-      /* The first entry with somewhere to go. It keeps the label the site
-         owner wrote — the page it opens is titled `Spatial`, and the two are
-         allowed to differ: this list is her table of contents, not the page's
-         own name. */
-      { label: "Project 1", indent: 1, state: "pending", route: "spatial" },
-      { label: "Project 2", indent: 1, state: "pending", route: "bunnyHop" },
-      { label: "Project 3", indent: 1, state: "pending" },
+      /* NAMED, NOT NUMBERED. "Project 1" told a visitor the order they were
+         made in, which is the one thing about them nobody needs. A name is
+         also what someone would search for or repeat to another person. */
+      { label: "Bunny Hop Player", indent: 1, state: "pending", route: "bunnyHop" },
+      { label: "Spatial", indent: 1, state: "pending", route: "spatial" },
+
+      /* NOT LINKS, AND SAYING WHY. These have no page, so per the rule at the
+         top of this file they render as unfocusable words — but a bare name
+         with no destination reads as broken, so each carries its own state in
+         the label. That is more honest than a link to nothing and more useful
+         than leaving them out: it says what is coming.
+
+         "Project 3" is gone entirely. It was a numbered placeholder for
+         something that does not exist and had nothing to say. */
+      { label: "Banh Miow Drink Recipes (wip / migrating)", indent: 1, state: "wip" },
+      { label: "hop//beat (game dev, wip)", indent: 1, state: "wip" },
     ],
   },
 ];

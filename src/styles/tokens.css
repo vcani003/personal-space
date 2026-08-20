@@ -459,7 +459,15 @@
      opening view is the point of the composition rather than a crowding
      problem. */
   --page-gutter-block: var(--space-xl);
-  --page-max-width: 1440px;
+  /* 1120, DOWN FROM 1440, MEASURED RATHER THAN CHOSEN. At 1440 the reading
+     column ended at x 596 and the rail began at 1066 — 470px of nothing
+     between the words and the player, with everything crammed against the left
+     margin. Prose cannot close that gap by growing: a measure past ~70
+     characters is harder to read, not fuller.
+
+     So the page closes it instead. 1120 leaves the same 322px rail and the
+     same reading measure, with the two now ~150px apart rather than 470. */
+  --page-max-width: 1120px;
   --measure: 56ch;   /* Eiko Thin at 19px — narrower than a sans would want */
 
   /* Radii. Materials, not UI panels — expect near-zero use.

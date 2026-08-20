@@ -152,6 +152,12 @@
 .composition {
   grid-column: 1 / -1;
 
+  /* The identity block now ends with the site's name at 28px rather than a
+     10px metadata line, so the row gap that separated a small label from the
+     content no longer separates enough. This is the air that keeps the title
+     card from running into the writing. */
+  margin-block-start: var(--space-lg);
+
   /* NO `margin-block-start` HERE. The page grid already puts `--space-2xl`
      between its rows, and this rule used to add a second one — 272px of gap
      between the identity's metadata line and the top of the composition, from

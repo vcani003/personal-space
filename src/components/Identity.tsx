@@ -39,18 +39,6 @@ export function Identity() {
     <header className={styles.identity}>
       <h1 className={styles.name}>{identity.name}</h1>
 
-      {/* THE SITE'S NAME, BELOW HERS AND NOT INSTEAD OF IT.
-          It could have been the `<h1>` — it is the name of the place — but
-          then the page announces itself to a screen reader, and appears in a
-          search result, as "P.S., ILY" rather than as a person. Her name is
-          what someone is looking for; the site's name is what they find when
-          they arrive.
-
-          `data-text` puts it in the click-ripple, like everything else in the
-          display register. */}
-      <p className={styles.site} data-text="display">
-        {siteName}
-      </p>
       <div className={styles.line}>
         <img
           className={styles.charm}
@@ -60,13 +48,29 @@ export function Identity() {
           decoding="async"
         />
         <Meta>
-          {/* "Personal space" is gone from here. The line above now says
-              P.S., ILY and the intro explains what it stands for, so spelling
-              it out a third time was a label restating a thing that had just
-              introduced itself. */}
+          {/* "Personal space" is gone from here — the site's name says it
+              below, and the intro explains it. Spelling it out a third time
+              was a label restating something that had just introduced
+              itself. */}
           {[identity.handle, "2026"].join(META_SEPARATOR)}
         </Meta>
       </div>
+
+      {/* THE SITE'S NAME, AND IT GETS ITS OWN BEAT.
+
+          It was a small line directly under the name, which made it read as a
+          subtitle of HER rather than as the name of the place — and it sat so
+          close to the identity that it was over before a visitor noticed it.
+          Moved below the metadata with real air above it, at the display
+          register, it becomes a title card: the last thing in the header and
+          the thing that names what you have walked into.
+
+          Still not the `<h1>`. That remains her name, so the page announces
+          itself to a screen reader, and appears in a search result, as a
+          person. */}
+      <p className={styles.site} data-text="display">
+        {siteName}
+      </p>
     </header>
   );
 }

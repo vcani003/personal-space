@@ -66,23 +66,26 @@
 }
 
 /* ---------------------------------------------------------------------------
-   THE SITE'S NAME
+   THE SITE'S NAME — the header's last beat
    -----------------------------------------------------------------------------
-   Under her name, and quieter than it. The display face at the body size —
-   the same two registers as everywhere else, nothing invented between them.
+   28px, the smallest size in the display register, against her name at 80px.
+   Big enough to be the second thing the eye lands on and far too small to
+   compete with the first — the page is hers, and this is the name of the room
+   she is in.
 
-   It sits ABOVE the metadata line rather than inside it, because it is not
-   metadata: it is the name of the place, and putting it in the tracked-out
-   uppercase row would have made it a label.
+   THE AIR ABOVE IT IS DOING AS MUCH WORK AS THE SIZE. Tucked under the name it
+   read as a subtitle of her and was over before anyone noticed it; separated,
+   it reads as a title card. `--space-lg` above and `--space-2xl` below, so it
+   belongs to the header rather than to the writing that follows.
    ------------------------------------------------------------------------ */
 
 .site {
   margin: 0;
-  margin-block-start: var(--space-2xs);
+  margin-block-start: var(--space-lg);
 
   font-family: var(--font-display);
-  font-size: var(--text-body);
-  line-height: var(--leading-lyric);
+  font-size: var(--text-display-sm);
+  line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);
-  color: var(--color-foreground-muted);
+  color: var(--color-foreground);
 }

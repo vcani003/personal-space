@@ -11,9 +11,12 @@
   display: grid;
   gap: var(--space-xl);
 
-  /* ~65 characters at the body size. Wider and the eye loses the line it is
-     on; the wall can have the whole surface, prose cannot. */
-  max-inline-size: 34rem;
+  /* ~68 characters at the body size, and the ceiling rather than the width:
+     the column is free to be narrower on a smaller screen. Wider than this and
+     the eye loses the line it is returning to — the wall can have the whole
+     surface, prose cannot, which is why the PAGE closed the gap to the player
+     rather than this growing to fill it. */
+  max-inline-size: 36rem;
 }
 
 /* NOT A GRID, BECAUSE A FLOAT NEEDS FLOW. Grid items do not wrap around each
