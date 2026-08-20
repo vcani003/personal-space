@@ -52,16 +52,27 @@ export const siteName = "P.S., ILY";
  * that reads like a LinkedIn summary, which is the one thing this page should
  * not sound like.
  *
- * An array of paragraphs rather than one string, so the type register and the
- * spacing are decided once by the component instead of by markup inside the
- * copy.
+ * An array of paragraphs rather than one string, so the register and the
+ * spacing are decided once by the component instead of by markup in the copy.
+ *
+ * ── TWO MARKERS, AND THEY ARE THE ONLY MARKUP ALLOWED HERE ──────────────────
+ *
+ *   **loud**   opens a paragraph, or names the site inside one. The biggest
+ *              thing in the prose.
+ *   *lifted*   a word worth catching the eye on the way past.
+ *
+ * They exist so the emphasis lives in the WRITING rather than in a component —
+ * changing which words are large is editing this sentence, not editing markup.
+ *
+ * Use them sparingly. Everything lifted is nothing lifted, and prose where
+ * every third word is large has stopped being prose.
  */
 export const intro: readonly string[] = [
-  "Hi, I'm Vero. I really love traveling, good food, and spending time with my husband and our cats.",
-  "I'm a Type B personality at heart. I like going with the flow, following whatever catches my curiosity, and seeing how the story unfolds.",
-  "Lately, I'm finding my spark again and seeing where it takes me next \u22c6\u2b52\u02da.\u22c6",
-  "P.S., ILY is my little home base for thoughts, interests, things I'm making, and anything that reminds me what's important in life. P.S. is short for Personal Space, but I liked that it also reads like the end of a letter.",
-  "So maybe this is a little love letter to myself, and to the curious wanderer who happens to stumble across it.",
+  "**Hi, I'm Vero.** I really love *traveling*, *good food*, and spending time with my husband and our cats.",
+  "I'm a *Type B* personality at heart. I like going with the flow, following whatever catches my *curiosity*, and seeing how the story unfolds.",
+  "Lately, I'm finding my *spark* again and seeing where it takes me next \u22c6\u2b52\u02da.\u22c6",
+  "**P.S., ILY** is my little *home base* for thoughts, interests, things I'm making, and anything that reminds me what's important in life. P.S. is short for Personal Space, but I liked that it also reads like the end of a letter.",
+  "So maybe this is a little *love letter* to myself, and to the *curious wanderer* who happens to stumble across it.",
 ];
 
 /**

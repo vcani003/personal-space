@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { assetUrl } from "../lib/assets";
 import { intro, work } from "../content/posts";
 import { Meta } from "./Meta";
@@ -24,6 +25,43 @@ import styles from "./Intro.module.css";
  * `data-text="body"` is the click-ripple's hook — the same as every other
  * sentence on the site, so the wave passes through these words too.
  */
+/**
+ * Renders the two markers described in `posts.ts` — `**loud**` and `*lifted*`.
+ *
+ * A short parser rather than a markdown dependency, because two markers is the
+ * entire grammar and it is not going to grow: anything more expressive than
+ * "this word is bigger" belongs in a document format, not in a paragraph of
+ * someone's introduction.
+ *
+ * `<strong>` and `<em>` rather than styled spans, so the emphasis keeps its
+ * meaning when the CSS does not — a screen reader hears the stress the writing
+ * intended, and the words survive a reader view.
+ */
+function withEmphasis(text: string): ReactNode[] {
+  /* One pass, so the markers keep their order in the sentence. The `**`
+     alternative is listed first or `*` would match its opening pair and
+     swallow the rest of the paragraph. */
+  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
+    const key = `${String(index)}:${part}`;
+
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return (
+        <strong className={styles.loud} key={key}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return (
+        <em className={styles.lifted} key={key}>
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return part;
+  });
+}
+
 export function Intro() {
   return (
     <section className={styles.intro} aria-labelledby="intro-work">
@@ -56,7 +94,7 @@ export function Intro() {
 
         {intro.map((paragraph) => (
           <p className={styles.paragraph} key={paragraph} data-text="body">
-            {paragraph}
+            {withEmphasis(paragraph)}
           </p>
         ))}
       </div>

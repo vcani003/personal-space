@@ -95,9 +95,62 @@
 .paragraph {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-body);
+
+  /* A step below the site's reading size. The lifted words below are what
+     carry this block now, and they only read as lifted against something
+     quieter — at 19px the difference was a nudge rather than a change of
+     voice. */
+  font-size: var(--text-body-sm);
   line-height: var(--leading-body);
   color: var(--color-foreground-muted);
+
+  /* ROOM FOR THE LIFTED WORDS TO SIT IN.
+     A line box is as tall as its tallest piece, so a 26px word inside 17px
+     prose sets the height of the line it lands on. Rather than fight that, the
+     paragraph is given a line box tall enough to hold one: 17 x 1.75 is
+     29.75px, which a 26px word at line-height 1 fits inside without pushing
+     its neighbours apart.
+
+     The first attempt used `text-box: trim-both` and a line-height below 1 to
+     crush the leading instead. That did not tighten the lines, it OVERLAPPED
+     them — paragraphs printed on top of each other wherever a lifted word
+     landed. Leading is not spare space; it is what stops descenders meeting
+     the next line's caps. */
+  line-height: 1.75;
+}
+
+/* ---------------------------------------------------------------------------
+   THE TWO EMPHASES
+   -----------------------------------------------------------------------------
+   Scale and light, nothing else. No colour, no weight, no italic — the display
+   face is a Thin, and the site has no accent colour to reach for. A word is
+   emphasised here by being BIGGER and BRIGHTER, which is the same vocabulary
+   the player's active lyric uses.
+   ------------------------------------------------------------------------ */
+
+.loud,
+.lifted {
+  font-style: normal;
+  font-weight: inherit;
+
+  /* Exactly 1: the word occupies its own height and no more, so it fits inside
+     the paragraph's 29.75px line box instead of setting a taller one. Anything
+     below 1 starts eating into the line above. */
+  line-height: 1;
+}
+
+/* Opens a paragraph, or names the site inside one. */
+.loud {
+  font-size: var(--text-display-sm);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground);
+}
+
+/* A word worth catching the eye on the way past. Between the paragraph and the
+   loud line — the one intermediate step the display register allows itself. */
+.lifted {
+  font-size: var(--text-body-lg);
+  color: var(--color-foreground);
 }
 
 /* The professional beat is one step quieter than the personal one. The page is

@@ -236,6 +236,8 @@
   --text-display-md: 2.5rem;  /* 40px — large quotes */
   --text-display-sm: 1.75rem;  /* 28px — smallest size in the DISPLAY register */
   --text-body: 1.1875rem;      /* 19px — reading copy, Thin, at full contrast */
+  --text-body-lg: 1.625rem;    /* 26px — a word lifted out of a paragraph */
+  --text-body-sm: 1.0625rem;   /* 17px — prose that carries lifted words */
 
   /* Fluid display sizing. The hero must not blow out of a 375px viewport, and
      it should not stay timid on a 27" display. One clamp, applied to xl only —
