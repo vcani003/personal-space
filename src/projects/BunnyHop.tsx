@@ -144,7 +144,14 @@ export function BunnyHop() {
 
       <p className={styles.back}>
         <Link to="home" className={styles.backLink}>
-          <Meta dataText="meta">Back</Meta>
+          {/* `as="span"` because this sits inside a `<p>` and inside an `<a>`.
+              `Meta` renders a `<p>` by default, which made every project page
+              emit `<p><a><p>…</p></a></p>` — invalid HTML, and React logged a
+              hydration error for it on each one. The register is unchanged;
+              only the element is. */}
+          <Meta as="span" dataText="meta">
+            Back
+          </Meta>
         </Link>
       </p>
     </main>

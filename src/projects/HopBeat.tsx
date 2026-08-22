@@ -4,14 +4,22 @@ import { Link } from "../router";
 import styles from "./Project.module.css";
 
 /**
- * PROJECT — HOP//BEAT. A specification and a picture, and it says so.
+ * PROJECT — HOP//BEAT. A playable prototype now, and it says exactly how much.
  *
- * Nothing is built. The page's job is to make that obvious while still being
- * worth reading: what the thing is, why it exists, and what it has to prove
- * before any of the rest matters. A project page that reads like a shipped
- * product and turns out to be a document is the kind of thing that costs
- * trust in an interview.
+ * This page was a specification and a picture, and its whole job was making
+ * that obvious: a project page that reads like a shipped product and turns out
+ * to be a document is the kind of thing that costs trust in an interview.
+ *
+ * There is a build now, so the same rule points the other way and is if
+ * anything more dangerous. A link labelled "play the game" that opens a
+ * tracking prototype with no music and no score is the same broken promise
+ * made in the opposite direction — and this time the person has already
+ * granted camera permission before finding out. So the link is here, near the
+ * top where it is useful, and what it opens is named on the line beneath it.
  */
+
+const PLAY_URL = "https://vcani003.github.io/hop-beat/";
+const SOURCE_URL = "https://github.com/vcani003/hop-beat";
 
 const IDEA: readonly { readonly claim: string; readonly because: string }[] = [
   {
@@ -50,6 +58,42 @@ export function HopBeat() {
           A rhythm game you play with your body. Music plays, targets arrive on
           beat, and an ordinary webcam turns the room you are standing in into
           the controller.
+        </p>
+
+        <p className={styles.open}>
+          <a
+            className={styles.openLink}
+            href={PLAY_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            data-text="body"
+          >
+            Try it in your browser
+            <span aria-hidden="true"> &#8599;</span>
+          </a>
+        </p>
+
+        {/* WHAT IT COSTS AND WHAT IT IS, before the click rather than after.
+            This asks for a camera, and the first load fetches a tracking model
+            — two things worth knowing while the choice is still yours. And it
+            is the input prototype, not the game in the sentence above it. */}
+        <p className={styles.note} data-text="body">
+          Needs a webcam, and the first load downloads a tracking model. This is
+          the input half: four targets and your body, with no music, no score
+          and none of the art below.
+        </p>
+
+        <p className={styles.secondary}>
+          <a
+            className={styles.secondaryLink}
+            href={SOURCE_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            data-text="body"
+          >
+            Read the source
+            <span aria-hidden="true"> &#8599;</span>
+          </a>
         </p>
       </header>
 
@@ -101,10 +145,17 @@ export function HopBeat() {
           Where it is
         </Meta>
         <p className={styles.body} data-text="body">
-          A specification and this picture. Nothing is built yet, on purpose:
-          the first thing to find out is whether a normal webcam can track a
+          The first thing to find out was whether a normal webcam can track a
           hand quickly and reliably enough to judge a beat at all. Everything
-          else is downstream of that answer, so it gets built first and alone.
+          else was downstream of that answer, so it got built first and alone:
+          camera, pose landmarks, four zones, and the moment a wrist crosses
+          into one. That part answers yes, and it is what the link above opens.
+        </p>
+        <p className={styles.body} data-text="body">
+          What is not there yet is the game — the clock, the judgment window,
+          the scoring, the art. The engine consumes zone events and has never
+          known where they come from, which is the boundary that lets the input
+          half and the rhythm half be built and replaced independently.
         </p>
         <p className={styles.body} data-text="body">
           The name keeps a thread back to Bunny Hop Player: hop is the movement,
@@ -114,7 +165,14 @@ export function HopBeat() {
 
       <p className={styles.back}>
         <Link to="home" className={styles.backLink}>
-          <Meta dataText="meta">Back</Meta>
+          {/* `as="span"` because this sits inside a `<p>` and inside an `<a>`.
+              `Meta` renders a `<p>` by default, which made every project page
+              emit `<p><a><p>…</p></a></p>` — invalid HTML, and React logged a
+              hydration error for it on each one. The register is unchanged;
+              only the element is. */}
+          <Meta as="span" dataText="meta">
+            Back
+          </Meta>
         </Link>
       </p>
     </main>

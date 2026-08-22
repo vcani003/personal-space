@@ -184,6 +184,28 @@
   opacity: 1;
 }
 
+/* WHAT THE LINK ABOVE ACTUALLY OPENS.
+   One step below the link and one step above nothing: dim, not faint, because
+   it is a caveat someone needs BEFORE they click — this one asks for a camera
+   — and a caveat nobody reads is a caveat that was not made.
+
+   It sits tight under the link rather than in the body flow, so it reads as
+   part of the link's own sentence instead of as the start of the page. */
+.note {
+  margin: 0;
+  margin-block-start: var(--space-2xs);
+  /* The page's own measure, not a narrower one. A caveat set to a different
+     line length reads as a pull-quote or a warning box; this is meant to read
+     as the rest of the sentence the link started. */
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  /* One step below `.body`'s muted. Quieter than the prose, louder than the
+     secondary link under it — which is the order of the three things stacked
+     here: go, know this first, or read instead. */
+  color: var(--color-foreground-dim);
+}
+
 /* A second destination, under the first. One step quieter, because it is for
    the smaller number of people who want to read a thing rather than use it —
    and because two links at equal weight is two links with no answer to
