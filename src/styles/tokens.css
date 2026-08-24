@@ -619,9 +619,11 @@
   --leading-doc: 1.7;         /* generous — see above; scanning needs air */
   --leading-doc-tight: 1.45;  /* tables, captions, list items */
 
-  /* Instrument Sans is variable on width as well as weight. The document runs
-     at full width; only the contents panel would ever narrow. */
-  --doc-width: 100%;
+  /* Instrument Sans is variable on width as well as weight. UNITLESS, because
+     it is fed to `font-variation-settings: "wdth" <number>` — a percentage
+     there is invalid and the whole declaration is dropped, silently, leaving
+     the axis at its default. Same form as `--meta-width` above. */
+  --doc-width: 100;
 
   /* The reading measure for a document. Wider than `--measure` (56ch, drawn
      for Eiko Thin) because these lines contain identifiers and code spans that

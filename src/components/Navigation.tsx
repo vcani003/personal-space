@@ -109,6 +109,24 @@ const SECTIONS: readonly NavEntry[] = [
          link and sits above the one that does not. Order follows what a
          visitor can actually reach. */
       { label: "hop//beat", indent: 1, state: "pending", route: "hopBeat" },
+
+      /* NEKO DANCER ARRIVES AS A CASE STUDY RATHER THAN AS A PROJECT, which is
+         why the label says so. There is no `projects/neko-dancer` page yet —
+         what exists is the system design write-up, and a nav entry reading
+         "Neko Dancer 2.0" that opens a specification would be the same broken
+         promise the hop//beat page's own note exists to avoid.
+
+         A SECOND STUDY IS COMING (product design). When it does, this stops
+         being one entry and becomes a project with two beneath it — at which
+         point the parent gets a page and these become its children. Adding
+         that structure now, for one item, would be inventing a hierarchy to
+         hold a single thing. */
+      {
+        label: "Neko Dancer 2.0 — system design",
+        indent: 1,
+        state: "pending",
+        route: "nekoSystemDesign",
+      },
       { label: "Banh Miow Drink Recipes (wip / migrating)", indent: 1, state: "wip" },
     ],
   },

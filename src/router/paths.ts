@@ -15,6 +15,11 @@ export const ROUTE_PATHS = {
   spatial: "projects/spatial",
   bunnyHop: "projects/bunny-hop",
   hopBeat: "projects/hop-beat",
+  /* CASE STUDIES sit under the project they are about, not in a folder of
+     their own. `projects/neko-dancer/system-design` says what it is from the
+     URL alone, and it leaves room for the second study — the product design
+     one — beside it rather than forcing a rename when it arrives. */
+  nekoSystemDesign: "projects/neko-dancer/system-design",
 } as const;
 
 export type RouteName = keyof typeof ROUTE_PATHS;

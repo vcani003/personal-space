@@ -1,0 +1,636 @@
+/* =============================================================================
+   CASE STUDY — the document layout and its blocks
+   =============================================================================
+
+   The project pages are one measured column and nothing else, because they are
+   short. This is not short. It is a specification with a contents panel, and it
+   is laid out like one:
+
+       ┌──────────────┬───────────────────────────────────┐
+       │  contents    │  the document                     │
+       │  (sticky)    │  (one measure, ~68ch)             │
+       └──────────────┴───────────────────────────────────┘
+
+   WHAT KEEPS IT THE SAME SITE. The atmosphere behind it, the tonal palette, the
+   metadata register on every label, the display face on the title and part
+   headings, `--font-prose` in the running copy exactly as the project pages now
+   use it, and hierarchy built from luminance with no accent colour anywhere.
+   What this page ADDS is a document's furniture — a contents panel, code,
+   tables, diagrams, a review annotation — and the sizes for it live in the
+   case-study block at the end of tokens.css.
+
+   NO PANELS, STILL. There is one bordered block on this page (the review
+   annotation) and it is temporary by design. Everything else is separated by
+   space and by luminance, exactly as elsewhere.
+   ========================================================================== */
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--contents-width) minmax(0, 1fr);
+  /* Column gap and row gap differ: the masthead needs less air under it than
+     the two columns need between them. */
+  column-gap: var(--space-lg);
+  row-gap: var(--space-sm);
+  align-items: start;
+
+  max-inline-size: var(--page-max-width);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter-inline);
+  padding-block: var(--page-gutter-block) var(--space-3xl);
+}
+
+/* The document column. `minmax(0, …)` on the grid track above is what stops a
+   wide code block or table from blowing the column out — without it a grid item
+   is sized by its content's minimum, and `overflow-x` on a child never gets a
+   chance to engage. */
+.document {
+  /* A measure, inside a column that may be wider than one. Left-aligned rather
+     than centred in its track: the document should sit against the contents
+     panel, not float away from it. */
+  max-inline-size: var(--measure-doc);
+  display: grid;
+  gap: var(--space-md);
+
+  /* THE WHOLE CHAIN NEEDS THIS, and leaving it off one link is enough to break
+     it. A grid item's automatic minimum size is its MIN-CONTENT size, and the
+     diagrams declare `min-inline-size: 30rem` so their labels stay legible. On
+     a 375px phone that 480px floor propagates all the way up — document,
+     section, figure — and widens the page itself, so every paragraph on it
+     overflows and the whole document scrolls sideways.
+
+     `min-inline-size: 0` says "you may be narrower than your contents", which
+     lets the diagram's own `overflow-x: auto` do the scrolling instead of the
+     page doing it. */
+  min-inline-size: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   THE HEADER
+   ------------------------------------------------------------------------ */
+
+.header {
+  /* Row one, both columns. See `Masthead` for why it is not simply the first
+     thing inside the document column. */
+  grid-column: 1 / -1;
+
+  display: grid;
+  gap: var(--space-xs);
+  margin-block-end: var(--space-sm);
+
+  /* The masthead spans the grid but its TEXT does not — a standfirst set across
+     1120px is a headline, not a sentence. */
+  & > * {
+    max-inline-size: var(--measure-doc);
+  }
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-display);
+  font-size: var(--text-display-lg);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground);
+  outline: none;
+}
+
+/* The standfirst — prose, one size up. The same treatment the project pages
+   give theirs, so a visitor arriving from one of them meets the same voice at
+   the same size, and only the density changes. */
+.standfirst {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-lyric);
+  color: var(--color-foreground-muted);
+}
+
+/* The working-title note under the standfirst. */
+.headerNote {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: var(--leading-doc-tight);
+  color: var(--color-foreground-dim);
+}
+
+/* ---------------------------------------------------------------------------
+   PARTS AND SECTIONS
+   ------------------------------------------------------------------------ */
+
+/* A part divider. The rule above it is the only horizontal line in the reading
+   column, and it earns its place: it is the one signal that a completely new
+   subject is starting, which twenty sections in a row otherwise blur. */
+.part {
+  margin-block-start: var(--space-lg);
+  padding-block-start: var(--space-sm);
+  border-block-start: 1px solid var(--color-rule);
+  color: var(--color-foreground-faint);
+}
+
+.part:first-of-type {
+  margin-block-start: 0;
+  padding-block-start: 0;
+  border-block-start: none;
+}
+
+.section {
+  display: grid;
+  gap: var(--space-sm);
+  min-inline-size: 0;
+
+  /* THE ANCHOR OFFSET. Without it, a jumped-to section lands with its heading
+     touching the top edge of the window — technically correct and horrible to
+     read, because there is no visual signal that you arrived at the START of
+     something. */
+  scroll-margin-block-start: var(--space-lg);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-display);
+  font-size: var(--text-display-sm);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-foreground);
+  /* Focused programmatically when the contents panel jumps here — a heading is
+     not a control and must not grow a ring; the scroll is the feedback. */
+  outline: none;
+}
+
+.headingFlag {
+  font-size: 0.55em;
+  vertical-align: 0.5em;
+}
+
+/* ---------------------------------------------------------------------------
+   PROSE
+   ------------------------------------------------------------------------ */
+
+.p {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc);
+  font-weight: var(--font-weight-prose);
+  font-variation-settings: "wdth" var(--doc-width);
+  line-height: var(--leading-doc);
+  color: var(--color-foreground-muted);
+  text-wrap: pretty;
+}
+
+.lead {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-lead);
+  font-weight: var(--font-weight-prose);
+  line-height: 1.55;
+  color: var(--color-foreground);
+  text-wrap: pretty;
+}
+
+.list,
+.steps {
+  margin: 0;
+  padding-inline-start: 1.4em;
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.list {
+  /* A hairline dash rather than a filled bullet. A page whose entire palette is
+     four steps of grey does not want nine solid dots down the left of it. */
+  list-style-type: "–  ";
+}
+
+.steps {
+  list-style-type: decimal;
+}
+
+.item {
+  font-family: var(--font-prose);
+  font-size: var(--text-doc);
+  line-height: var(--leading-doc-tight);
+  color: var(--color-foreground-muted);
+  /* The marker is structure, not content, so it sits at the quietest step that
+     still resolves — it should be countable, not readable. */
+  &::marker {
+    color: var(--color-foreground-ghost);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   CODE
+   -----------------------------------------------------------------------------
+   No syntax highlighting, and that is a decision rather than an omission. The
+   site has no accent colour; the moment code is coloured, it becomes the most
+   chromatic thing on a page whose whole argument is that emphasis is light.
+   Code here is EVIDENCE — a message name, a shape, a field list — and evidence
+   reads fine in one colour.
+   ------------------------------------------------------------------------ */
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  color: var(--color-foreground);
+  /* No background chip. A pill behind every identifier in a paragraph turns the
+     line into a row of buttons; a step up in luminance is enough to separate an
+     identifier from the prose around it. */
+  word-break: break-word;
+}
+
+.preWrap {
+  margin: 0;
+  display: grid;
+  gap: var(--space-3xs);
+  min-inline-size: 0;
+}
+
+.preLabel {
+  color: var(--color-foreground-dim);
+}
+
+.pre {
+  margin: 0;
+  padding: var(--space-sm);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+
+  font-family: var(--font-mono);
+  font-size: var(--text-doc-mono);
+  line-height: 1.6;
+  color: var(--color-foreground-muted);
+  tab-size: 2;
+
+  /* The one place a surface is drawn on this page, and it is drawn DOWNWARD —
+     a well below the field rather than a card above it. That direction matters:
+     a raised panel would make code look like an interface element, and this is
+     a quotation. */
+  background-color: var(--color-background-deep);
+  border-inline-start: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------------------------------------------------------------------------
+   DECISIONS
+   ------------------------------------------------------------------------ */
+
+.decision {
+  margin: 0;
+  display: grid;
+  gap: var(--space-3xs);
+}
+
+.claim {
+  font-family: var(--font-prose);
+  font-size: var(--text-doc);
+  font-weight: var(--font-weight-prose-strong);
+  line-height: var(--leading-doc-tight);
+  color: var(--color-foreground);
+}
+
+.because {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc);
+  line-height: var(--leading-doc);
+  color: var(--color-foreground-muted);
+  text-wrap: pretty;
+}
+
+/* A reason long enough to need paragraphs. The `<p>`s inherit the type from
+   `.because` above and need only their spacing back — `base.css` zeroes every
+   paragraph margin, so without this a three-part reason runs together into one
+   unbroken block. */
+.because > p + p {
+  margin-block-start: var(--space-2xs);
+}
+
+/* The lead-in of each part, where a multi-part reason is really a short list of
+   named positions. Same one-step luminance lift the claim itself uses. */
+.because strong {
+  font-weight: var(--font-weight-prose-strong);
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   PLAIN TERMS
+   -----------------------------------------------------------------------------
+   Set INSIDE the measure and marked with a rule on the leading edge, so it is
+   clearly an aside without becoming a box. One step quieter than the prose: a
+   reader who does not need it should be able to slide past it, and a reader who
+   does should find it exactly where the word was.
+   ------------------------------------------------------------------------ */
+
+.plain {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-inline-start: var(--space-sm);
+  border-inline-start: 1px solid var(--color-rule);
+}
+
+.plainLabel {
+  color: var(--color-foreground-ghost);
+}
+
+.plainBody {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: 1.6;
+  color: var(--color-foreground-dim);
+  text-wrap: pretty;
+}
+
+.plainTerm {
+  font-weight: var(--font-weight-prose-strong);
+  color: var(--color-foreground-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   WHAT ACTUALLY HAPPENED
+   -----------------------------------------------------------------------------
+   Marked with a rule on the leading edge, like the plain-terms aside — but at
+   the PROSE luminance rather than below it, because this is content and that is
+   a gloss. A reader skimming the predictions should still be caught by these;
+   a reader who already knows what a term means should be able to slide past a
+   `.plain` without noticing.
+
+   That is the entire difference between the two, and it is deliberate that
+   there is not more of one. Two asides that look unrelated read as two features
+   of a template. Two that share a rule and differ by one step of light read as
+   the same voice saying two things.
+   ------------------------------------------------------------------------ */
+
+.actually {
+  display: grid;
+  gap: var(--space-3xs);
+  padding-inline-start: var(--space-sm);
+  border-inline-start: 1px solid var(--color-edge);
+}
+
+.actuallyLabel {
+  color: var(--color-foreground-faint);
+}
+
+.actuallyBody {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.actuallyBody p {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: 1.65;
+  color: var(--color-foreground-muted);
+  text-wrap: pretty;
+}
+
+.actuallyBody strong {
+  font-weight: var(--font-weight-prose-strong);
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   THE REVIEW ANNOTATION — temporary, and it looks it
+   -----------------------------------------------------------------------------
+   The only bordered block in the document, and the only place a dashed line
+   appears anywhere on this site. Dashed because that is the visual language of
+   a draft mark: it says unfinished in a way a solid rule does not, and it
+   should look faintly wrong sitting in a page this quiet. When the questions
+   are answered these blocks are deleted and the dashes go with them.
+   ------------------------------------------------------------------------ */
+
+.review {
+  display: grid;
+  gap: var(--space-2xs);
+  padding: var(--space-sm);
+  border: 1px dashed var(--color-edge);
+  border-radius: var(--radius-sm);
+}
+
+.reviewLabel {
+  color: var(--color-foreground);
+}
+
+.reviewBody {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.reviewBody p {
+  margin: 0;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: 1.65;
+  color: var(--color-foreground-muted);
+  text-wrap: pretty;
+}
+
+.reviewBody strong {
+  font-weight: var(--font-weight-prose-strong);
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   FIGURES
+   -----------------------------------------------------------------------------
+   A figure is allowed to be WIDER THAN THE MEASURE. Prose stops at 68ch because
+   that is where a line becomes hard to track; a diagram has no lines to track
+   and is simply harder to read small. So figures break out to the full column
+   on wide screens, which is what the negative inline margin does.
+   ------------------------------------------------------------------------ */
+
+.figure {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2xs);
+  min-inline-size: 0;
+}
+
+.figureBody {
+  min-inline-size: 0;
+
+  /* Diagrams draw their own hairlines; the frame is the diagram's job, not the
+     figure's. An image inside one gets the edge, for the same reason the
+     project pages give theirs one: a bright screenshot with no edge reads as a
+     hole punched in a very dark page. */
+  & img {
+    border: 1px solid var(--color-edge);
+    border-radius: var(--radius-sm);
+  }
+}
+
+.caption {
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: var(--leading-doc-tight);
+  color: var(--color-foreground-dim);
+  text-wrap: pretty;
+}
+
+@media (min-width: 64rem) {
+  .figure {
+    /* Out to the full column, but never past it. */
+    max-inline-size: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   THE MISSING PICTURE
+   ------------------------------------------------------------------------ */
+
+.placeholder {
+  display: grid;
+  gap: var(--space-3xs);
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+
+  min-block-size: 11rem;
+  padding: var(--space-md);
+  border: 1px dashed var(--color-edge);
+  border-radius: var(--radius-sm);
+}
+
+.placeholderLabel {
+  color: var(--color-foreground-ghost);
+}
+
+.placeholderWhat {
+  margin: 0;
+  max-inline-size: 40ch;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: var(--leading-doc-tight);
+  color: var(--color-foreground-dim);
+  text-wrap: pretty;
+}
+
+.placeholderSource {
+  margin: 0;
+  max-inline-size: 40ch;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-foreground-ghost);
+}
+
+/* ---------------------------------------------------------------------------
+   TABLES
+   ------------------------------------------------------------------------ */
+
+.tableWrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  line-height: var(--leading-doc-tight);
+  text-align: start;
+}
+
+.tableCaption {
+  text-align: start;
+  padding-block-end: var(--space-2xs);
+  color: var(--color-foreground-dim);
+}
+
+.table :is(th, td) {
+  padding-block: var(--space-2xs);
+  padding-inline: 0 var(--space-sm);
+  text-align: start;
+  vertical-align: baseline;
+  border-block-end: 1px solid var(--color-rule);
+}
+
+.table th {
+  font-weight: var(--font-weight-prose-strong);
+  color: var(--color-foreground);
+}
+
+.table td {
+  color: var(--color-foreground-muted);
+}
+
+/* No vertical rules and no zebra striping. Row separation comes from the
+   hairline and from the luminance step between the first column and the rest —
+   the same device the decision list uses. */
+.table td:first-child {
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   LINKS IN THE DOCUMENT
+   ------------------------------------------------------------------------ */
+
+.link {
+  color: var(--color-foreground);
+  text-decoration: underline;
+  text-decoration-color: var(--color-edge);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--duration-response) var(--ease-out);
+}
+
+.link:hover,
+.link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+.back {
+  margin: 0;
+  margin-block-start: var(--space-lg);
+}
+
+.backLink {
+  color: var(--color-foreground-faint);
+  text-decoration: none;
+  transition: color var(--duration-response) var(--ease-out);
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+   NARROW
+   -----------------------------------------------------------------------------
+   One column. The contents panel becomes the disclosure at the top of the
+   document — see Contents.module.css, which owns that switch at the same
+   breakpoint. Both files use 64rem; changing one without the other leaves a
+   width with no contents panel at all.
+   ------------------------------------------------------------------------ */
+
+@media (max-width: 63.9375rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  /* One column, so the masthead's own measure is the column's measure. */
+  .header > * {
+    max-inline-size: none;
+  }
+
+  .title {
+    font-size: var(--text-display-md);
+  }
+}
+
+@media (max-width: 47.9375rem) {
+  .layout {
+    padding-inline: var(--space-md);
+  }
+
+  .title {
+    font-size: var(--text-display-sm);
+  }
+}

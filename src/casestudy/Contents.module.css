@@ -1,0 +1,204 @@
+/* =============================================================================
+   THE CONTENTS PANEL
+   =============================================================================
+
+   Quiet by construction. It is furniture around a document, and the moment it
+   competes with the document it is doing the opposite of its job — so it is set
+   in the metadata register, at the metadata's luminance, with the ONE bright
+   thing on it being wherever the reader currently is.
+
+   No box, no card, no border around the whole panel. The gap between the two
+   columns is what separates them; a rule would be a second, redundant answer to
+   a question the whitespace already answered.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   THE WIDE COLUMN
+   -----------------------------------------------------------------------------
+   Sticky rather than fixed. Fixed would take it out of the grid entirely and
+   leave the layout to guess at its width; sticky keeps it a real column that
+   simply stops scrolling once its top edge reaches the offset.
+
+   Its own `overflow-y: auto` with a bounded height, because the outline is
+   twenty entries and on a short laptop screen the last part would otherwise be
+   unreachable — a contents panel you cannot scroll to the bottom of is a
+   contents panel that hides its own end.
+   ------------------------------------------------------------------------ */
+
+.column {
+  position: sticky;
+  inset-block-start: var(--space-lg);
+  align-self: start;
+
+  max-block-size: calc(100dvh - var(--space-lg) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /* Room for the focus ring on the first and last entries, which would
+     otherwise be clipped by the scroll container. */
+  padding-block: var(--space-3xs);
+  padding-inline-end: var(--space-2xs);
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-foreground-ghost) transparent;
+}
+
+.nav {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.part {
+  display: grid;
+  gap: var(--space-3xs);
+}
+
+.partTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  color: var(--color-foreground-dim);
+}
+
+/* The part number, one step quieter than the part's own name. It is an index,
+   not a label — `01 / ORIENTATION` reads as numbering; `01 ORIENTATION` at one
+   luminance reads as a name that starts with a number. */
+.partNumber {
+  color: var(--color-foreground-ghost);
+  font-variant-numeric: tabular-nums;
+}
+
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* Tight. These are lines of one list, not paragraphs. */
+  gap: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   AN ENTRY
+   -----------------------------------------------------------------------------
+   The indent is drawn with a border rather than padding so the CURRENT entry
+   can light its own segment of it — the panel then reads as a single vertical
+   rule with one lit section, which is where you are. That is the same
+   luminance-only hierarchy the rest of the site uses; nothing here is coloured.
+
+   Padding is deliberately generous on the block axis: these are small targets
+   and a list of them with no vertical air is a list that is hard to hit with a
+   finger and hard to read with an eye.
+   ------------------------------------------------------------------------ */
+
+.entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+
+  padding-block: 0.42em;
+  padding-inline-start: var(--space-2xs);
+  border-inline-start: 1px solid var(--color-rule);
+
+  font-family: var(--font-prose);
+  font-size: var(--text-doc-sm);
+  font-weight: var(--font-weight-prose);
+  line-height: var(--leading-doc-tight);
+  color: var(--color-foreground-dim);
+  text-decoration: none;
+
+  transition:
+    color var(--duration-response) var(--ease-out),
+    border-color var(--duration-response) var(--ease-out);
+}
+
+.entry:hover,
+.entry:focus-visible {
+  color: var(--color-foreground-muted);
+  border-inline-start-color: var(--color-edge);
+}
+
+/* WHERE YOU ARE. Full contrast and a lit rule segment — the only two bright
+   things in the panel, and they are the same signal drawn twice so it survives
+   both a glance and a greyscale screenshot. */
+.entry[aria-current="location"] {
+  color: var(--color-foreground);
+  border-inline-start-color: var(--color-accent);
+}
+
+.entryTitle {
+  /* `text-wrap: balance` is wrong for a two-line entry in a narrow column — it
+     produces a long line over a one-word orphan. `pretty` only prevents the
+     orphan, which is the actual problem here. */
+  text-wrap: pretty;
+}
+
+/* The review flag. Sized down slightly: emoji render large against 15px text
+   and an unadjusted one turns every flagged entry into a two-line entry. */
+.flag {
+  font-size: 0.85em;
+  line-height: 1;
+  /* Emoji ignore `color`, so it cannot be dimmed with the rest of the entry —
+     which is fine. It is meant to be the thing the eye finds. */
+  flex: none;
+}
+
+/* ---------------------------------------------------------------------------
+   THE NARROW DISCLOSURE
+   -----------------------------------------------------------------------------
+   `display: none` and not `visibility` or a clip: the panel is rendered twice,
+   once per breakpoint, and only one of the two may exist in the accessibility
+   tree at a time. A hidden-but-present duplicate would give a screen reader two
+   identical "Contents" navigation landmarks and no way to tell them apart.
+   ------------------------------------------------------------------------ */
+
+.disclosure {
+  display: none;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding-block: var(--space-2xs);
+  cursor: pointer;
+  color: var(--color-foreground-faint);
+  /* The default triangle is a browser UI element in a page that has none.
+     A caret drawn in `::after` below sits on the type instead. */
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::after {
+  content: "";
+  inline-size: 0.45em;
+  block-size: 0.45em;
+  border-inline-end: 1px solid currentColor;
+  border-block-end: 1px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -0.15em;
+  transition: rotate var(--duration-response) var(--ease-out);
+}
+
+.disclosure[open] .summary::after {
+  rotate: 225deg;
+  translate: 0 0.1em;
+}
+
+@media (max-width: 63.9375rem) {
+  .column {
+    display: none;
+  }
+
+  .disclosure {
+    display: block;
+    border-block-end: 1px solid var(--color-rule);
+    margin-block-end: var(--space-md);
+  }
+
+  .disclosure .nav {
+    padding-block: var(--space-2xs) var(--space-sm);
+  }
+}

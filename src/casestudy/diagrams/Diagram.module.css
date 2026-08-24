@@ -1,0 +1,172 @@
+/* =============================================================================
+   DIAGRAMS — drawn, not screenshotted
+   =============================================================================
+
+   Every diagram on this page is inline SVG built from the site's own tokens.
+   Nothing here is an exported image, and that is worth the extra work for four
+   reasons that all bite eventually:
+
+     1. It is TEXT. It is searchable, selectable, and it survives a screen
+        reader — an exported PNG of a system diagram is a wall to anyone not
+        looking at it.
+     2. It matches the palette automatically. A diagram exported from any other
+        tool is a rectangle of that tool's grey sitting in this page's grey.
+     3. It is sharp at every size and weighs nothing.
+     4. It changes when the design does. A screenshot of an architecture is out
+        of date the first time the architecture moves, and nobody re-exports it.
+
+   THE ONE RULE: no colour. Diagrams are built from the same four luminance
+   steps as the prose, so a box matters because it is brighter, not because it
+   is blue. Same argument as the accent tokens in tokens.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   THE SCROLL FRAME
+   -----------------------------------------------------------------------------
+   An SVG that scales to its container looks like the right answer and is not:
+   at 360px the labels inside a 640-unit drawing render at seven pixels, which
+   is decoration rather than a diagram. So a diagram has a MINIMUM WIDTH and
+   scrolls horizontally below it — legible and reachable beats fitted and
+   unreadable.
+
+   `tabindex` is applied by the component, because a region that scrolls must be
+   scrollable from the keyboard.
+   ------------------------------------------------------------------------ */
+
+.frame {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-block: var(--space-2xs);
+  /* See the long note on `.document` in CaseStudy.module.css — the whole
+     ancestor chain has to allow itself to be narrower than this box's contents,
+     or the page scrolls sideways instead of the diagram doing it. */
+  min-inline-size: 0;
+}
+
+.svg {
+  inline-size: 100%;
+  min-inline-size: 30rem;
+  block-size: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   THE DRAWING VOCABULARY
+   -----------------------------------------------------------------------------
+   Four kinds of mark, and a diagram should not need a fifth:
+
+     .box       a thing that exists
+     .boxLead   a thing the diagram is ABOUT — one per drawing, at most
+     .line      a relationship
+     .lineSoft  a relationship that is weaker, optional, or not yet built
+     .zone      a boundary drawn around several things
+
+   Text has three steps matching the prose: .label, .labelQuiet, .labelMono.
+   ------------------------------------------------------------------------ */
+
+.box {
+  fill: var(--color-background-deep);
+  stroke: var(--color-edge);
+  stroke-width: 1;
+}
+
+.boxLead {
+  fill: var(--color-background-raised);
+  stroke: var(--color-accent-quiet);
+  stroke-width: 1;
+}
+
+.boxGhost {
+  fill: none;
+  stroke: var(--color-rule);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.line {
+  stroke: var(--color-foreground-ghost);
+  stroke-width: 1;
+  fill: none;
+}
+
+.lineStrong {
+  stroke: var(--color-foreground-faint);
+  stroke-width: 1;
+  fill: none;
+}
+
+.lineSoft {
+  stroke: var(--color-foreground-ghost);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  fill: none;
+}
+
+.head {
+  fill: var(--color-foreground-faint);
+}
+
+.headQuiet {
+  fill: var(--color-foreground-ghost);
+}
+
+.zone {
+  fill: none;
+  stroke: var(--color-rule);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+
+.label {
+  fill: var(--color-foreground);
+  font-family: var(--font-prose);
+  font-size: 14px;
+  font-weight: var(--font-weight-prose-strong);
+}
+
+.labelQuiet {
+  fill: var(--color-foreground-dim);
+  font-family: var(--font-prose);
+  font-size: 12.5px;
+  font-weight: var(--font-weight-prose);
+}
+
+.labelFaint {
+  fill: var(--color-foreground-ghost);
+  font-family: var(--font-prose);
+  font-size: 11.5px;
+  font-weight: var(--font-weight-prose);
+}
+
+.labelMono {
+  fill: var(--color-foreground-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* The zone caption — the word on a dashed boundary. Uppercase and tracked out,
+   which is the metadata register's job everywhere else on the site. */
+.zoneLabel {
+  fill: var(--color-foreground-ghost);
+  font-family: var(--font-meta);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tick {
+  stroke: var(--color-foreground-ghost);
+  stroke-width: 1;
+}
+
+.tickStrong {
+  stroke: var(--color-foreground);
+  stroke-width: 1.5;
+}
+
+.note {
+  fill: var(--color-foreground);
+}
+
+.noteGhost {
+  fill: var(--color-foreground-ghost);
+}

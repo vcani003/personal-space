@@ -1,0 +1,1 @@
+export { NekoSystemDesign } from "./NekoSystemDesign";
