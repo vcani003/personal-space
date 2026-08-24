@@ -194,6 +194,50 @@
   --font-display: "PP Eiko", var(--font-fallback-display);
   --font-meta: "Instrument Sans", var(--font-fallback-meta);
 
+  /* =========================================================================
+     --font-prose — READING COPY, AND WHY IT IS NO LONGER THE DISPLAY FACE
+     =========================================================================
+
+     This file used to set reading copy in PP Eiko Thin, and the note below
+     `--font-weight-body` argued for it at length: Thin rendered delicate and
+     completely legible at 19px, Medium read nearly bold. That comparison was
+     right and it was answering the wrong question. It compared two Eiko
+     weights against each other in SHORT samples. It never asked whether a
+     high-contrast display face is the right thing to read four paragraphs of.
+
+     It is not. The same note already conceded the cost — "hairlines are
+     genuinely harder to read on a non-retina display and for low-vision
+     readers" — and treated it as a tradeoff bought back with contrast. What
+     contrast cannot buy back is the cumulative effort of a face whose thick
+     and thin strokes swing that far, held for a whole page. The site owner's
+     words, which are the measurement that matters: "hard to read... too thin
+     and tedious when its multiparagraph text."
+
+     So reading copy gets its own family and Eiko keeps what it is good at:
+     the name, the titles, the quote, the things you look at rather than read.
+
+     INSTRUMENT SANS, WHICH IS ALREADY HERE. Self-hosted, variable 400–700,
+     latin and latin-ext subsets already downloaded for the metadata register.
+     Choosing it costs the visitor zero additional bytes, and — unlike Eiko,
+     which is a trial licence and is gitignored out of every build — it is a
+     face this site can actually deploy. Reading copy on the live site was
+     falling back to Didot/Georgia anyway; now it is a decision instead of a
+     fallback.
+
+     ── THIS MAKES IT THREE REGISTERS, NOT TWO ──────────────────────────────
+
+     `Meta.tsx` says there are exactly two voices and no third. That is now
+     one voice short, and pretending otherwise by routing prose through
+     `--font-meta` would be worse: the metadata register is 11px, uppercase and
+     tracked out, and a paragraph inheriting a token named "meta" is how a
+     label's letter-spacing ends up on a page of prose six months from now.
+
+     The two SANS registers stay apart on every axis except family — size,
+     case, tracking, weight and colour — which is the ordinary way one text
+     face carries two jobs. The distinction the site actually trades on is
+     unchanged: Eiko speaks, everything else informs. */
+  --font-prose: "Instrument Sans", var(--font-fallback-meta);
+
   /* -- Weights ------------------------------------------------------------ */
   /* Eiko trial ships Thin / Medium / Heavy upright + Light Italic / Black
      Italic. There is NO upright Light. Thin is the display weight. */
@@ -223,8 +267,18 @@
      amount of text instead.
 
      Medium is now rare emphasis only. If a block of Medium is longer than a
-     sentence, it is probably meant to be Thin. */
-  --font-weight-body: 100;            /* PP Eiko Thin — all reading copy */
+     sentence, it is probably meant to be Thin.
+
+     SUPERSEDED FOR PROSE, kept for the display register. Reading copy moved to
+     `--font-prose` — see the note beside it. Everything above still governs
+     Eiko wherever Eiko is still used, which is the headings and the quote. */
+  --font-weight-body: 100;            /* PP Eiko Thin — DISPLAY-register copy */
+
+  /* Regular. A sans set at 100 would reproduce the exact problem this change
+     exists to fix, and 500 at reading size on a dark field blooms. 400 is the
+     weight the face is drawn to be read at. */
+  --font-weight-prose: 400;
+  --font-weight-prose-strong: 600;
 
   /* -- Display register (PP Eiko) ----------------------------------------- */
   /* Eiko never appears small. Roughly 48–80px is where it earns its keep;
@@ -526,4 +580,55 @@
     --parallax-near: 0px;
     --parallax-foreground: 0px;
   }
+}
+
+/* =============================================================================
+   CASE STUDY TOKENS — a document built out of the prose register
+   =============================================================================
+
+   NOT A FOURTH REGISTER. Reading copy already moved to `--font-prose` (see the
+   long note beside it above), which is the change this block was originally
+   written to make and no longer has to. Everything here consumes that family;
+   nothing here declares one.
+
+   What a case study needs that a project page does not is narrower: a
+   monospace for evidence, a set of sizes tuned for three thousand words rather
+   than four paragraphs, a wider measure, and one width for the contents panel.
+
+   Scope: `src/casestudy/**`. If a second place wants these, that is the moment
+   to ask whether the site has a document format or whether that place is also
+   a case study.
+   ========================================================================== */
+
+:root {
+  /* MONOSPACE. Not a hosted font — a stack. Code appears in a case study as
+     evidence (a message name, a note object, a shape) rather than as something
+     to be typed from, so the reader's own mono is the right answer and a
+     fourth webfont is not. */
+  --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* Sizes. 17px rather than the page's 19px: a document is scanned as often as
+     it is read, and a slightly smaller size with more leading puts more of the
+     structure on screen at once without costing legibility. */
+  --text-doc-lead: 1.25rem;   /* 20px — the one larger paragraph in a section */
+  --text-doc: 1.0625rem;      /* 17px — reading copy */
+  --text-doc-sm: 0.9375rem;   /* 15px — captions, table cells, asides */
+  --text-doc-mono: 0.875rem;  /* 14px — mono runs large; this matches 17px sans */
+
+  --leading-doc: 1.7;         /* generous — see above; scanning needs air */
+  --leading-doc-tight: 1.45;  /* tables, captions, list items */
+
+  /* Instrument Sans is variable on width as well as weight. The document runs
+     at full width; only the contents panel would ever narrow. */
+  --doc-width: 100%;
+
+  /* The reading measure for a document. Wider than `--measure` (56ch, drawn
+     for Eiko Thin) because these lines contain identifiers and code spans that
+     must not wrap every third word. */
+  --measure-doc: 68ch;
+
+  /* The contents panel. One number, because the layout grid, the sticky column
+     and the narrow-screen breakpoint all have to agree on it. */
+  --contents-width: 17rem;
 }

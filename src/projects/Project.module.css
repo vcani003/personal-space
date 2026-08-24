@@ -53,7 +53,8 @@
 .standfirst {
   margin: 0;
   margin-block-start: var(--space-xs);
-  font-family: var(--font-display);
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
   font-size: var(--text-body-lg, var(--text-body));
   line-height: var(--leading-lyric);
   color: var(--color-foreground-muted);
@@ -66,7 +67,8 @@
 
 .body {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   color: var(--color-foreground-muted);
@@ -96,7 +98,8 @@
 }
 
 .claim {
-  font-family: var(--font-display);
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   color: var(--color-foreground);
@@ -106,7 +109,8 @@
   /* `<dd>` carries a browser default indent that would misalign it under its
      own term. */
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   color: var(--color-foreground-dim);
@@ -159,6 +163,12 @@
   display: inline-block;
   position: relative;
   font-family: var(--font-display);
+  /* Declared, not inherited. These sat at Eiko Thin only because the
+     document default was Eiko Thin; with reading copy as the default they
+     silently asked for 400, which Eiko has no upright for and which the
+     browser resolves to Medium. That is the "reads nearly bold" weight
+     tokens.css spent a paragraph rejecting for anything but rare emphasis. */
+  font-weight: var(--font-weight-display);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   color: var(--color-foreground);
@@ -197,7 +207,8 @@
   /* The page's own measure, not a narrower one. A caveat set to a different
      line length reads as a pull-quote or a warning box; this is meant to read
      as the rest of the sentence the link started. */
-  font-family: var(--font-display);
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   /* One step below `.body`'s muted. Quieter than the prose, louder than the
@@ -217,6 +228,12 @@
 
 .secondaryLink {
   font-family: var(--font-display);
+  /* Declared, not inherited. These sat at Eiko Thin only because the
+     document default was Eiko Thin; with reading copy as the default they
+     silently asked for 400, which Eiko has no upright for and which the
+     browser resolves to Medium. That is the "reads nearly bold" weight
+     tokens.css spent a paragraph rejecting for anything but rare emphasis. */
+  font-weight: var(--font-weight-display);
   font-size: var(--text-body);
   line-height: var(--leading-body);
   color: var(--color-foreground-dim);

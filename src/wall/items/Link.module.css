@@ -51,6 +51,15 @@
    apart from the photograph, which is the point: a bookmark is a destination
    and it says its own name out loud. */
 .title {
+  /* Opts into display SIZES, so it must opt into the display FAMILY too —
+     it used to inherit it from the document default, which is now prose. */
+  font-family: var(--font-display);
+  /* Declared, not inherited. These sat at Eiko Thin only because the
+     document default was Eiko Thin; with reading copy as the default they
+     silently asked for 400, which Eiko has no upright for and which the
+     browser resolves to Medium. That is the "reads nearly bold" weight
+     tokens.css spent a paragraph rejecting for anything but rare emphasis. */
+  font-weight: var(--font-weight-display);
   font-size: var(--text-display-sm);
 }
 

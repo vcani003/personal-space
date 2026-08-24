@@ -71,6 +71,12 @@
 
 .figcaption {
   font-family: var(--font-display);
+  /* Declared, not inherited. These sat at Eiko Thin only because the
+     document default was Eiko Thin; with reading copy as the default they
+     silently asked for 400, which Eiko has no upright for and which the
+     browser resolves to Medium. That is the "reads nearly bold" weight
+     tokens.css spent a paragraph rejecting for anything but rare emphasis. */
+  font-weight: var(--font-weight-display);
   font-size: var(--text-body);
   line-height: var(--leading-lyric);
   color: var(--color-foreground-dim);
@@ -97,7 +103,8 @@
 
 .paragraph {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-prose);
+  font-weight: var(--font-weight-prose);
 
   /* A step below the site's reading size. The lifted words below are what
      carry this block now, and they only read as lifted against something

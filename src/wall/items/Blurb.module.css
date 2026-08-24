@@ -76,6 +76,15 @@
    very few of them — the emptiness around it is most of the effect, so a
    `feature` blurb needs the space its neighbours would have used. */
 .blurb[data-emphasis="feature"] .text {
+  /* Opts into display SIZES, so it must opt into the display FAMILY too —
+     it used to inherit it from the document default, which is now prose. */
+  font-family: var(--font-display);
+  /* Declared, not inherited. These sat at Eiko Thin only because the
+     document default was Eiko Thin; with reading copy as the default they
+     silently asked for 400, which Eiko has no upright for and which the
+     browser resolves to Medium. That is the "reads nearly bold" weight
+     tokens.css spent a paragraph rejecting for anything but rare emphasis. */
+  font-weight: var(--font-weight-display);
   font-size: var(--text-display-md);
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);

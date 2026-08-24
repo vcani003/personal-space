@@ -84,6 +84,12 @@
   margin-block-start: var(--space-lg);
 
   font-family: var(--font-display);
+  /* Declared, not inherited. These sat at Eiko Thin only because the
+     document default was Eiko Thin; with reading copy as the default they
+     silently asked for 400, which Eiko has no upright for and which the
+     browser resolves to Medium. That is the "reads nearly bold" weight
+     tokens.css spent a paragraph rejecting for anything but rare emphasis. */
+  font-weight: var(--font-weight-display);
   font-size: var(--text-display-sm);
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);

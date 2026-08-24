@@ -55,9 +55,14 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 
-  font-family: var(--font-display);
+  /* THE DOCUMENT DEFAULT IS READING COPY, not the display face. It was Eiko
+     Thin, which meant anything that forgot to declare a family inherited a
+     hairline display face to read. Every element that genuinely wants Eiko
+     asks for it by name — there are eighteen such declarations — so this
+     flipping affects only the things that never chose. */
+  font-family: var(--font-prose);
   font-size: var(--text-body);
-  font-weight: var(--font-weight-display);
+  font-weight: var(--font-weight-prose);
   line-height: var(--leading-body);
 
   /* LEAD: font smoothing is a visual call. Light hairline type on a dark
@@ -68,17 +73,25 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Headings inherit the display register but carry no size of their own — sizes
-   come from tokens at the point of use, so the two-register rule is enforced
-   by composition rather than by tag name. */
+/* Headings carry the display register but no size of their own — sizes come
+   from tokens at the point of use, so the register rule is enforced by
+   composition rather than by tag name.
+
+   THE FAMILY IS DECLARED HERE NOW, and it did not used to be. These rules set
+   every display property except the one that makes it the display face, and
+   got that by inheriting the document default. The moment reading copy became
+   the default, every heading silently became reading copy — the site owner's
+   own name included, which is how this was caught. Display is a thing an
+   element ASKS for; it is never what you get by not choosing. */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-display);
   font-size: inherit;
-  font-weight: inherit;
+  font-weight: var(--font-weight-display);
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);
   text-wrap: balance;
