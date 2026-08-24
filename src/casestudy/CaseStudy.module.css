@@ -438,10 +438,16 @@
 /* ---------------------------------------------------------------------------
    FIGURES
    -----------------------------------------------------------------------------
-   A figure is allowed to be WIDER THAN THE MEASURE. Prose stops at 68ch because
-   that is where a line becomes hard to track; a diagram has no lines to track
-   and is simply harder to read small. So figures break out to the full column
-   on wide screens, which is what the negative inline margin does.
+   A figure sits at the document's own measure, same as the prose. It was going
+   to break out wider — a diagram has no lines to track, so the 68ch limit is
+   not really about it — and that turned out to buy nothing: the document column
+   is only about a hundred pixels wider than the measure at any realistic
+   viewport, so breaking out would have bought a few percent of width in
+   exchange for every figure sitting on a different left edge from the paragraph
+   introducing it.
+
+   Diagrams instead solve small-screen legibility with their own minimum width
+   and horizontal scroll — see Diagram.module.css.
    ------------------------------------------------------------------------ */
 
 .figure {
@@ -453,15 +459,19 @@
 
 .figureBody {
   min-inline-size: 0;
+}
 
-  /* Diagrams draw their own hairlines; the frame is the diagram's job, not the
-     figure's. An image inside one gets the edge, for the same reason the
-     project pages give theirs one: a bright screenshot with no edge reads as a
-     hole punched in a very dark page. */
-  & img {
-    border: 1px solid var(--color-edge);
-    border-radius: var(--radius-sm);
-  }
+/* AN IMAGE, as opposed to a diagram.
+   Diagrams draw their own hairlines and need no frame. A photograph or a
+   screenshot gets an edge, for the same reason the project pages give theirs
+   one: a bright image dropped into a page this dark reads as a hole punched in
+   it rather than as an object sitting on it. */
+.image {
+  inline-size: 100%;
+  block-size: auto;
+  display: block;
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-sm);
 }
 
 .caption {
@@ -470,13 +480,6 @@
   line-height: var(--leading-doc-tight);
   color: var(--color-foreground-dim);
   text-wrap: pretty;
-}
-
-@media (min-width: 64rem) {
-  .figure {
-    /* Out to the full column, but never past it. */
-    max-inline-size: none;
-  }
 }
 
 /* ---------------------------------------------------------------------------

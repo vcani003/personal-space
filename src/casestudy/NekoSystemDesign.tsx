@@ -1,4 +1,5 @@
 import { Meta } from "../components/Meta";
+import { assetUrl } from "../lib/assets";
 import { Link } from "../router";
 import { Contents } from "./Contents";
 import {
@@ -106,10 +107,14 @@ export function NekoSystemDesign() {
             The goal is not to make DDR in a browser. Solving that is a weekend.
             The goal is the room.
           </P>
-          <Figure caption="The original, for reference — the room, the queue, the chat and the four lanes. The composition of the screen is the product, and most of this document is about what has to be true underneath it.">
-            <PicturePlaceholder
-              what="The original Nekodancer room screen — players, chat, song queue, and the falling-arrow field."
-              source="Archive footage or a wiki screenshot. Check the licence before it goes on a public page."
+          <Figure caption="Nekodancer, Atelier 801 — a room mid-song. Eleven cats on a rooftop, a video playing on the wall, four lanes at the bottom left, a live ranking at the right and the chat carrying on underneath. Almost none of that is the rhythm game, and all of it is why people stayed.">
+            <img
+              className={styles.image}
+              src={assetUrl("projects/nekodancer-original.jpg")}
+              alt="A Nekodancer room in play. Eleven cat avatars in hoodies and caps stand across a fenced rooftop court, several caught mid-pose leaning left or right. A video plays on a screen mounted on the fence behind them. Coloured arrows drift up the court. Bottom left, four large arrows sit above a score reading 2303 and 100 per cent, with a health bar and a x2 multiplier. A ranked list of players runs down the right edge, and a chat conversation in Spanish runs along the bottom. A header bar shows time remaining and a cat count."
+              width={1400}
+              height={794}
+              decoding="async"
             />
           </Figure>
         </Section>

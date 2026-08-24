@@ -54,13 +54,29 @@ mkdir -p "$OUT_DIR"
 # like a deliberate framed panel rather than a mistake. Charms are typically
 # transparent PNGs, so the format cannot be a fixed choice.
 #
-# `alphaextract` fails on an image with no alpha, which is the test.
-if ffmpeg -loglevel quiet -i "$SRC" -vf alphaextract -frames:v 1 -f null - 2>/dev/null; then
+# THE TEST IS WHETHER THE ALPHA IS USED, NOT WHETHER IT EXISTS. This used to ask
+# `alphaextract` whether the image HAS an alpha channel, and a great many files
+# have one that is fully opaque in every pixel — every macOS screenshot, for a
+# start. Those were routed to PNG, which for a photographic image is roughly
+# eight times the bytes of the identical-looking JPEG. A 3.7MB screenshot came
+# out as a 1.6MB PNG where a 200KB JPEG was indistinguishable.
+#
+# So the alpha channel is extracted as greyscale and the bytes that are NOT 0xFF
+# are counted. `tr -d` deletes every fully-opaque byte; whatever is left is real
+# transparency. An image with no alpha channel at all makes `alphaextract` fail
+# and emit nothing, which counts as zero and lands on JPEG — the same answer the
+# old test gave, by a route that also covers the opaque-channel case.
+NON_OPAQUE="$(ffmpeg -loglevel error -i "$SRC" -vf "alphaextract,format=gray" \
+  -f rawvideo - 2>/dev/null | LC_ALL=C tr -d '\377' | wc -c | tr -d ' ')"
+
+if [[ "$NON_OPAQUE" -gt 0 ]]; then
   HAS_ALPHA=1
   OUT="$OUT_DIR/$NAME.png"
+  echo "  transparency: $NON_OPAQUE non-opaque pixels → PNG"
 else
   HAS_ALPHA=0
   OUT="$OUT_DIR/$NAME.jpg"
+  echo "  transparency: none used → JPEG"
 fi
 
 WORK="$(mktemp -d)"
@@ -110,6 +126,42 @@ if [[ "$HAS_ALPHA" == "1" ]]; then
     -vf "scale='min($MAX_WIDTH,iw)':-2" \
     -map_metadata -1 \
     "$OUT"
+
+  # ── AND THEN STRIP THE CHUNKS FFMPEG WRITES ANYWAY ──────────────────────
+  #
+  # `-map_metadata -1` drops the CONTAINER's metadata. PNG metadata is not in a
+  # container — it is chunks in the file — and ffmpeg's PNG encoder writes an
+  # `eXIf` chunk from the decoded frame's side data regardless of that flag.
+  # Verified: `-map_metadata:s:v -1`, `-bitexact`, `-sn -dn` and every
+  # combination of them leave it in place.
+  #
+  # It was the verification step at the bottom that caught this, by refusing a
+  # file and deleting it — which is the whole reason that step exists rather
+  # than trusting the flag. The chunk in the case that found it held only
+  # dimensions and the word "Screenshot", but "this one was harmless" is not a
+  # policy, and the next one is a phone photo.
+  #
+  # PNG is a length-prefixed chunk format, so dropping the metadata chunks is a
+  # straight rewrite. Everything structural is kept; only the four chunks that
+  # carry text or EXIF are removed.
+  python3 - "$OUT" <<'STRIP_PNG_CHUNKS'
+import sys, struct
+
+path = sys.argv[1]
+data = open(path, "rb").read()
+DROP = {b"eXIf", b"tEXt", b"iTXt", b"zTXt", b"tIME"}
+
+out, i = [data[:8]], 8            # 8-byte PNG signature
+while i < len(data):
+    (length,) = struct.unpack(">I", data[i : i + 4])
+    kind = data[i + 4 : i + 8]
+    end = i + 12 + length         # length + type + payload + CRC
+    if kind not in DROP:
+        out.append(data[i:end])
+    i = end
+
+open(path, "wb").write(b"".join(out))
+STRIP_PNG_CHUNKS
 else
   ffmpeg -loglevel error -y \
     -i "$INPUT" \
@@ -140,6 +192,9 @@ DIMS="$(sips -g pixelWidth -g pixelHeight "$OUT" | awk '/pixel/ {printf "%s ", $
 
 echo "  ✓ clean — no location, no camera, no timestamp"
 echo "output:  public/assets/wall/$(basename "$OUT")"
+# The wall is where images usually go, and it is not where they must stay.
+# Anything for a project page or a case study gets moved after import; the
+# guarantee this script makes is about the file's CONTENTS, not its folder.
 echo "  ${DIMS}px · $SRC_SIZE → $OUT_SIZE"
 echo
 echo "reference it in src/content/wall.ts as: wall/$(basename "$OUT")"
